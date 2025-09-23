@@ -18,5 +18,7 @@ TODOS:
 - The equation: firstDayOfTheMonth until currentDay - 1 (yesterday)
 
 # Notes
-- time_from and time_to on v2.order.get_order_list spans at maximum 14 days,
+- time_from and time_to on v2.order.get_order_list spans at maximum 15 days,
+should think of the workaround
+- page_size: the number of orders fetched are limited at 100 per request, 
 should think of the workaround

@@ -123,6 +123,7 @@ app.get('/orders', async (req, res) => {
             time_range_field: timeRangeField,
             time_from: timeFrom,
             time_to: timeTo,
+            page_size: 100,
             response_optional_fields: 'order_status',
         });
 
