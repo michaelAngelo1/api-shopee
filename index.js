@@ -93,52 +93,154 @@ async function refreshToken() {
     }
 }
 
+
+const jakartaOffset = 7 * 60 * 60; // UTC+7 in seconds
+
+function getJakartaTimestampTimeFrom(year, month, day, hour, minute, second) {
+    // month is 0-based in JS Date
+    const date = new Date(Date.UTC(year, month, day, hour, minute, second));
+    // ADD 7 hours to get Jakarta time in UTC
+    return Math.floor(date.getTime() / 1000) + jakartaOffset;
+}
+
+function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
+    // month is 0-based in JS Date
+    const date = new Date(Date.UTC(year, month, day, hour, minute, second));
+    // ADD 7 hours to get Jakarta time in UTC
+    return Math.floor(date.getTime() / 1000);
+}
+
+
 app.get('/orders', async (req, res) => {
     try {
         
         const now = new Date();
+        let response;
         
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59);
+        // Jakarta time for first day of month, 00:00:00
+        const timeFrom = getJakartaTimestampTimeFrom(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        // Jakarta time for yesterday, 23:59:59
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const timeTo = getJakartaTimestampTimeTo(
+            yesterday.getFullYear(),
+            yesterday.getMonth(),
+            yesterday.getDate(),
+            23, 59, 59
+        );
+
+        // If date is around 1 - 16
+        if(now.getDate() <= 16) {
+
+            
+            const timestamp = Math.floor(Date.now() / 1000);
+            
+    
+            // const timeFrom = 1758423113;
+            // const timeTo = 1758509513;
+            
+            const timeRangeField = 'create_time';
+    
+            const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+            const sign = crypto.createHmac('sha256', PARTNER_KEY)
+                .update(baseString)
+                .digest('hex');
+    
+            // Shopee API Request Parameters
+            const params = new URLSearchParams({
+                partner_id: PARTNER_ID,
+                timestamp: timestamp,
+                access_token: ACCESS_TOKEN,
+                shop_id: SHOP_ID,
+                sign: sign,
+                time_range_field: timeRangeField,
+                time_from: timeFrom,
+                time_to: timeTo,
+                page_size: 100,
+                response_optional_fields: 'order_status',
+            });
+    
+            const fullUrl = `${HOST}${PATH}?${params.toString()}`;
+    
+            console.log("Hitting Order List endpoint:", fullUrl);
+    
+            // Order List API Call
+            response = await axios.get(fullUrl, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            res.json(response.data);
         
-        const timestamp = Math.floor(Date.now() / 1000);
-        
-        const timeFrom = Math.floor(firstDayOfMonth.getTime() / 1000);
-        const timeTo = Math.floor(yesterday.getTime() / 1000);
-        
-        const timeRangeField = 'create_time';
+        } else {
 
-        const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
-        const sign = crypto.createHmac('sha256', PARTNER_KEY)
-            .update(baseString)
-            .digest('hex');
+            let intervals = [];
+            let start = timeFrom;
 
-        // Shopee API Request Parameters
-        const params = new URLSearchParams({
-            partner_id: PARTNER_ID,
-            timestamp: timestamp,
-            access_token: ACCESS_TOKEN,
-            shop_id: SHOP_ID,
-            sign: sign,
-            time_range_field: timeRangeField,
-            time_from: timeFrom,
-            time_to: timeTo,
-            page_size: 100,
-            response_optional_fields: 'order_status',
-        });
-
-        const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-
-        console.log("Hitting Order List endpoint:", fullUrl);
-
-        const response = await axios.get(fullUrl, {
-            headers: {
-                'Content-Type': 'application/json'
+            while (start < timeTo) {
+                let end = Math.min(start + 15 * 24 * 60 * 60 - 1, timeTo);
+                intervals.push({ from: start, to: end });
+                start = end + 1;
             }
-        });
 
-        // Send response back to the client
-        res.json(response.data);
+            let allOrders = [];
+
+            for (const interval of intervals) {
+                let hasMore = true;
+                let cursor = "";
+
+                while(hasMore) {
+                    console.log("\n");
+                    console.log(`Fetching data... Interval: ${interval.from} - ${interval.to}, Cursor: ${cursor}`);
+                    console.log("\n");
+                    
+                    const timestamp = Math.floor(Date.now() / 1000);
+                    const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+                    const sign = crypto.createHmac('sha256', PARTNER_KEY)
+                        .update(baseString)
+                        .digest('hex');
+    
+                    const params = new URLSearchParams({
+                        partner_id: PARTNER_ID,
+                        timestamp: timestamp,
+                        access_token: ACCESS_TOKEN,
+                        shop_id: SHOP_ID,
+                        sign: sign,
+                        time_range_field: 'create_time',
+                        time_from: interval.from,
+                        time_to: interval.to,
+                        page_size: 100,
+                        response_optional_fields: 'order_status',
+                    });
+
+                    if (cursor) params.append('cursor', cursor);
+    
+                    const fullUrl = `${HOST}${PATH}?${params.toString()}`;
+                    const response = await axios.get(fullUrl, {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                        allOrders = allOrders.concat(response.data.response.order_list);
+                        hasMore = response.data.response.more;
+                        cursor = response.data.response.next_cursor || "";
+                    } else {
+                        hasMore = false;
+                    }
+                
+                }
+                
+
+            }
+
+            res.json({ 
+                count: allOrders.length, 
+                timeFrom,
+                timeTo,
+                timeFromString: new Date(timeFrom * 1000).toISOString(),
+                timeToString: new Date(timeTo * 1000).toISOString(),
+                orders: allOrders 
+            });
+        }
 
     } catch (e) {
         console.log("Error fetching orders: ", e.response ? e.response.data : e.message);
@@ -153,6 +255,8 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
   console.log(`Visit http://localhost:${port}/orders to fetch Shopee orders.`);
 
+
+  // Refreshing access token every 4 hours
   refreshToken();
 
   const fourHours = 14400000;
