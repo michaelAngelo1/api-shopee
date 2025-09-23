@@ -1,0 +1,22 @@
+TODOS:
+
+# AUTHORIZATION
+- Authorization is, gratefully, valid for 365 days hehe.
+- Access token is invalid after 4 hours. How to get a new one? v
+- Refresh token is invalid after 30 days. How to get a new one? v
+
+# API
+- Get order list
+- Get order detail
+- Run the Get order list & Get order detail DAILY
+- Process the data according to BigQuery data structure
+- Merge to BigQuery
+
+# How Orders Are Fetched
+- On the first day of the month, the whole previous month's orders are fetched.
+    - On October 1st, orders from 1 - 30 Sept are fetched.
+- The equation: firstDayOfTheMonth until currentDay - 1 (yesterday)
+
+# Notes
+- time_from and time_to on v2.order.get_order_list spans at maximum 14 days,
+should think of the workaround
