@@ -7,10 +7,23 @@ TODOS:
 
 # API
 - Get order list v
-- Get order detail v
+- Get order detail: REQUIRE customer detail, address, product bought, order value, etc. 
+Current order detail lacks details.
 - Run the Get order list & Get order detail DAILY (see How Orders Are Fetched)
 - Process the data according to BigQuery data structure
 - Merge / Write to BigQuery
+    - require table Order List
+        - order_sn
+        - status
+    - require table Order List Status Changes Log
+        - action (create / update)
+        - order_sn
+        - status
+        - timestamp (datetime)
+
+# To think about
+- How to only fetch and merge status-changed orders, 
+not fetch all orders DAILY regardless status change exists or not.
 
 # How Orders Are Fetched
 - On the first day of the month, the whole previous month's orders are fetched.
@@ -23,10 +36,10 @@ TODOS:
 - Backend: should scale to accommodate 16 brands
 
 # Reliability
-- DATA NOT MATCHED. Check if order data matches that of Shopee's. (try comparing first & last order)
+- DATA MATCHED. Check if order data matches that of Shopee's. (try comparing first & last order) v
     - Order is not sorted by datetime
-    - Earliest order fetched is 2025-09-01 07:00, should be 00:00
-    - Latest order fetched has id 250924A236C19G and IS factually correct. 
+    - Earliest order fetched has id 250901AE5EY3DY and IS timely correct. v
+    - Latest order fetched has id 250924A236C19G and IS timely correct. v
 - Auto-retrying operations if network is bad or fails the first time.
 
 # Notes
@@ -44,4 +57,4 @@ Else if 28-day or 29-day month, make a 15-day request and 13 or 14-day request.
 - page_size: the number of orders fetched are limited at 100 per request, 
 should think of the workaround
 
-Using response parameters "more" and "next_cursor" to make multiple requests until it is done.
+Using response parameters "more" and "next_cursor" to make multiple requests until it is done. v
