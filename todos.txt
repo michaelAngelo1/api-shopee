@@ -7,15 +7,27 @@ TODOS:
 
 # API
 - Get order list v
-- Get order detail
+- Get order detail v
 - Run the Get order list & Get order detail DAILY (see How Orders Are Fetched)
 - Process the data according to BigQuery data structure
-- Merge to BigQuery
+- Merge / Write to BigQuery
 
 # How Orders Are Fetched
 - On the first day of the month, the whole previous month's orders are fetched.
     - On October 1st, orders from 1 - 30 Sept are fetched.
 - The equation: firstDayOfTheMonth until currentDay - 1 (yesterday)
+
+# Scaling up
+- Replicate the same thing for other brands.
+- Shopee: might need more App for each brand.
+- Backend: should scale to accommodate 16 brands
+
+# Reliability
+- DATA NOT MATCHED. Check if order data matches that of Shopee's. (try comparing first & last order)
+    - Order is not sorted by datetime
+    - Earliest order fetched is 2025-09-01 07:00, should be 00:00
+    - Latest order fetched has id 250924A236C19G and IS factually correct. 
+- Auto-retrying operations if network is bad or fails the first time.
 
 # Notes
 - time_from and time_to on v2.order.get_order_list spans at maximum 15 days,

@@ -100,7 +100,8 @@ function getJakartaTimestampTimeFrom(year, month, day, hour, minute, second) {
     // month is 0-based in JS Date
     const date = new Date(Date.UTC(year, month, day, hour, minute, second));
     // ADD 7 hours to get Jakarta time in UTC
-    return Math.floor(date.getTime() / 1000) + jakartaOffset;
+    // return Math.floor(date.getTime() / 1000) + jakartaOffset;
+    return Math.floor(date.getTime() / 1000) - jakartaOffset;
 }
 
 function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
@@ -108,6 +109,64 @@ function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
     const date = new Date(Date.UTC(year, month, day, hour, minute, second));
     // ADD 7 hours to get Jakarta time in UTC
     return Math.floor(date.getTime() / 1000);
+}
+
+async function getOrderDetail(orderList) {
+
+    const orderIds = orderList.map(order => order.order_sn);
+    const orderIdChunks = [];
+
+    for(let i=0; i<orderIds.length; i+=50) {
+        orderIdChunks.push(orderIds.slice(i, i+50).join(','));
+    }
+
+    try {
+        let allOrdersWithDetail = [];
+
+        for (orderIdChunk of orderIdChunks) {
+
+            const path = ORDER_DETAIL_PATH;
+            const timestamp = Math.floor(Date.now() / 1000);
+            const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+    
+            const sign = crypto.createHmac('sha256', PARTNER_KEY)
+                .update(baseString)
+                .digest('hex');
+            
+            const params = new URLSearchParams({
+                partner_id: PARTNER_ID,
+                timestamp: timestamp,
+                access_token: ACCESS_TOKEN,
+                shop_id: SHOP_ID,
+                sign: sign,
+                order_sn_list: orderIdChunk,
+                response_optional_fields: "total_amount",
+            });
+    
+            const fullUrl = `${HOST}${path}?${params.toString()}`;
+            console.log("Hitting Order Detail endpoint:", fullUrl);
+            
+            let ordersWithDetail = [];
+    
+            const response = await axios.get(fullUrl, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+    
+            if(response && response.data.response && Array.isArray(response.data.response.order_list)) {
+                console.log("Order Detail response: ", response.data.response.order_list);
+                allOrdersWithDetail = allOrdersWithDetail.concat(response.data.response.order_list);
+            }
+        
+        }
+
+
+        return allOrdersWithDetail;
+
+    } catch (e) {
+        console.log("Error getting order detail: ", e);
+    }
 }
 
 
@@ -145,7 +204,7 @@ app.get('/orders', async (req, res) => {
                 .update(baseString)
                 .digest('hex');
     
-            // Shopee API Request Parameters
+            // Order List Request Parameters
             const params = new URLSearchParams({
                 partner_id: PARTNER_ID,
                 timestamp: timestamp,
@@ -232,13 +291,14 @@ app.get('/orders', async (req, res) => {
 
             }
 
+            const allOrdersWithDetail = await getOrderDetail(allOrders);
+
+            console.log("\n");
+
             res.json({ 
-                count: allOrders.length, 
-                timeFrom,
-                timeTo,
-                timeFromString: new Date(timeFrom * 1000).toISOString(),
-                timeToString: new Date(timeTo * 1000).toISOString(),
-                orders: allOrders 
+                count: allOrdersWithDetail.length, 
+                // orders: allOrders, 
+                ordersWithDetail: allOrdersWithDetail
             });
         }
 
