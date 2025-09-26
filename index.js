@@ -2,6 +2,8 @@ const express = require('express')
 const app = express()
 const axios = require('axios')
 const crypto = require('crypto')
+const { BigQuery } = require('@google-cloud/bigquery');
+const bigquery = new BigQuery();
 
 const fs = require('fs');
 const path = require('path');
@@ -94,21 +96,103 @@ async function refreshToken() {
 }
 
 
-const jakartaOffset = 7 * 60 * 60; // UTC+7 in seconds
+const jakartaOffset = 7 * 60 * 60;
 
 function getJakartaTimestampTimeFrom(year, month, day, hour, minute, second) {
-    // month is 0-based in JS Date
     const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-    // ADD 7 hours to get Jakarta time in UTC
-    // return Math.floor(date.getTime() / 1000) + jakartaOffset;
     return Math.floor(date.getTime() / 1000) - jakartaOffset;
 }
 
 function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
-    // month is 0-based in JS Date
     const date = new Date(Date.UTC(year, month, day, hour, minute, second));
-    // ADD 7 hours to get Jakarta time in UTC
     return Math.floor(date.getTime() / 1000);
+}
+
+async function writesToBigQuery(orders) {
+
+    const datasetId = 'shopee_api';
+    const tableId = 'eileen_grace_orders';
+
+    const ordersToWrite = orders.map(order => ({
+        order_sn: order.order_sn,
+        order_status: order.order_status,
+        created_at: order.create_time,
+    }));
+
+    console.log("\n");
+    console.log("Writing to BigQuery - Eileen  Grace");
+    console.log(`Writing ${ordersToWrite.length} rows to BigQuery...`);
+    try {
+        await bigquery
+            .dataset(datasetId)
+            .table(tableId)
+            .insert(ordersToWrite);
+        console.log(`Inserted ${ordersToWrite.length} rows`);
+    } catch (error) {
+        console.error('Error inserting rows:', error);
+    }
+    console.log("\n");
+}
+
+async function writesToChangeLog(orders) {
+
+    const [rows] = await bigquery.query({
+        query: `
+            SELECT order_sn, status
+            FROM \`shopee_api.eileen_grace_orders_log\`
+            QUALIFY ROW_NUMBER() OVER (PARTITION BY order_sn ORDER BY updated_at DESC) = 1
+        `
+    });
+    const lastStatusMap = {};
+    rows.forEach(row => {
+        lastStatusMap[row.order_sn] = row.status;
+    })
+
+    // Filter by change of status
+    const ordersLogToWrite = orders
+        .filter(order => lastStatusMap[order.order_sn] !== order.order_status)
+        .map(order => ({
+            order_sn: order.order_sn,
+            status: order.order_status,
+            updated_at: order.update_time,
+        }));
+
+    console.log("Writing to Eileen Grace Change Log");
+    const datasetId = 'shopee_api';
+    const tableId = 'eileen_grace_orders_log_staging';
+
+    console.log("Writing to Order Change Log - Eileen Grace");
+
+    if(ordersLogToWrite.length > 0) {
+        try {
+            
+            await bigquery
+                .dataset(datasetId)
+                .table(tableId)
+                .insert(ordersLogToWrite);
+            console.log(`Inserted ${ordersLogToWrite.length} rows to staging change log`);
+
+            const mergeQuery = `
+                MERGE \`shopee_api.eileen_grace_orders_log\` T
+                USING \`shopee_api.eileen_grace_orders_log_staging\` S
+                ON T.order_sn = S.order_sn
+                WHEN MATCHED THEN
+                    UPDATE SET status = S.status, updated_at = S.updated_at
+                WHEN NOT MATCHED THEN
+                    INSERT (order_sn, status, updated_at)
+                    VALUES (S.order_sn, S.status, S.updated_at)
+            `;
+            await bigquery.query({ query: mergeQuery});
+            await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_orders_log_staging\``});
+            console.log(`Inserted ${ordersLogToWrite.length} rows to prod change log`);
+
+        } catch (error) {
+            console.error('Error inserting rows:', error);
+        }
+        console.log("\n");
+    } else {
+        console.log("No status changes to log.");
+    }
 }
 
 async function getOrderDetail(orderList) {
@@ -133,6 +217,24 @@ async function getOrderDetail(orderList) {
                 .update(baseString)
                 .digest('hex');
             
+            optional_fields = [
+                "buyer_user_id",
+                "buyer_username",
+                "estimated_shipping_fee",
+                "recipient_address",
+                "actual_shipping_fee",
+                "goods_to_declare",
+                "note",
+                "payment_method",
+                "item_list",       
+                "pay_time",
+                "dropshipper",
+                "cancel_reason",
+                "cancel_by",
+                "package_list",
+                "total_amount",     
+            ]
+            
             const params = new URLSearchParams({
                 partner_id: PARTNER_ID,
                 timestamp: timestamp,
@@ -140,8 +242,9 @@ async function getOrderDetail(orderList) {
                 shop_id: SHOP_ID,
                 sign: sign,
                 order_sn_list: orderIdChunk,
-                response_optional_fields: "total_amount",
+                response_optional_fields: optional_fields.join(','),
             });
+
     
             const fullUrl = `${HOST}${path}?${params.toString()}`;
             console.log("Hitting Order Detail endpoint:", fullUrl);
@@ -160,7 +263,6 @@ async function getOrderDetail(orderList) {
             }
         
         }
-
 
         return allOrdersWithDetail;
 
@@ -291,19 +393,32 @@ app.get('/orders', async (req, res) => {
 
             }
 
+            // Commented for a minute
             const allOrdersWithDetail = await getOrderDetail(allOrders);
 
             console.log("\n");
 
+            if(allOrdersWithDetail.length > 0) { 
+                console.log("Writing to BigQuery. Please do not do it twice :)");
+                console.log("Defense mechanism will be implemented later.");
+                // await writesToBigQuery(allOrdersWithDetail);
+            }
+
+            if(allOrdersWithDetail.length > 0) {
+                console.log("Writing to Change Log - Eileen Grace");
+                await writesToChangeLog(allOrdersWithDetail);
+            }
+
             res.json({ 
                 count: allOrdersWithDetail.length, 
+                // count: allOrders.length,
                 // orders: allOrders, 
                 ordersWithDetail: allOrdersWithDetail
             });
         }
 
     } catch (e) {
-        console.log("Error fetching orders: ", e.response ? e.response.data : e.message);
+        console.log("Error fetching orders: ", e);
         res.status(500).json({ 
             error: 'Failed to fetch orders',
             details: e.response ? e.response.data : e.message 

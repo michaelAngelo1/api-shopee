@@ -1,5 +1,24 @@
 TODOS:
 
+# PRIORITY
+
+## Order Status Change Log
+- Create table Order Status Change Log v
+- Load today's data to the table Order Status Change Log
+- Merge orders with order_status change to Order Status Change Log
+- Repeat daily
+
+## Daily Scheduler
+- Fetch orders from get_order_list 
+- Merge orders to eileen_grace_orders
+- Merge orders with order_status change to eileen_grace_orders_log
+- Fetch orders with details from get_order_detail
+- Merge orders with details to eileen_grace_order_detail
+
+## Deployment
+- Vercel?
+- VPS?
+
 # AUTHORIZATION
 - Authorization is, gratefully, valid for 365 days hehe.
 - Access token is invalid after 4 hours. How to get a new one? v
@@ -8,22 +27,27 @@ TODOS:
 # API
 - Get order list v
 - Get order detail: REQUIRE customer detail, address, product bought, order value, etc. 
-Current order detail lacks details.
+Current order detail lacks details. v
 - Run the Get order list & Get order detail DAILY (see How Orders Are Fetched)
 - Process the data according to BigQuery data structure
 - Merge / Write to BigQuery
     - require table Order List
         - order_sn
         - status
+        - created_at
     - require table Order List Status Changes Log
-        - action (create / update)
         - order_sn
         - status
-        - timestamp (datetime)
+        - updated_at
+    if status changed, REPLACE previous order_sn with the latest order_sn,
+    so eileen_grace_orders_log should include UNIQUE order_sn with latest status.
+    - require table Order Detail List
+        - order_sn
 
 # To think about
-- How to only fetch and merge status-changed orders, 
+- How to only fetch and merge orders with a status change, 
 not fetch all orders DAILY regardless status change exists or not.
+- Apparently this needs a staging table so we can perform an UPSERT / MERGE
 
 # How Orders Are Fetched
 - On the first day of the month, the whole previous month's orders are fetched.
