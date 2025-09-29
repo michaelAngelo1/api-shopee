@@ -31,10 +31,6 @@ Current order detail lacks details. v
 - Run the Get order list & Get order detail DAILY (see How Orders Are Fetched)
 - Process the data according to BigQuery data structure
 - Merge / Write to BigQuery
-    - require table Order List
-        - order_sn
-        - status
-        - created_at
     - require table Order List Status Changes Log
         - order_sn
         - status
@@ -43,11 +39,6 @@ Current order detail lacks details. v
     so eileen_grace_orders_log should include UNIQUE order_sn with latest status.
     - require table Order Detail List
         - order_sn
-
-# To think about
-- How to only fetch and merge orders with a status change, 
-not fetch all orders DAILY regardless status change exists or not.
-- Apparently this needs a staging table so we can perform an UPSERT / MERGE
 
 # How Orders Are Fetched
 - On the first day of the month, the whole previous month's orders are fetched.
@@ -65,20 +56,3 @@ not fetch all orders DAILY regardless status change exists or not.
     - Earliest order fetched has id 250901AE5EY3DY and IS timely correct. v
     - Latest order fetched has id 250924A236C19G and IS timely correct. v
 - Auto-retrying operations if network is bad or fails the first time.
-
-# Notes
-- time_from and time_to on v2.order.get_order_list spans at maximum 15 days,
-should think of the workaround
-
-Should make two requests if date of the month is > 17. 
-
-Workaround:
-Multiple requests. Check the month and year first.
-If 30-day month, make two 15-day request.
-Else if 31-day month, make two 15-day request and one 1-day request.
-Else if 28-day or 29-day month, make a 15-day request and 13 or 14-day request.
-
-- page_size: the number of orders fetched are limited at 100 per request, 
-should think of the workaround
-
-Using response parameters "more" and "next_cursor" to make multiple requests until it is done. v

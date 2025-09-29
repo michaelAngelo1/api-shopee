@@ -1,0 +1,92 @@
+{
+  "actual_shipping_fee": 40000,
+  "advance_package": false,
+  "booking_sn": "",
+  "buyer_user_id": 81501282,
+  "buyer_username": "rahmilasiswati21",
+  "cancel_by": "",
+  "cancel_reason": "",
+  "cod": false,
+  "create_time": 1757955339,
+  "currency": "IDR",
+  "days_to_ship": 2,
+  "dropshipper": null,
+  "estimated_shipping_fee": 40000,
+  "goods_to_declare": false,
+  "is_buyer_shop_collection": false,
+  "item_list": [
+    {
+      "add_on_deal": false,
+      "add_on_deal_id": 0,
+      "consultation_id": "",
+      "image_info": {
+        "image_url": "https://cf.shopee.co.id/file/id-11134207-81ztn-meh4ccvekhkz61_tn"
+      },
+      "is_b2c_owned_item": false,
+      "is_prescription_item": false,
+      "item_id": 1600895452,
+      "item_name": "EILEEN GRACE - Moisturize Rose Jelly Mask + Deep-Cleansing Black Jelly Mask 300ml",
+      "item_sku": "EIGR0050",
+      "main_item": false,
+      "model_discounted_price": 669000,
+      "model_id": 275663756275,
+      "model_name": "RJM300ml+BJM300ml",
+      "model_original_price": 998000,
+      "model_quantity_purchased": 1,
+      "model_sku": "EIGR0050",
+      "order_item_id": 1600895452,
+      "product_location_id": [
+        "IDZ"
+      ],
+      "promotion_group_id": 0,
+      "promotion_id": 0,
+      "promotion_type": "",
+      "weight": 1,
+      "wholesale": false
+    }
+  ],
+  "message_to_seller": "",
+  "note": "",
+  "order_sn": "250916K1JS7A9M",
+  "order_status": "TO_CONFIRM_RECEIVE",
+  "package_list": [
+    {
+      "package_number": "OFG211654539267121",
+      "group_shipment_id": null,
+      "logistics_status": "LOGISTICS_DELIVERY_DONE",
+      "shipping_carrier": "SPX Standard",
+      "item_list": [
+        {
+          "item_id": 1600895452,
+          "model_id": 275663756275,
+          "model_quantity": 1,
+          "order_item_id": 1600895452,
+          "promotion_group_id": 0,
+          "product_location_id": "IDZ"
+        }
+      ],
+      "parcel_chargeable_weight_gram": 1000,
+      "allow_self_design_awb": true,
+      "logistics_channel_id": 80088,
+      "sorting_group": ""
+    }
+  ],
+  "pay_time": 1757955465,
+  "payment_method": "Online Payment",
+  "recipient_address": {
+    "name": "****",
+    "phone": "****",
+    "town": "****",
+    "district": "****",
+    "city": "****",
+    "state": "****",
+    "region": "****",
+    "zipcode": "****",
+    "full_address": "****"
+  },
+  "region": "ID",
+  "reverse_shipping_fee": 0,
+  "ship_by_date": 1758041999,
+  "total_amount": 598600,
+  "update_time": 1758251069
+}

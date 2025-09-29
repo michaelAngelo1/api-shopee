@@ -11,7 +11,9 @@
   "dependencies": {
     "@google-cloud/bigquery": "^8.1.1",
     "axios": "^1.12.2",
+    "bullmq": "^5.58.9",
     "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "ioredis": "^5.8.0"
   }
 }
