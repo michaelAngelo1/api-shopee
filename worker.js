@@ -5,6 +5,7 @@ require('dotenv').config();
 const connection = {
     connection: {
         url: process.env.REDIS_URL,
+        connectTimeout: 30000,
     }
 }
 

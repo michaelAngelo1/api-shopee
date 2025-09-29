@@ -8,6 +8,7 @@ const port = 3000;
 const redisConnection = {
     connection: {
         url: process.env.REDIS_URL,
+        connectTimeout: 30000,
     }
 };
 
@@ -83,7 +84,8 @@ const orderQueue = new Queue("order-processing", redisConnection);
 async function scheduleDailyJob() {
     const jobName = "fetch-daily-orders";
     const jobDefinition = {
-        pattern: "05 12 * * *", // Example: 11:59 AM on every weekday (Mon-Fri)
+        // pattern: "55 15 * * *",
+        pattern: "*/15 * * * *",
         tz: "Asia/Jakarta"
     };
 

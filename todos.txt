@@ -2,27 +2,36 @@ TODOS:
 
 # PRIORITY
 
-## Order Status Change Log
-- Create table Order Status Change Log v
-- Load today's data to the table Order Status Change Log
-- Merge orders with order_status change to Order Status Change Log
-- Repeat daily
-
 ## Daily Scheduler
+- Run at a specified time, like 17:00 today. v
+- Run hourly. If this succeeds, then scheduler is complete. v
+- Run everyday at a specified time, 00:05. v hehe
+
+## Data to Merge
 - Fetch orders from get_order_list 
-- Merge orders to eileen_grace_orders
-- Merge orders with order_status change to eileen_grace_orders_log
+- Merge orders to eileen_grace_orders_log
 - Fetch orders with details from get_order_detail
 - Merge orders with details to eileen_grace_order_detail
 
 ## Deployment
-- Vercel?
-- VPS?
+- GCP: Cloud Run, Cloud Scheduler, and Memorystore for Redis.
+
+# Scaling up
+- Replicate the same authorization thing for other brands.
+- Shopee: might need more App for each brand.
+- Backend: should scale to accommodate 16 brands
 
 # AUTHORIZATION
 - Authorization is, gratefully, valid for 365 days hehe.
 - Access token is invalid after 4 hours. How to get a new one? v
 - Refresh token is invalid after 30 days. How to get a new one? v
+
+# Stacks
+- Express
+- BullMQ
+- Redis local on Docker, later Memorystore on GCP
+- Shopee API & BigQuery API
+- GCP: Cloud Run, Cloud Scheduler, Memorystore.
 
 # API
 - Get order list v
@@ -45,10 +54,6 @@ Current order detail lacks details. v
     - On October 1st, orders from 1 - 30 Sept are fetched.
 - The equation: firstDayOfTheMonth until currentDay - 1 (yesterday)
 
-# Scaling up
-- Replicate the same thing for other brands.
-- Shopee: might need more App for each brand.
-- Backend: should scale to accommodate 16 brands
 
 # Reliability
 - DATA MATCHED. Check if order data matches that of Shopee's. (try comparing first & last order) v
