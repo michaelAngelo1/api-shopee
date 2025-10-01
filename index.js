@@ -14,78 +14,12 @@ const redisConnection = {
 
 const orderQueue = new Queue("order-processing", redisConnection);
 
-// ver 1
-// async function scheduleDailyJob() {
-
-//     const jobName = "fetch-daily-orders";
-
-//     const jobDefinition = {
-//         pattern: "55 11 * * *",
-//         tz: "Asia/Jakarta"
-//     }
-
-//     await orderQueue.removeJobScheduler(jobName, jobDefinition);
-//     console.log("Attempted to remove any old schedule.");
-
-//     await orderQueue.add("fetch-daily-orders", {}, {
-//         repeat: {
-//             pattern: "55 10 * * *",
-//             tz: 'Asia/Jakarta'
-//         },
-//         jobId: "fetch-daily-orders",
-//         attempts: 3,
-//         backoff: {
-//             type: 'exponential',
-//             delay: 60000,
-//         }
-//     });
-
-//     console.log("Scheduled daily job to fetch and merge orders at 00:05 Asia/Jakarta time.");
-// }
-
-// ver 2
-// async function scheduleDailyJob() {
-//     const jobName = "fetch-daily-orders";
-//     const jobDefinition = {
-//         pattern: "40 11 * * *",
-//         tz: "Asia/Jakarta"
-//     };       
-
-//     const repeatableJobs = await orderQueue.getJobSchedulers();
-
-//     const jobExists = repeatableJobs.some(job => job.name === jobName && job.pattern === jobDefinition.pattern && job.tz === jobDefinition.tz);
-    
-//     if(!jobExists) {
-        
-//         console.log("Job " + jobName + " does not exist. Scheduling new job.");
-//         const oldJobs = repeatableJobs.filter(job => job.name === jobName);
-//         for(const job of oldJobs) {
-//             await orderQueue.removeJobScheduler(job.name, { pattern: job.pattern, tz: job.tz });
-//             console.log("Removed old job with pattern: " + job.pattern + " and tz: " + job.tz);
-//         }
-
-//         await orderQueue.add(jobName, {}, {
-//             repeat: jobDefinition,
-//             jobId: jobName,
-//             attempts: 3,
-//             backoff: {
-//                 type: 'exponential',
-//                 delay: 60000,
-//             }
-//         });
-
-//         console.log(`Scheduled daily job "${jobName}" with pattern "${jobDefinition.pattern}".`);
-//     } else {
-//         console.log(`Job "${jobName}" is already scheduled. No action taken.`);
-//     }
-// }
-
 //ver 3
 async function scheduleDailyJob() {
     const jobName = "fetch-daily-orders";
     const jobDefinition = {
         // pattern: "55 15 * * *",
-        pattern: "*/15 * * * *",
+        pattern: "00 15 * * *",
         tz: "Asia/Jakarta"
     };
 
@@ -127,6 +61,32 @@ async function scheduleDailyJob() {
         console.log(`Job scheduler for "${jobName}" is already configured correctly. No action needed.`);
     }
 }
+
+app.get('/trigger-daily-sync', async (req, res) => {
+
+    if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
+        console.warn("Unauthorized attempt to trigger daily sync");
+        return res.status(403).send('Forbidden');
+    }
+
+    try {
+        
+        await orderQueue.add('fetch-daily-orders', {}, {
+            jobId: `daily-sync-${new Date().toISOString().split('T')[0]}`, 
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        console.log("Daily sync job enqueued by Cloud Scheduler");
+        res.status(200).send("Successfully enqueued daily sync job");
+    } catch (e) {
+        console.error("Failed to enqueue daily job: ", e);
+        res.status(500).send("Failed to enqueue job");
+    }
+});
 
 app.get("/orders", async (req, res) => {
     try {

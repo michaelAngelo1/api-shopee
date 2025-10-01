@@ -24,7 +24,7 @@ const orderProcessor = async (job) => {
 const orderWorker = new Worker("order-processing", orderProcessor, connection);
 
 orderWorker.on('completed', (job) => {
-    console.log(`Job with ID ${job.id} has completed. Result:`, job.returnvalue);
+    console.log(`Job with ID ${job.id} has completed.`);
 });
 
 orderWorker.on('failed', (job, err) => {
@@ -44,3 +44,5 @@ const gracefulShutdown = async () => {
 
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
+
+// 251001VCHANUW9

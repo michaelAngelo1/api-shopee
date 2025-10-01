@@ -7,11 +7,21 @@ TODOS:
 - Run hourly. If this succeeds, then scheduler is complete. v
 - Run everyday at a specified time, 00:05. v hehe
 
+## Issues
+- Apparently, order insertion failed.
+- Case if day 1 - 16: configured but has bugs:
+    - WRONG: 251001UNE0Y736 (ordered on 23:58 Sept 30th 2025) SHOULD BE the last order on the table (whole September)
+    - yet it includes 251001VD65B1G0 (ordered on 07:03 Oct 1st 2025)
+    - CORRECT: Earliest order created is 250901AE5EY3DY on 00:00 Sept 1st 2025
+
+- Case if day 17 - 30/31 is done-ish. v
+- Case day 1: October 1st should check if it actually obtains 1 - 30 September orders data.
+
 ## Data to Merge
-- Fetch orders from get_order_list 
-- Merge orders to eileen_grace_orders_log
-- Fetch orders with details from get_order_detail
-- Merge orders with details to eileen_grace_order_detail
+- Fetch orders from get_order_list v
+- Merge orders to eileen_grace_orders_log v
+- Fetch orders with details from get_order_detail v
+- Merge orders with details to eileen_grace_order_detail v
 
 ## Deployment
 - GCP: Cloud Run, Cloud Scheduler, and Memorystore for Redis.
@@ -51,7 +61,7 @@ Current order detail lacks details. v
 
 # How Orders Are Fetched
 - On the first day of the month, the whole previous month's orders are fetched.
-    - On October 1st, orders from 1 - 30 Sept are fetched.
+- On October 1st, orders from 1 - 30 Sept are fetched.
 - The equation: firstDayOfTheMonth until currentDay - 1 (yesterday)
 
 
