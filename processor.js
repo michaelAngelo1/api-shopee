@@ -12,6 +12,7 @@ const port = 3000
 const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
 const ORDER_DETAIL_PATH = "/api/v2/order/get_order_detail";
+const ESCROW_DETAIL_PATH = "/api/v2/payment/get_escrow_detail_batch";
 
 const PARTNER_ID = parseInt(process.env.PARTNER_ID);
 const PARTNER_KEY = process.env.PARTNER_KEY;
@@ -319,6 +320,28 @@ async function writesToOrderDetail(orders) {
     }
 }
 
+async function getEscrowDetail(orderList) {
+
+    const orderIds = orderList.map(order => order.order_sn);
+    
+    let hasMore = true;
+    let encapsOrderIds = [];
+
+    try {
+        let allEscrowsDetail = [];
+
+        console.log("\n ORDER ID CHUNKS \n");
+        console.log(encapsOrderIds);
+
+        for(orderIdChunk of orderIdChunks) {
+            
+            const path = ESCROW_DETAIL_PATH;
+        }
+    } catch (e) {   
+        console.log("error getting escrow detail: ", e);
+    }
+}
+
 async function getOrderDetail(orderList) {
 
     const orderIds = orderList.map(order => order.order_sn);
@@ -508,18 +531,22 @@ async function fetchAndProcessOrders() {
             }
 
             const allOrdersWithDetail = await getOrderDetail(allOrdersInBlock);
+            const allEscrowsDetail = await getEscrowDetail(allOrdersInBlock);
+
             console.log("\n");
             if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
                 console.log("Writing to Order Detail - Eileen Grace");
                 console.log("\nRecent Order Detail - on 1 - 2 October");
-                
-                allOrdersWithDetail.forEach(o => {
-                    const dateIso = new Date(parseInt(o.create_time) * 1000 + 7 * 3600 * 1000).toISOString().replace('Z', '+07:00');
-                    console.log(o.order_sn + " " + dateIso);
-                })
 
                 await writesToChangeLog(allOrdersWithDetail);
                 await writesToOrderDetail(allOrdersWithDetail);
+            }
+
+            if(allEscrowsDetail && allEscrowsDetail.length > 0) {
+                console.log("All Escrows");
+                allEscrowsDetail.forEach(e => {
+                    console.log("Escrow: " + e);
+                })
             }
 
         } else {
