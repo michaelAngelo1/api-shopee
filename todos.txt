@@ -2,22 +2,31 @@ TODOS:
 
 # PRIORITY
 
+# MINIMUM VIABLE WORK - Oct 2nd 2025
+- Testing Case day 2 - 16. All iz well. v
+- Configure data structure to be like eileen_grace_orders_partitioned
+- Datetime formatted UTC+7: YYYY-MM-DD XX:XX
+- Hit v2.payment.get_escrow_detail, get 
+    - diskon_dari_shopee
+    - diskon_dari_penjual
+    - voucher_ditanggung_penjual
+    - voucher_ditanggung_shopee
+
+
 ## Daily Scheduler
 - Run at a specified time, like 17:00 today. v
 - Run hourly. If this succeeds, then scheduler is complete. v
 - Run everyday at a specified time, 00:05. v hehe
 
 ## Issues
-- Apparently, order insertion failed.
-- Case if day 1 - 16: configured but has bugs:
-    - WRONG: 251001UNE0Y736 (ordered on 23:58 Sept 30th 2025) SHOULD BE the last order on the table (whole September)
-    - yet it includes 251001VD65B1G0 (ordered on 07:03 Oct 1st 2025)
-    - CORRECT: Earliest order created is 250901AE5EY3DY on 00:00 Sept 1st 2025
-
+- Case if day 1 - 16, configured. v
 - Case if day 17 - 30/31 is done-ish. v
-- Case day 1: October 1st should check if it actually obtains 1 - 30 September orders data.
+- Case day 1 October is tested and correct. Yay! v
+- Case day 2 - 16, should try today.
 
 ## Data to Merge
+- Data structure to be configured like eileen_grace_orders_partitioned
+- Datetime kudu formatted UTC+7: YYYY-MM-DD XX:XX 
 - Fetch orders from get_order_list v
 - Merge orders to eileen_grace_orders_log v
 - Fetch orders with details from get_order_detail v

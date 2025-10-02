@@ -433,6 +433,9 @@ async function fetchAndProcessOrders() {
                     let hasMore = true;
                     let cursor = "";
                     while(hasMore) {
+                        console.log("\n");
+                        console.log(`Fetching data... Interval: ${interval.from} - ${interval.to}, Cursor: ${cursor}`);
+                        console.log("\n");
                         const timestamp = Math.floor(Date.now() / 1000);
                         const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
                         const sign = crypto.createHmac('sha256', PARTNER_KEY).update(baseString).digest('hex');
@@ -508,8 +511,12 @@ async function fetchAndProcessOrders() {
             console.log("\n");
             if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
                 console.log("Writing to Order Detail - Eileen Grace");
-                console.log("\nRecent Order Detail - on September\n");
-                console.log(allOrdersWithDetail);
+                console.log("\nRecent Order Detail - on 1 - 2 October");
+                
+                allOrdersWithDetail.forEach(o => {
+                    const dateIso = new Date(parseInt(o.create_time) * 1000 + 7 * 3600 * 1000).toISOString().replace('Z', '+07:00');
+                    console.log(o.order_sn + " " + dateIso);
+                })
 
                 await writesToChangeLog(allOrdersWithDetail);
                 await writesToOrderDetail(allOrdersWithDetail);
