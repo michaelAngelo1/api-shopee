@@ -94,6 +94,22 @@ async function refreshToken() {
     }
 }
 
+function formatUnixTime(unixTimestamp) {
+  const date = new Date(unixTimestamp * 1000);
+  const options = {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23' 
+  };
+
+  return new Intl.DateTimeFormat('sv-SE', options).format(date);
+}
+
 
 const jakartaOffset = 7 * 60 * 60;
 
@@ -113,8 +129,8 @@ async function writesToChangeLog(orders) {
     const [rows] = await bigquery.query({
         query: `
             SELECT order_sn, status
-            FROM \`shopee_api.eileen_grace_orders_list\`
-            QUALIFY ROW_NUMBER() OVER (PARTITION BY order_sn ORDER BY updated_at DESC) = 1
+            FROM \`shopee_api.eileen_grace_order_list\`
+            QUALIFY ROW_NUMBER() OVER (PARTITION BY order_sn ORDER BY update_time DESC) = 1
         `
     });
     const lastStatusMap = {};
@@ -128,12 +144,12 @@ async function writesToChangeLog(orders) {
         .map(order => ({
             order_sn: order.order_sn,
             status: order.order_status,
-            updated_at: order.update_time,
+            update_time: formatUnixTime(order.update_time),
         }));
 
     console.log("Writing to Eileen Grace Change Log");
     const datasetId = 'shopee_api';
-    const tableId = 'eileen_grace_orders_list_staging';
+    const tableId = 'eileen_grace_order_list_staging';
 
     console.log("Writing to Order Change Log - Eileen Grace");
 
@@ -147,21 +163,36 @@ async function writesToChangeLog(orders) {
             console.log(`Inserted ${ordersLogToWrite.length} rows to staging change log`);
 
             const mergeQuery = `
-                MERGE \`shopee_api.eileen_grace_orders_list\` T
-                USING \`shopee_api.eileen_grace_orders_list_staging\` S
+                MERGE \`shopee_api.eileen_grace_order_list\` T
+                USING \`shopee_api.eileen_grace_order_list_staging\` S
                 ON T.order_sn = S.order_sn
                 WHEN MATCHED THEN
-                    UPDATE SET status = S.status, updated_at = S.updated_at
+                    UPDATE SET status = S.status, update_time = S.update_time
                 WHEN NOT MATCHED THEN
-                    INSERT (order_sn, status, updated_at)
-                    VALUES (S.order_sn, S.status, S.updated_at)
+                    INSERT (order_sn, status, update_time)
+                    VALUES (S.order_sn, S.status, S.update_time)
             `;
             await bigquery.query({ query: mergeQuery});
-            await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_orders_list_staging\``});
+            await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_order_list_staging\``});
             console.log(`Inserted ${ordersLogToWrite.length} rows to prod change log`);
 
         } catch (error) {
-            console.error('Error inserting rows:', error);
+            if (error.name === 'PartialFailureError' && error.errors && error.errors.length > 0) {
+                console.log('Some rows failed to insert into the change log. Details below:');
+                error.errors.forEach((errorDetail, index) => {
+                    console.log(`\n--- Failure #${index + 1} ---`);
+                    // Make sure the row object has order_sn before trying to access it
+                    const orderSn = errorDetail.row ? errorDetail.row.order_sn : 'UNKNOWN';
+                    console.log(`Problematic Row (order_sn: ${orderSn}):`, JSON.stringify(errorDetail.row, null, 2));
+                    console.log(`Error Reasons:`);
+                    errorDetail.errors.forEach((err, errIndex) => {
+                        console.log(`  - ${errIndex + 1}: ${err.message}`);
+                    });
+                    console.log('------\n');
+                });
+            } else {
+                console.error("A non-partial failure error occurred:", error);
+            }
         }
         console.log("\n");
     } else {
@@ -235,7 +266,7 @@ async function writesToOrderDetail(orders) {
                 reverse_shipping_fee: order.reverse_shipping_fee,
                 ship_by_date: order.ship_by_date,
                 total_amount: order.total_amount,
-                update_time: order.update_time,
+                update_time: formatUnixTime(order.update_time),
             })
         );
     
@@ -322,21 +353,62 @@ async function writesToOrderDetail(orders) {
 
 async function getEscrowDetail(orderList) {
 
-    const orderIds = orderList.map(order => order.order_sn);
+    // Constants
     
-    let hasMore = true;
-    let encapsOrderIds = [];
-
+    // Divide orderIds into 50-long chunks
+    const orderIds = orderList.map(order => order.order_sn);
+    let length = orderIds.length;
+    const orderIdsContainer = [];
+    for(let i=0; i<length; i+=50) {
+        let chunk = orderIds.slice(i, i+50);
+        orderIdsContainer.push(chunk);
+    }
+    
     try {
-        let allEscrowsDetail = [];
-
-        console.log("\n ORDER ID CHUNKS \n");
-        console.log(encapsOrderIds);
-
-        for(orderIdChunk of orderIdChunks) {
+        
+        for(orderIdChunk of orderIdsContainer) {
+            
+            console.log("order id chunk: ", orderIdChunk, " type: ", typeof orderIdChunk);
             
             const path = ESCROW_DETAIL_PATH;
+            const timestamp = Math.floor(Date.now() / 1000);
+            const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+            const sign = crypto.createHmac('sha256', PARTNER_KEY)
+                .update(baseString)
+                .digest('hex');
+
+            const params = new URLSearchParams({
+               partner_id: PARTNER_ID,
+               timestamp: timestamp,
+               access_token: ACCESS_TOKEN,
+               shop_id: SHOP_ID,
+               sign: sign,
+               order_sn_list: orderIdChunk,
+            });
+
+            for(const orderSn of orderIdChunk) {
+                params.append('order_sn_list', orderSn);
+            }
+
+            const fullUrl = `${HOST}${path}?${params.toString()}`;
+            console.log("\nHitting Escrow Detail Batch endpoint:", fullUrl);
+            console.log("\n");
+
+            const responseEscrow = await axios.get(fullUrl, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if(responseEscrow && responseEscrow.data) {
+                console.log("Response Escrow exists")
+                console.log(responseEscrow);
+            } else {
+                console.log("Response Escrow does not exist");
+            }
+
         }
+
     } catch (e) {   
         console.log("error getting escrow detail: ", e);
     }
@@ -436,6 +508,7 @@ async function fetchAndProcessOrders() {
 
         // If date is around 1 - 16
         if(now.getDate() <= 16) {
+            
 
             let allOrdersInBlock = [];
 
@@ -535,10 +608,12 @@ async function fetchAndProcessOrders() {
 
             console.log("\n");
             if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
-                console.log("Writing to Order Detail - Eileen Grace");
-                console.log("\nRecent Order Detail - on 1 - 2 October");
+                console.log("Writing to Order List - Eileen Grace");
 
                 await writesToChangeLog(allOrdersWithDetail);
+
+                console.log("Writing to Order Detail - Eileen Grace");
+                // Uncomment in 5 mins: this is 14:15
                 await writesToOrderDetail(allOrdersWithDetail);
             }
 

@@ -2,15 +2,16 @@ TODOS:
 
 # PRIORITY
 
-# MINIMUM VIABLE WORK - Oct 2nd 2025
-- Testing Case day 2 - 16. All iz well. v
-- Configure data structure to be like eileen_grace_orders_partitioned
-- Datetime formatted UTC+7: YYYY-MM-DD XX:XX
+# MINIMUM VIABLE WORK - Oct 6th 2025
+- Testing Case day 2 - 16. v
+- Configure data structure to be like eileen_grace_orders_partitioned - SHOULD create new table.
+- Datetime formatted UTC+7: YYYY-MM-DD XX:XX. Done with formatUnixTime(). v
 - Hit v2.payment.get_escrow_detail, get 
     - diskon_dari_shopee
     - diskon_dari_penjual
     - voucher_ditanggung_penjual
     - voucher_ditanggung_shopee
+- Hit v2.returns.get_return_list and get_return_detail
 
 
 ## Daily Scheduler
@@ -22,7 +23,7 @@ TODOS:
 - Case if day 1 - 16, configured. v
 - Case if day 17 - 30/31 is done-ish. v
 - Case day 1 October is tested and correct. Yay! v
-- Case day 2 - 16, should try today.
+- Case day 2 - 16, should try today. v
 
 ## Data to Merge
 - Data structure to be configured like eileen_grace_orders_partitioned

@@ -19,7 +19,7 @@ async function scheduleDailyJob() {
     const jobName = "fetch-daily-orders";
     const jobDefinition = {
         // pattern: "55 15 * * *",
-        pattern: "38 18 * * *",
+        pattern: "55 19 * * *",
         tz: "Asia/Jakarta"
     };
 
@@ -27,39 +27,56 @@ async function scheduleDailyJob() {
     const schedulers = await orderQueue.getJobSchedulers();
 
     // 2. Find the scheduler for this specific job by its name
-    const existingScheduler = schedulers.find(
-        scheduler => scheduler.name === jobName
-    );
+    // const existingScheduler = schedulers.find(
+    //     scheduler => scheduler.name === jobName
+    // );
 
-    let needsUpdate = false;
+    for(const sched of schedulers) {
+        if(sched.name === jobName) {
+            await orderQueue.removeJobScheduler(sched.name, sched.cron) 
+        }
+    };
 
-    if (!existingScheduler) {
-        console.log(`Job scheduler for "${jobName}" not found. Creating it.`);
-        needsUpdate = true;
-    } else if (existingScheduler.cron !== jobDefinition.pattern || existingScheduler.tz !== jobDefinition.tz) {
-        console.log(`Job scheduler for "${jobName}" has a different schedule. Updating it.`);
+    await orderQueue.add(jobName, {}, {
+        repeat: jobDefinition,
+        jobId: jobName, // This jobId helps differentiate schedulers if needed
+        attempts: 3,
+        backoff: {
+            type: 'exponential',
+            delay: 60000,
+        }
+    });
+    console.log(`Scheduled daily job "${jobName}" with pattern "${jobDefinition.pattern}".`);
+
+    // let needsUpdate = false;
+
+    // if (!existingScheduler) {
+    //     console.log(`Job scheduler for "${jobName}" not found. Creating it.`);
+    //     needsUpdate = true;
+    // } else if (existingScheduler.cron !== jobDefinition.pattern || existingScheduler.tz !== jobDefinition.tz) {
+    //     console.log(`Job scheduler for "${jobName}" has a different schedule. Updating it.`);
         
-        // Remove the old, incorrect scheduler using its name and cron pattern
-        await orderQueue.removeJobScheduler(existingScheduler.name, existingScheduler.cron);
-        console.log(`Removed old scheduler for "${jobName}".`);
-        needsUpdate = true;
-    }
+    //     // Remove the old, incorrect scheduler using its name and cron pattern
+    //     await orderQueue.removeJobScheduler(existingScheduler.name, existingScheduler.cron);
+    //     console.log(`Removed old scheduler for "${jobName}".`);
+    //     needsUpdate = true;
+    // }
 
-    if (needsUpdate) {
-        // 3. Add the new job/scheduler since it doesn't exist or was incorrect
-        await orderQueue.add(jobName, {}, {
-            repeat: jobDefinition,
-            jobId: jobName, // This jobId helps differentiate schedulers if needed
-            attempts: 3,
-            backoff: {
-                type: 'exponential',
-                delay: 60000,
-            }
-        });
-        console.log(`Scheduled daily job "${jobName}" with pattern "${jobDefinition.pattern}".`);
-    } else {
-        console.log(`Job scheduler for "${jobName}" is already configured correctly. No action needed.`);
-    }
+    // if (needsUpdate) {
+    //     // 3. Add the new job/scheduler since it doesn't exist or was incorrect
+    //     await orderQueue.add(jobName, {}, {
+    //         repeat: jobDefinition,
+    //         jobId: jobName, // This jobId helps differentiate schedulers if needed
+    //         attempts: 3,
+    //         backoff: {
+    //             type: 'exponential',
+    //             delay: 60000,
+    //         }
+    //     });
+    //     console.log(`Scheduled daily job "${jobName}" with pattern "${jobDefinition.pattern}".`);
+    // } else {
+    //     console.log(`Job scheduler for "${jobName}" is already configured correctly. No action needed.`);
+    // }
 }
 
 app.get('/trigger-daily-sync', async (req, res) => {
