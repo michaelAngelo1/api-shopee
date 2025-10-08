@@ -5,6 +5,7 @@ const bigquery = new BigQuery();
 
 const fs = require('fs');
 const path = require('path');
+const { response } = require('express');
 
 require('dotenv').config();
 const port = 3000
@@ -13,6 +14,8 @@ const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
 const ORDER_DETAIL_PATH = "/api/v2/order/get_order_detail";
 const ESCROW_DETAIL_PATH = "/api/v2/payment/get_escrow_detail_batch";
+const RETURN_LIST_PATH = "/api/v2/returns/get_return_list";
+const RETURN_DETAIL_PATH = "/api/v2/returns/get_return_detail";
 
 const PARTNER_ID = parseInt(process.env.PARTNER_ID);
 const PARTNER_KEY = process.env.PARTNER_KEY;
@@ -365,10 +368,11 @@ async function getEscrowDetail(orderList) {
     }
     
     try {
-        
+        let allEscrowsDetail = [];
+
         for(orderIdChunk of orderIdsContainer) {
             
-            console.log("order id chunk: ", orderIdChunk, " type: ", typeof orderIdChunk);
+            // console.log("order id chunk: ", orderIdChunk, " type: ", typeof orderIdChunk);
             
             const path = ESCROW_DETAIL_PATH;
             const timestamp = Math.floor(Date.now() / 1000);
@@ -383,35 +387,63 @@ async function getEscrowDetail(orderList) {
                access_token: ACCESS_TOKEN,
                shop_id: SHOP_ID,
                sign: sign,
-               order_sn_list: orderIdChunk,
             });
-
-            for(const orderSn of orderIdChunk) {
-                params.append('order_sn_list', orderSn);
-            }
 
             const fullUrl = `${HOST}${path}?${params.toString()}`;
             console.log("\nHitting Escrow Detail Batch endpoint:", fullUrl);
             console.log("\n");
 
-            const responseEscrow = await axios.get(fullUrl, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+            const responseEscrow = await axios.post(fullUrl, {
+                "order_sn_list": orderIdChunk
             });
 
-            if(responseEscrow && responseEscrow.data) {
-                console.log("Response Escrow exists")
-                console.log(responseEscrow);
-            } else {
-                console.log("Response Escrow does not exist");
+            if(responseEscrow && responseEscrow.data && responseEscrow.data.response) {
+                allEscrowsDetail = allEscrowsDetail.concat(responseEscrow.data.response);
             }
-
         }
+        return allEscrowsDetail;
 
     } catch (e) {   
         console.log("error getting escrow detail: ", e);
     }
+}
+
+async function getReturnList(timeFrom, timeTo) {
+    console.log("Get return list function");
+
+    // Common Parameters:
+    // - partner_id
+    // - timestamp
+    // - access_token
+    // - shop_id
+    // - sign
+
+    // Request Parameters:
+    // - page_no (required)
+    // - page_size (required)
+    // - create_time_from (required for this case)
+    // - create_time_to (required for this case)
+    // - update_time_from
+    // - update_time_to
+    // - status
+    // - negotiation_status
+    // - seller_proof_status
+    // - seller_compensation_status
+
+    const path = RETURN_LIST_PATH;
+    const timestamp = Math.floor(Date.now() / 1000);
+    const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+    const sign = crypto.createHmac('sha256', PARTNER_KEY)
+        .update(baseString)
+        .digest('hex');
+
+    const params = URLSearchParams({
+        partner_id: PARTNER_ID,
+        timestamp: timestamp,
+        access_token: ACCESS_TOKEN,
+        shop_id: SHOP_ID,
+        sign: sign
+    })
 }
 
 async function getOrderDetail(orderList) {
@@ -458,13 +490,12 @@ async function getOrderDetail(orderList) {
                 sign: sign,
                 order_sn_list: orderIdChunk,
                 response_optional_fields: optional_fields.join(','),
+                // butuh timeTo and timeFrom. Check for reference below
             });
 
     
             const fullUrl = `${HOST}${path}?${params.toString()}`;
             console.log("Hitting Order Detail endpoint:", fullUrl);
-            
-            let ordersWithDetail = [];
     
             const response = await axios.get(fullUrl, {
                 headers: {
@@ -535,7 +566,20 @@ async function fetchAndProcessOrders() {
                         const timestamp = Math.floor(Date.now() / 1000);
                         const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
                         const sign = crypto.createHmac('sha256', PARTNER_KEY).update(baseString).digest('hex');
-                        const params = new URLSearchParams({ partner_id: PARTNER_ID, timestamp, access_token: ACCESS_TOKEN, shop_id: SHOP_ID, sign, time_range_field: 'create_time', time_from: interval.from, time_to: interval.to, page_size: 100, response_optional_fields: 'order_status' });
+                        
+                        const params = new URLSearchParams({ 
+                            partner_id: PARTNER_ID, 
+                            timestamp, 
+                            access_token: ACCESS_TOKEN, 
+                            shop_id: SHOP_ID, 
+                            sign, 
+                            time_range_field: 'create_time', 
+                            time_from: interval.from, 
+                            time_to: interval.to, 
+                            page_size: 100, 
+                            response_optional_fields: 'order_status' 
+                        });
+                        
                         if (cursor) params.append('cursor', cursor);
                         const fullUrl = `${HOST}${PATH}?${params.toString()}`;
                         const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
@@ -619,9 +663,7 @@ async function fetchAndProcessOrders() {
 
             if(allEscrowsDetail && allEscrowsDetail.length > 0) {
                 console.log("All Escrows");
-                allEscrowsDetail.forEach(e => {
-                    console.log("Escrow: " + e);
-                })
+                console.log(allEscrowsDetail);
             }
 
         } else {
@@ -687,13 +729,18 @@ async function fetchAndProcessOrders() {
 
             // Commented for a minute
             const allOrdersWithDetail = await getOrderDetail(allOrders);
-
+            const allEscrowsDetail = await getEscrowDetail(allOrders);
             console.log("\n");
 
             if(allOrdersWithDetail.length > 0) {
                 console.log("Writing to Orders Log - Eileen Grace");
                 await writesToChangeLog(allOrdersWithDetail);
                 await writesToOrderDetail(allOrdersWithDetail);
+            }
+
+            if(allEscrowsDetail.length > 0) {
+                console.log("All Escrows on date > 16");
+                console.log(allEscrowsDetail);
             }
         }
 
