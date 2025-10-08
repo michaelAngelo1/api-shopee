@@ -408,6 +408,31 @@ async function getEscrowDetail(orderList) {
     }
 }
 
+async function getReturnDetail(returnList) {
+    console.log("Get return detail based on return_sn")
+    // Harus nembak berkali-kali cos this is not a batch. One response per id. 
+    // Must contain in an array, then return it.
+
+    // Reconfigure here. Must include: order_sn, return_sn, and returned_quantity
+
+    const sanitizedReturnList = returnList.map(r => ({
+        order_sn: r.order_sn,
+        return_sn: r.return_sn,
+        status: r.status,
+        item_returned_qty: r.item.reduce((sum, currentItem) => {
+            return sum + currentItem.amount;
+        }, 0),
+        item_list: r.item.map(r => ({
+            item_id: r.item_id,
+            item_amount: r.amount,
+        }))
+    }));
+
+    // Need to calculate item_returned_quantity by summing all "amount" on the item_returned array
+
+    return sanitizedReturnList;
+}
+
 async function getReturnList(timeFrom, timeTo) {
     console.log("Get return list function");
 
@@ -430,6 +455,9 @@ async function getReturnList(timeFrom, timeTo) {
     // - seller_proof_status
     // - seller_compensation_status
 
+    let customTimeFrom = 1754529907;
+    let customTimeTo = 1755739507;
+
     const path = RETURN_LIST_PATH;
     const timestamp = Math.floor(Date.now() / 1000);
     const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
@@ -437,13 +465,45 @@ async function getReturnList(timeFrom, timeTo) {
         .update(baseString)
         .digest('hex');
 
-    const params = URLSearchParams({
+    // Common parameters
+    const params = new URLSearchParams({
         partner_id: PARTNER_ID,
         timestamp: timestamp,
         access_token: ACCESS_TOKEN,
         shop_id: SHOP_ID,
-        sign: sign
-    })
+        sign: sign,
+        // Required request parameters
+        page_no: 0, 
+        page_size: 100,
+        // create_time_from: timeFrom,
+        // create_time_to: timeTo
+        create_time_from: customTimeFrom,
+        create_time_to: customTimeTo
+    });
+
+    try {
+        let timeFromIso = formatUnixTime(timeFrom);
+        let timeToIso = formatUnixTime(timeTo);
+        let allReturnList = [];
+
+        // Copy-paste this fullUrl in the browser, see if it returns any response
+        const fullUrl = `${HOST}${path}?${params.toString()}`;
+        console.log("Hitting Return List API endpoint: ", fullUrl);
+
+        const response = await axios.get(fullUrl, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if(response && response.data && response.data.response) {
+            allReturnList = allReturnList.concat(response.data.response.return);
+        }
+
+        return allReturnList;
+    } catch (e) {
+        console.log("error getting return list: \n", e);
+    }
 }
 
 async function getOrderDetail(orderList) {
@@ -458,7 +518,7 @@ async function getOrderDetail(orderList) {
     try {
         let allOrdersWithDetail = [];
 
-        for (orderIdChunk of orderIdChunks) {
+        for (const orderIdChunk of orderIdChunks) {
 
             const path = ORDER_DETAIL_PATH;
             const timestamp = Math.floor(Date.now() / 1000);
@@ -537,7 +597,7 @@ async function fetchAndProcessOrders() {
             23, 59, 59
         );
 
-        // If date is around 1 - 16
+        // If date is around 2 - 16
         if(now.getDate() <= 16) {
             
 
@@ -556,42 +616,63 @@ async function fetchAndProcessOrders() {
                     start = end + 1;
                 }
 
+                // THIS IS IMPORTANT. Uncomment later.
+                // for(const interval of intervals) {
+                //     let hasMore = true;
+                //     let cursor = "";
+                //     while(hasMore) {
+                //         console.log("\n");
+                //         console.log(`Fetching data... Interval: ${interval.from} - ${interval.to}, Cursor: ${cursor}`);
+                //         console.log("\n");
+                //         const timestamp = Math.floor(Date.now() / 1000);
+                //         const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+                //         const sign = crypto.createHmac('sha256', PARTNER_KEY).update(baseString).digest('hex');
+                        
+                //         const params = new URLSearchParams({ 
+                //             partner_id: PARTNER_ID, 
+                //             timestamp, 
+                //             access_token: ACCESS_TOKEN, 
+                //             shop_id: SHOP_ID, 
+                //             sign, 
+                //             time_range_field: 'create_time', 
+                //             time_from: interval.from, 
+                //             time_to: interval.to, 
+                //             page_size: 100, 
+                //             response_optional_fields: 'order_status' 
+                //         });
+                        
+                //         if (cursor) params.append('cursor', cursor);
+                //         const fullUrl = `${HOST}${PATH}?${params.toString()}`;
+                //         const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
+                //         if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                //             allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
+                //             hasMore = response.data.response.more;
+                //             cursor = response.data.response.next_cursor || "";
+                //         } else { 
+                //             hasMore = false; 
+                //         }
+                //     }
+
+                // }
+                
+                console.log("Fetching Return List Orders");
+                console.log("Intervals for Return List");
+
+                let allReturnList = [];
                 for(const interval of intervals) {
-                    let hasMore = true;
-                    let cursor = "";
-                    while(hasMore) {
-                        console.log("\n");
-                        console.log(`Fetching data... Interval: ${interval.from} - ${interval.to}, Cursor: ${cursor}`);
-                        console.log("\n");
-                        const timestamp = Math.floor(Date.now() / 1000);
-                        const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
-                        const sign = crypto.createHmac('sha256', PARTNER_KEY).update(baseString).digest('hex');
-                        
-                        const params = new URLSearchParams({ 
-                            partner_id: PARTNER_ID, 
-                            timestamp, 
-                            access_token: ACCESS_TOKEN, 
-                            shop_id: SHOP_ID, 
-                            sign, 
-                            time_range_field: 'create_time', 
-                            time_from: interval.from, 
-                            time_to: interval.to, 
-                            page_size: 100, 
-                            response_optional_fields: 'order_status' 
-                        });
-                        
-                        if (cursor) params.append('cursor', cursor);
-                        const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-                        const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
-                        if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                            allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
-                            hasMore = response.data.response.more;
-                            cursor = response.data.response.next_cursor || "";
-                        } else { 
-                            hasMore = false; 
-                        }
+                    allReturnList = await getReturnList(interval.from, interval.to);
+                    // Pass to getReturnDetail, with return_sn being request parameters
+                    if(allReturnList && allReturnList.length > 0) {
+                        const allReturnDetails = await getReturnDetail(allReturnList);
+                        console.log("ALL RETURN DETAILS");
+                        console.log(JSON.stringify(allReturnDetails, null, 2));
+                        // console.log(allReturnDetails);
+                    } else {
+                        console.log("allReturnList does not exist.\n");
+                        console.log(allReturnList);
                     }
                 }
+
 
             } else {
                 // If this is the first day of the month
@@ -647,8 +728,9 @@ async function fetchAndProcessOrders() {
                 }
             }
 
-            const allOrdersWithDetail = await getOrderDetail(allOrdersInBlock);
-            const allEscrowsDetail = await getEscrowDetail(allOrdersInBlock);
+            // Secure check if allOrdersInBlock exists
+            const allOrdersWithDetail = await getOrderDetail(allOrdersInBlock && allOrdersInBlock);
+            const allEscrowsDetail = await getEscrowDetail(allOrdersInBlock && allOrdersInBlock);
 
             console.log("\n");
             if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {

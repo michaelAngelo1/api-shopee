@@ -1,53 +1,64 @@
 {
-  "actual_shipping_fee": 40000,
-  "buyer_user_id": 81501282,
-  "buyer_username": "rahmilasiswati21",
-  "cancel_by": "",
-  "cancel_reason": "",
-  "cod": false,
-  "create_time": 1757955339,
-  "days_to_ship": 2,
-  "estimated_shipping_fee": 40000,
-  "item_list": [
+  "image": [],
+  "buyer_videos": [],
+  "reason": "NOT_RECEIPT",
+  "text_reason": "Paket di order udh lama ga smpai2",
+  "return_sn": "2510010VK2V09YA",
+  "refund_amount": 275200,
+  "currency": "IDR",
+  "create_time": 1759283371,
+  "update_time": 1759419203,
+  "status": "ACCEPTED",
+  "due_date": 1759542570,
+  "tracking_number": "",
+  "needs_logistics": false,
+  "amount_before_discount": 348000,
+  "user": {
+    "username": "reginarenden",
+    "email": "*********na@yahoo.com",
+    "portrait": "http://mms.img.susercontent.com/642dcc009528544c39da9094cce17424"
+  },
+  "item": [
     {
-      "item_id": 1600895452,
-      "item_name": "EILEEN GRACE - Moisturize Rose Jelly Mask + Deep-Cleansing Black Jelly Mask 300ml",
-      "item_sku": "EIGR0050",
-      "main_item": false,
-      "model_discounted_price": 669000,
-      "model_id": 275663756275,
-      "model_name": "RJM300ml+BJM300ml",
-      "model_original_price": 998000,
-      "model_quantity_purchased": 1,
-      "model_sku": "EIGR0050",
-      "order_item_id": 1600895452
-    }
-  ],
-  "order_sn": "250916K1JS7A9M",
-  "order_status": "TO_CONFIRM_RECEIVE",
-  "package_list": [
-    {
-      "package_number": "OFG211654539267121",
-      "group_shipment_id": null,
-      "logistics_status": "LOGISTICS_DELIVERY_DONE",
-      "shipping_carrier": "SPX Standard",
-      "item_list": [
-        {
-          "item_id": 1600895452,
-          "model_id": 275663756275,
-          "model_quantity": 1,
-          "order_item_id": 1600895452,
-          "promotion_group_id": 0,
-          "product_location_id": "IDZ"
-        }
+      "item_id": 460504215,
+      "model_id": 290663617998,
+      "name": "EILEEN GRACE - Moisturize Rose Jelly Mask 300 ml | Masker Wajah | Jerawat | Bruntus | Bopeng | Bekas Jerawat | Kemerahan | Skin Barrier | Mencerahkan | Melembapkan",
+      "images": [
+        "http://mms.img.susercontent.com/id-11134207-7ra0m-mbxsac3qg53a15",
+        "http://mms.img.susercontent.com/id-11134207-7rbk4-m7ucamheohhs59",
+        "http://mms.img.susercontent.com/id-11134207-7ra0n-mcg3l7ne6pvfb0",
+        "http://mms.img.susercontent.com/id-11134207-7ra0r-mcg3l7ne84fv88",
+        "http://mms.img.susercontent.com/id-11134207-7ra0q-mcg3l7ne5baze5",
+        "http://mms.img.susercontent.com/id-11134207-7ra0p-mb569uw0vflg30",
+        "http://mms.img.susercontent.com/id-11134207-7rbkc-mb2ea7svt0tna4",
+        "http://mms.img.susercontent.com/id-11134207-7rbkb-m7ucamhe91kna2"
       ],
-      "parcel_chargeable_weight_gram": 1000
+      "amount": 1,
+      "item_price": 344000,
+      "is_add_on_deal": false,
+      "is_main_item": false,
+      "item_sku": "",
+      "variation_sku": "EIGR0007",
+      "add_on_deal_id": 0,
+      "refund_amount": 275200,
+      "hot_listing_item": false
     }
   ],
-  "pay_time": 1757955465,
-  "payment_method": "Online Payment",
-  "reverse_shipping_fee": 0,
-  "ship_by_date": 1758041999,
-  "total_amount": 598600,
-  "update_time": 1758251069
+  "order_sn": "2509105J8RJMW7",
+  "return_ship_due_date": 0,
+  "return_seller_due_date": 0,
+  "negotiation_status": "",
+  "seller_proof_status": "NOT_NEEDED",
+  "seller_compensation_status": "",
+  "hot_listing_order": false,
+  "return_refund_type": "RRBOC",
+  "return_solution": 1,
+  "seller_evidence_deadline": null,
+  "negotiation": {
+    "latest_solution": ""
+  },
+  "return_refund_request_type": 0,
+  "validation_type": "seller_validation",
+  "is_seller_arrange": false,
+  "is_shipping_proof_mandatory": false
 }

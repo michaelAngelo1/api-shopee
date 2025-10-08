@@ -7,7 +7,7 @@ TODOS:
 - Configure data structure to be like eileen_grace_orders_partitioned - SHOULD create new table.
 - Datetime formatted UTC+7: YYYY-MM-DD XX:XX. Done with formatUnixTime(). v
 - Hit v2.payment.get_escrow_detail_batch v
-- Hit v2.returns.get_return_list and get_return_detail
+- Hit v2.returns.get_return_list and get_return_detail v
 
 
 ## Daily Scheduler
