@@ -19,7 +19,7 @@ async function scheduleDailyJob() {
     const jobName = "fetch-daily-orders";
     const jobDefinition = {
         // pattern: "55 15 * * *",
-        pattern: "34 18 * * *",
+        pattern: "54 18 * * *",
         tz: "Asia/Jakarta"
     };
 
@@ -30,7 +30,7 @@ async function scheduleDailyJob() {
     // const existingScheduler = schedulers.find(
     //     scheduler => scheduler.name === jobName
     // );
-
+       
     for(const sched of schedulers) {
         if(sched.name === jobName) {
             await orderQueue.removeJobScheduler(sched.name, sched.cron) 
