@@ -1,6 +1,6 @@
-const express = require("express");
-const { Queue } = require("bullmq");
-require("dotenv").config();
+import express from 'express';
+import { Queue } from 'bullmq';
+import 'dotenv/config';
 
 const app = express();
 const port = 3000;
@@ -19,7 +19,7 @@ async function scheduleDailyJob() {
     const jobName = "fetch-daily-orders";
     const jobDefinition = {
         // pattern: "55 15 * * *",
-        pattern: "54 18 * * *",
+        pattern: "33 20 * * *",
         tz: "Asia/Jakarta"
     };
 

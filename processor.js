@@ -1,28 +1,30 @@
-const axios = require('axios')
-const crypto = require('crypto')
-const { BigQuery } = require('@google-cloud/bigquery');
-const bigquery = new BigQuery();
+import { getReturnDetail, getReturnList } from './api/getReturns.js';
+import { getEscrowDetail } from './api/getEscrowDetail.js';
+import { getOrderDetail } from './api/getOrderDetail.js';
+import { handleReturns } from './api/handleReturns.js';
+import { writesToChangeLog } from './api/writesToChangeLog.js';
+import { writesToOrderDetail } from './api/writesToOrderDetail.js';
+import { formatUnixTime } from './functions/formatUnixTime.js';
+import axios from 'axios';
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import 'dotenv/config';
+import { fileURLToPath } from 'url';
 
-const fs = require('fs');
-const path = require('path');
-const { response } = require('express');
-
-require('dotenv').config();
 const port = 3000
 
-const HOST = "https://partner.shopeemobile.com";
+export const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
-const ORDER_DETAIL_PATH = "/api/v2/order/get_order_detail";
-const ESCROW_DETAIL_PATH = "/api/v2/payment/get_escrow_detail_batch";
-const RETURN_LIST_PATH = "/api/v2/returns/get_return_list";
-const RETURN_DETAIL_PATH = "/api/v2/returns/get_return_detail";
 
-const PARTNER_ID = parseInt(process.env.PARTNER_ID);
-const PARTNER_KEY = process.env.PARTNER_KEY;
-const SHOP_ID = parseInt(process.env.SHOP_ID);
+export const PARTNER_ID = parseInt(process.env.PARTNER_ID);
+export const PARTNER_KEY = process.env.PARTNER_KEY;
+export const SHOP_ID = parseInt(process.env.SHOP_ID);
 
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const token_file_path = path.join(__dirname, 'shopee-tokens.json');
 
 function saveTokensToFile(tokens) {
@@ -53,7 +55,7 @@ function loadTokensFromFile() {
 }
 
 let loadedTokens = loadTokensFromFile();
-let ACCESS_TOKEN = loadedTokens.accessToken;
+export let ACCESS_TOKEN = loadedTokens.accessToken;
 let REFRESH_TOKEN = loadedTokens.refreshToken;
 
 async function refreshToken() {
@@ -97,22 +99,6 @@ async function refreshToken() {
     }
 }
 
-function formatUnixTime(unixTimestamp) {
-  const date = new Date(unixTimestamp * 1000);
-  const options = {
-    timeZone: 'Asia/Jakarta',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23' 
-  };
-
-  return new Intl.DateTimeFormat('sv-SE', options).format(date);
-}
-
 
 const jakartaOffset = 7 * 60 * 60;
 
@@ -126,235 +112,7 @@ function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
     return Math.floor(date.getTime() / 1000) - jakartaOffset;
 }
 
-// This has become the new order_list
-async function writesToChangeLog(orders) {
-
-    const [rows] = await bigquery.query({
-        query: `
-            SELECT order_sn, status
-            FROM \`shopee_api.eileen_grace_order_list\`
-            QUALIFY ROW_NUMBER() OVER (PARTITION BY order_sn ORDER BY update_time DESC) = 1
-        `
-    });
-    const lastStatusMap = {};
-    rows.forEach(row => {
-        lastStatusMap[row.order_sn] = row.status;
-    })
-
-    // Filter by change of status
-    const ordersLogToWrite = orders
-        .filter(order => lastStatusMap[order.order_sn] !== order.order_status)
-        .map(order => ({
-            order_sn: order.order_sn,
-            status: order.order_status,
-            update_time: formatUnixTime(order.update_time),
-        }));
-
-    console.log("Writing to Eileen Grace Change Log");
-    const datasetId = 'shopee_api';
-    const tableId = 'eileen_grace_order_list_staging';
-
-    console.log("Writing to Order Change Log - Eileen Grace");
-
-    if(ordersLogToWrite.length > 0) {
-        try {
-            
-            await bigquery
-                .dataset(datasetId)
-                .table(tableId)
-                .insert(ordersLogToWrite);
-            console.log(`Inserted ${ordersLogToWrite.length} rows to staging change log`);
-
-            const mergeQuery = `
-                MERGE \`shopee_api.eileen_grace_order_list\` T
-                USING \`shopee_api.eileen_grace_order_list_staging\` S
-                ON T.order_sn = S.order_sn
-                WHEN MATCHED THEN
-                    UPDATE SET status = S.status, update_time = S.update_time
-                WHEN NOT MATCHED THEN
-                    INSERT (order_sn, status, update_time)
-                    VALUES (S.order_sn, S.status, S.update_time)
-            `;
-            await bigquery.query({ query: mergeQuery});
-            await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_order_list_staging\``});
-            console.log(`Inserted ${ordersLogToWrite.length} rows to prod change log`);
-
-        } catch (error) {
-            if (error.name === 'PartialFailureError' && error.errors && error.errors.length > 0) {
-                console.log('Some rows failed to insert into the change log. Details below:');
-                error.errors.forEach((errorDetail, index) => {
-                    console.log(`\n--- Failure #${index + 1} ---`);
-                    // Make sure the row object has order_sn before trying to access it
-                    const orderSn = errorDetail.row ? errorDetail.row.order_sn : 'UNKNOWN';
-                    console.log(`Problematic Row (order_sn: ${orderSn}):`, JSON.stringify(errorDetail.row, null, 2));
-                    console.log(`Error Reasons:`);
-                    errorDetail.errors.forEach((err, errIndex) => {
-                        console.log(`  - ${errIndex + 1}: ${err.message}`);
-                    });
-                    console.log('------\n');
-                });
-            } else {
-                console.error("A non-partial failure error occurred:", error);
-            }
-        }
-        console.log("\n");
-    } else {
-        console.log("No status changes to log.");
-    }
-}
-
-async function writesToOrderDetail(orders) {
-
-    const [rows] = await bigquery.query({
-        query: `
-            SELECT order_sn, order_status
-            FROM \`shopee_api.eileen_grace_order_detail\`
-            QUALIFY ROW_NUMBER() OVER (PARTITION BY order_sn ORDER BY update_time DESC) = 1
-        `
-    });
-    const lastStatusMap = {};
-    rows.forEach(row => {
-        lastStatusMap[row.order_sn] = row.order_status;
-    })
-
-    const orderDetailsToWrite = orders
-        .filter(order => lastStatusMap[order.order_sn] !== order.order_status)
-        .map(order => ({
-                actual_shipping_fee: order.actual_shipping_fee,
-                buyer_user_id: order.buyer_user_id,
-                buyer_username: order.buyer_username,
-                cancel_by: order.cancel_by,
-                cancel_reason: order.cancel_reason,
-                cod: order.cod,
-                create_time: order.create_time,
-                days_to_ship: order.days_to_ship,
-                estimated_shipping_fee: order.estimated_shipping_fee,
-                
-                // item_list: order.item_list,
-                item_list: order.item_list.map(item => ({
-                    item_id: item.item_id,
-                    item_name: item.item_name,
-                    item_sku: item.item_sku,
-                    main_item: item.main_item,
-                    model_discounted_price: item.model_discounted_price,
-                    model_id: item.model_id,
-                    model_name: item.model_name,
-                    model_original_price: item.model_original_price,
-                    model_quantity_purchased: item.model_quantity_purchased,
-                    model_sku: item.model_sku,
-                    order_item_id: item.order_item_id,
-                })),
-
-                order_sn: order.order_sn,
-                order_status: order.order_status,
-
-                package_list: order.package_list.map(item => ({
-                    package_number: item.package_number,
-                    group_shipment_id: item.group_shipment_id,
-                    logistics_status: item.logistics_status,
-                    shipping_carrier: item.shipping_carrier,
-                    parcel_chargeable_weight_gram: item.parcel_chargeable_weight_gram,
-                    item_list: item.item_list.map(subItem => ({
-                        item_id: subItem.item_id,
-                        model_id: subItem.model_id,
-                        model_quantity: subItem.model_quantity,
-                        order_item_id: subItem.order_item_id,
-                        promotion_group_id: subItem.promotion_group_id,
-                        product_location_id: subItem.product_location_id,
-                    }))
-                })),
-            
-                pay_time: order.pay_time,
-                payment_method: order.payment_method,
-                reverse_shipping_fee: order.reverse_shipping_fee,
-                ship_by_date: order.ship_by_date,
-                total_amount: order.total_amount,
-                update_time: formatUnixTime(order.update_time),
-            })
-        );
-    
-    console.log("Writing to Eileen Grace Order Detail");
-    const datasetId = 'shopee_api';
-    const tableIdStaging = 'eileen_grace_order_detail_staging';
-
-    console.log("Writing to Order Detail - Eileen Grace");
-
-    if(orderDetailsToWrite.length > 0) {
-        try {
-
-            const BATCH_SIZE = 500;
-            const insertPromises = [];
-
-            for(let i=0; i<orderDetailsToWrite.length; i+=BATCH_SIZE) {
-                const chunk = orderDetailsToWrite.slice(i, i+BATCH_SIZE);
-                const promise = bigquery
-                    .dataset(datasetId)
-                    .table(tableIdStaging)
-                    .insert(chunk);
-                insertPromises.push(promise);
-            }
-
-            await Promise.all(insertPromises);
-
-            console.log(`Inserted ${orderDetailsToWrite.length} rows to staging order detail`);
-
-            const mergeQuery = `
-                MERGE \`shopee_api.eileen_grace_order_detail\` T
-                USING \`shopee_api.eileen_grace_order_detail_staging\` S
-                ON T.order_sn = S.order_sn
-
-                -- When an order already exists, update all its fields
-                WHEN MATCHED THEN
-                    UPDATE SET
-                        T.actual_shipping_fee = S.actual_shipping_fee,
-                        T.buyer_user_id = S.buyer_user_id,
-                        T.buyer_username = S.buyer_username,
-                        T.cancel_by = S.cancel_by,
-                        T.cancel_reason = S.cancel_reason,
-                        T.cod = S.cod,
-                        T.create_time = S.create_time,
-                        T.days_to_ship = S.days_to_ship,
-                        T.estimated_shipping_fee = S.estimated_shipping_fee,
-                        T.item_list = S.item_list,
-                        T.order_status = S.order_status,
-                        T.package_list = S.package_list,
-                        T.pay_time = S.pay_time,
-                        T.payment_method = S.payment_method,
-                        T.reverse_shipping_fee = S.reverse_shipping_fee,
-                        T.ship_by_date = S.ship_by_date,
-                        T.total_amount = S.total_amount,
-                        T.update_time = S.update_time
-
-                -- When it's a new order, insert the entire row
-                WHEN NOT MATCHED BY TARGET THEN
-                    INSERT ROW
-            `;
-            await bigquery.query({ query: mergeQuery});
-            await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_order_detail_staging\``});
-            console.log(`Inserted ${orderDetailsToWrite.length} rows to prod change log`);
-        
-        } catch (e) {
-            console.error("Error during BigQuery insert/merge:");
-
-            if (e.name === 'PartialFailureError' && e.errors && e.errors.length > 0) {
-                console.log('Some rows failed to insert. Details below:');
-                e.errors.forEach((errorDetail, index) => {
-                    console.log(`\n--- Failure #${index + 1} ---`);
-                    console.log(`Problematic Row (order_sn: ${errorDetail.row.order_sn}):`, JSON.stringify(errorDetail.row, null, 2));
-                    console.log(`Error Reasons:`);
-                    errorDetail.errors.forEach((err, errIndex) => {
-                        console.log(`  - ${errIndex + 1}: ${err.message} (Reason: ${err.reason})`);
-                    });
-                    console.log('------\n');
-                });
-            } else {
-                console.error("A non-partial failure error occurred:", e);
-            }
-        }
-    }
-}
-
-async function handleOrders(orderDetails, orderEscrows, orderReturns) {
+async function handleOrders(orderDetails, orderEscrows) {
     console.log("Wrangling order details, escrows, and returns. From October 1st to yesterday.");
 
     console.log("First 3 order details\n");
@@ -362,9 +120,6 @@ async function handleOrders(orderDetails, orderEscrows, orderReturns) {
 
     console.log("First 3 order escrows\n");
     console.log(orderEscrows.length);
-
-    console.log("First 3 order returns");
-    console.log("returns length: ", orderReturns.length);
 
     const sampleOrderObjectList = [];
     
@@ -376,9 +131,9 @@ async function handleOrders(orderDetails, orderEscrows, orderReturns) {
             "Status_Pembatalan_Pengembalian": "",
             "No_Resi": o.package_number,
             "Opsi_Pengiriman": o.shipping_carrier,
-            "Pesanan_Harus_Dikirimkan_Sebelum": formatUnixTime(o.ship_by_date),
-            "Waktu_Pesanan_Dibuat": formatUnixTime(o.create_time),
-            "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime(o.pay_time) : "BELUM BAYAR",
+            "Pesanan_Harus_Dikirimkan_Sebelum": formatUnixTime("processor - ship by date", o.ship_by_date),
+            "Waktu_Pesanan_Dibuat": formatUnixTime("processor - create time", o.create_time),
+            "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime("processor - pay time", o.pay_time) : "BELUM BAYAR",
             "Metode_Pembayaran": o.payment_method ? o.payment_method : "BELUM BAYAR",
             "SKU_Induk": o.item_sku,
             "Nama_Produk": o.item_name,
@@ -388,18 +143,22 @@ async function handleOrders(orderDetails, orderEscrows, orderReturns) {
             "Harga_Setelah_Diskon": o.model_discounted_price,
             "Jumlah": o.model_quantity_purchased
         }
-        
-        const sameOrderSn = orderReturns.find(r => o.order_sn == r.order_sn);
-        if(sameOrderSn !== undefined) {
-            console.log("same order sn: \n");
-            console.log(sameOrderSn);
-        }
+
+        o.item_list.forEach(i => {
+            sampleOrderObject.SKU_Induk = i.item_sku;
+            sampleOrderObject.Nama_Produk = i.item_name;
+            sampleOrderObject.Nomor_Referensi_SKU = i.item_sku;
+            sampleOrderObject.Nama_Variasi = i.model_name;
+            sampleOrderObject.Harga_Awal = i.model_original_price;
+            sampleOrderObject.Harga_Setelah_Diskon = i.model_discounted_price;
+            sampleOrderObject.Jumlah = i.model_quantity_purchased;
+        })
 
         sampleOrderObjectList.push(sampleOrderObject);
     });
 
-    console.log("Sample Order Object List\n");
-    console.log(sampleOrderObjectList)
+    // console.log("Sample Order Object List\n");
+    // console.log(sampleOrderObjectList)
 
     const orderObjectList = [];
     const orderObject = {
@@ -432,233 +191,9 @@ async function handleOrders(orderDetails, orderEscrows, orderReturns) {
         "Total_Pembayaran": 0,
         "Perkiraan_Ongkos_Kirim": 0,
     }
-
-
 }
 
-async function getEscrowDetail(orderList) {
-
-    // Constants
-    
-    // Divide orderIds into 50-long chunks
-    const orderIds = orderList.map(order => order.order_sn);
-    let length = orderIds.length;
-    const orderIdsContainer = [];
-    for(let i=0; i<length; i+=50) {
-        let chunk = orderIds.slice(i, i+50);
-        orderIdsContainer.push(chunk);
-    }
-    
-    try {
-        let allEscrowsDetail = [];
-
-        for(orderIdChunk of orderIdsContainer) {
-            
-            // console.log("order id chunk: ", orderIdChunk, " type: ", typeof orderIdChunk);
-            
-            const path = ESCROW_DETAIL_PATH;
-            const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
-            const sign = crypto.createHmac('sha256', PARTNER_KEY)
-                .update(baseString)
-                .digest('hex');
-
-            const params = new URLSearchParams({
-               partner_id: PARTNER_ID,
-               timestamp: timestamp,
-               access_token: ACCESS_TOKEN,
-               shop_id: SHOP_ID,
-               sign: sign,
-            });
-
-            const fullUrl = `${HOST}${path}?${params.toString()}`;
-            console.log("\nHitting Escrow Detail Batch endpoint:", fullUrl);
-            console.log("\n");
-
-            const responseEscrow = await axios.post(fullUrl, {
-                "order_sn_list": orderIdChunk
-            });
-
-            if(responseEscrow && responseEscrow.data && responseEscrow.data.response) {
-                allEscrowsDetail = allEscrowsDetail.concat(responseEscrow.data.response);
-            }
-        }
-        return allEscrowsDetail;
-
-    } catch (e) {   
-        console.log("error getting escrow detail: ", e);
-    }
-}
-
-async function getReturnDetail(returnList) {
-    console.log("Get return detail based on return_sn")
-    // Harus nembak berkali-kali cos this is not a batch. One response per id. 
-    // Must contain in an array, then return it.
-
-    // Reconfigure here. Must include: order_sn, return_sn, and returned_quantity
-
-    const sanitizedReturnList = returnList.map(r => ({
-        order_sn: r.order_sn,
-        return_sn: r.return_sn,
-        status: r.status,
-        item_returned_qty: r.item.reduce((sum, currentItem) => {
-            return sum + currentItem.amount;
-        }, 0),
-        item_list: r.item.map(r => ({
-            item_id: r.item_id,
-            item_amount: r.amount,
-        }))
-    }));
-
-    // Need to calculate item_returned_quantity by summing all "amount" on the item_returned array
-
-    return sanitizedReturnList;
-}
-
-async function getReturnList(timeFrom, timeTo) {
-    console.log("Get return list function");
-
-    // Common Parameters:
-    // - partner_id
-    // - timestamp
-    // - access_token
-    // - shop_id
-    // - sign
-
-    // Request Parameters:
-    // - page_no (required)
-    // - page_size (required)
-    // - create_time_from (required for this case)
-    // - create_time_to (required for this case)
-    // - update_time_from
-    // - update_time_to
-    // - status
-    // - negotiation_status
-    // - seller_proof_status
-    // - seller_compensation_status
-
-    let customTimeFrom = 1754529907;
-    let customTimeTo = 1755739507;
-
-    const path = RETURN_LIST_PATH;
-    const timestamp = Math.floor(Date.now() / 1000);
-    const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
-    const sign = crypto.createHmac('sha256', PARTNER_KEY)
-        .update(baseString)
-        .digest('hex');
-
-    // Common parameters
-    const params = new URLSearchParams({
-        partner_id: PARTNER_ID,
-        timestamp: timestamp,
-        access_token: ACCESS_TOKEN,
-        shop_id: SHOP_ID,
-        sign: sign,
-        // Required request parameters
-        page_no: 0, 
-        page_size: 100,
-        create_time_from: timeFrom,
-        create_time_to: timeTo
-    });
-
-    try {
-        let timeFromIso = formatUnixTime(timeFrom);
-        let timeToIso = formatUnixTime(timeTo);
-        let allReturnList = [];
-
-        // Copy-paste this fullUrl in the browser, see if it returns any response
-        const fullUrl = `${HOST}${path}?${params.toString()}`;
-        console.log("Hitting Return List API endpoint: ", fullUrl);
-
-        const response = await axios.get(fullUrl, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if(response && response.data && response.data.response) {
-            allReturnList = allReturnList.concat(response.data.response.return);
-        }
-
-        return allReturnList;
-    } catch (e) {
-        console.log("error getting return list: \n", e);
-    }
-}
-
-async function getOrderDetail(orderList) {
-
-    const orderIds = orderList.map(order => order.order_sn);
-    const orderIdChunks = [];
-
-    for(let i=0; i<orderIds.length; i+=50) {
-        orderIdChunks.push(orderIds.slice(i, i+50).join(','));
-    }
-
-    try {
-        let allOrdersWithDetail = [];
-
-        for (const orderIdChunk of orderIdChunks) {
-
-            const path = ORDER_DETAIL_PATH;
-            const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
-    
-            const sign = crypto.createHmac('sha256', PARTNER_KEY)
-                .update(baseString)
-                .digest('hex');
-            
-            optional_fields = [
-                "actual_shipping_fee",
-                "buyer_user_id",
-                "buyer_username",
-                "estimated_shipping_fee",
-                "payment_method",
-                "item_list",       
-                "pay_time",
-                "cancel_reason",
-                "cancel_by",
-                "package_list",
-                "total_amount",     
-            ]
-            
-            const params = new URLSearchParams({
-                partner_id: PARTNER_ID,
-                timestamp: timestamp,
-                access_token: ACCESS_TOKEN,
-                shop_id: SHOP_ID,
-                sign: sign,
-                order_sn_list: orderIdChunk,
-                response_optional_fields: optional_fields.join(','),
-                // butuh timeTo and timeFrom. Check for reference below
-            });
-
-    
-            const fullUrl = `${HOST}${path}?${params.toString()}`;
-            console.log("Hitting Order Detail endpoint:", fullUrl);
-    
-            const response = await axios.get(fullUrl, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-    
-            if(response && response.data.response && Array.isArray(response.data.response.order_list)) {
-                console.log("Order Detail response: ", response.data.response.order_list);
-                allOrdersWithDetail = allOrdersWithDetail.concat(response.data.response.order_list);
-            }
-        
-        }
-
-        return allOrdersWithDetail;
-
-    } catch (e) {
-        console.log("Error getting order detail: ", e);
-    }
-}
-
-
-async function fetchAndProcessOrders() {
+export async function fetchAndProcessOrders() {
     console.log("Starting fetchAndProcessOrders job...");
     try {
         await refreshToken();
@@ -756,6 +291,7 @@ async function fetchAndProcessOrders() {
 
             } else {
                 // If this is the first day of the month
+                // Returns belom disini
 
                 console.log("Fetching all orders from the previous month");
 
@@ -813,15 +349,15 @@ async function fetchAndProcessOrders() {
             const allEscrowsDetail = await getEscrowDetail(allOrdersInBlock && allOrdersInBlock);
 
             console.log("\n");
-            // if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
-            //     console.log("Writing to Order List - Eileen Grace");
+            if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
+                console.log("Writing to Order List - Eileen Grace");
 
-            //     await writesToChangeLog(allOrdersWithDetail);
+                // await writesToChangeLog(allOrdersWithDetail);
 
-            //     console.log("Writing to Order Detail - Eileen Grace");
+                console.log("Writing to Order Detail - Eileen Grace");
 
-            //     await writesToOrderDetail(allOrdersWithDetail);
-            // }
+                // await writesToOrderDetail(allOrdersWithDetail);
+            }
 
             // if(allEscrowsDetail && allEscrowsDetail.length > 0) {
             //     console.log("All Escrows on Date <= 16");
@@ -833,14 +369,19 @@ async function fetchAndProcessOrders() {
             //     console.log(allReturns.slice(0, 2));
             // }
 
-            if(allOrdersWithDetail.length > 0 && allEscrowsDetail.length > 0 && allReturns.length > 0) {
-                console.log("Pass to handle orders function");
-                handleOrders(allOrdersWithDetail, allEscrowsDetail, allReturns);
+            if((allOrdersWithDetail && allOrdersWithDetail.length > 0) && (allEscrowsDetail && allEscrowsDetail.length > 0) && (allReturns && allReturns.length > 0)) {
+                console.log("Pass to handle orders & handle returns function");
+                handleOrders(allOrdersWithDetail, allEscrowsDetail);
+                handleReturns(allReturns);
+            } else {
+                console.log("Either orders, escrows, or returns doesnt exist");
             }
 
         } 
         // Else, if date ranges from 17 - 30 or 31
+        // Returns belom juga disini
         else {
+            console.log("Fetching MTD Orders. Case 17 - 31");
 
             let intervals = [];
             let start = timeFrom;
@@ -928,5 +469,3 @@ async function fetchAndProcessOrders() {
         console.log("Error fetching orders: ", e);
     }
 }
-
-module.exports = { fetchAndProcessOrders };

@@ -1,6 +1,6 @@
-const { Worker } = require('bullmq');
-const { fetchAndProcessOrders } = require('./processor');
-require('dotenv').config();
+import { fetchAndProcessOrders } from './processor.js';
+import { Worker } from 'bullmq';
+import 'dotenv/config';
 
 const connection = {
     connection: {
