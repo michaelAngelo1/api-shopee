@@ -4,7 +4,8 @@ import { getOrderDetail } from './api/getOrderDetail.js';
 import { handleReturns } from './api/handleReturns.js';
 import { writesToChangeLog } from './api/writesToChangeLog.js';
 import { writesToOrderDetail } from './api/writesToOrderDetail.js';
-import { formatUnixTime } from './functions/formatUnixTime.js';
+import { handleOrders } from './api/handleOrders.js';
+
 import axios from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -112,87 +113,6 @@ function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
     return Math.floor(date.getTime() / 1000) - jakartaOffset;
 }
 
-async function handleOrders(orderDetails, orderEscrows) {
-    console.log("Wrangling order details, escrows, and returns. From October 1st to yesterday.");
-
-    console.log("First 3 order details\n");
-    console.log(orderDetails.length);
-
-    console.log("First 3 order escrows\n");
-    console.log(orderEscrows.length);
-
-    const sampleOrderObjectList = [];
-    
-    orderDetails.forEach(o => {
-        const sampleOrderObject = {
-            "No_Pesanan": o.order_sn,
-            "Status_Pesanan": o.order_status,
-            "Alasan_Pembatalan": o.cancel_reason,
-            "Status_Pembatalan_Pengembalian": "",
-            "No_Resi": o.package_number,
-            "Opsi_Pengiriman": o.shipping_carrier,
-            "Pesanan_Harus_Dikirimkan_Sebelum": formatUnixTime("processor - ship by date", o.ship_by_date),
-            "Waktu_Pesanan_Dibuat": formatUnixTime("processor - create time", o.create_time),
-            "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime("processor - pay time", o.pay_time) : "BELUM BAYAR",
-            "Metode_Pembayaran": o.payment_method ? o.payment_method : "BELUM BAYAR",
-            "SKU_Induk": o.item_sku,
-            "Nama_Produk": o.item_name,
-            "Nomor_Referensi_SKU": o.item_sku,
-            "Nama_Variasi": o.model_name,
-            "Harga_Awal": o.model_original_price,
-            "Harga_Setelah_Diskon": o.model_discounted_price,
-            "Jumlah": o.model_quantity_purchased
-        }
-
-        o.item_list.forEach(i => {
-            sampleOrderObject.SKU_Induk = i.item_sku;
-            sampleOrderObject.Nama_Produk = i.item_name;
-            sampleOrderObject.Nomor_Referensi_SKU = i.item_sku;
-            sampleOrderObject.Nama_Variasi = i.model_name;
-            sampleOrderObject.Harga_Awal = i.model_original_price;
-            sampleOrderObject.Harga_Setelah_Diskon = i.model_discounted_price;
-            sampleOrderObject.Jumlah = i.model_quantity_purchased;
-        })
-
-        sampleOrderObjectList.push(sampleOrderObject);
-    });
-
-    // console.log("Sample Order Object List\n");
-    // console.log(sampleOrderObjectList)
-
-    const orderObjectList = [];
-    const orderObject = {
-        "No_Pesanan": "",
-        "Status_Pesanan": "",
-        "Alasan_Pembatalan": "",
-        "Status_Pembatalan_Pengembalian": "",
-        "No_Resi": "",
-        "Opsi_Pengiriman": "",
-        "Pesanan_Harus_Dikirimkan_Sebelum": "",
-        "Waktu_Pesanan_Dibuat": "",
-        "Waktu_Pembayaran_Dilakukan": "",
-        "Metode_Pembayaran": "",
-        "SKU_Induk": "",
-        "Nama_Produk": "",
-        "Nomor_Referensi_SKU": "",
-        "Nama_Variasi": "",
-        "Harga_Awal": 0,
-        "Harga_Setelah_Diskon": 0,
-        "Jumlah": 0,
-        "Returned_quantity": 0,
-        "Total_Harga_Produk": 0,
-        "Total_Diskon": 0,
-        "Diskon_Dari_Penjual": 0,
-        "Diskon_Dari_Shopee": 0,
-        "Jumlah_Produk_di_Pesan": 0,
-        "Total_Berat": "",
-        "Voucher_Ditanggung_Penjual": 0,
-        "Voucher_Ditanggung_Shopee": 0,
-        "Total_Pembayaran": 0,
-        "Perkiraan_Ongkos_Kirim": 0,
-    }
-}
-
 export async function fetchAndProcessOrders() {
     console.log("Starting fetchAndProcessOrders job...");
     try {
@@ -213,6 +133,7 @@ export async function fetchAndProcessOrders() {
         );
 
         // If date is around 1 - 16
+        // Returns are done in this if-block.
         if(now.getDate() <= 16) {
             
 
@@ -291,7 +212,6 @@ export async function fetchAndProcessOrders() {
 
             } else {
                 // If this is the first day of the month
-                // Returns belom disini
 
                 console.log("Fetching all orders from the previous month");
 
@@ -342,6 +262,23 @@ export async function fetchAndProcessOrders() {
                         } else { hasMore = false; }
                     }
                 }
+
+                console.log("Fetching Return List Orders - ");
+                console.log("Intervals for Return List");
+
+                let allReturnList = [];
+                for(const interval of intervals) {
+                    allReturnList = await getReturnList(interval.from, interval.to);
+                    // Pass to getReturnDetail, with return_sn being request parameters
+                    if(allReturnList && allReturnList.length > 0) {
+                        const allReturnDetails = await getReturnDetail(allReturnList);
+
+                        allReturns = allReturns.concat(allReturnDetails);
+                    } else {
+                        console.log("allReturnList does not exist.\n");
+                        console.log(allReturnList);
+                    }
+                }
             }
 
             // Secure check if allOrdersInBlock exists
@@ -372,14 +309,16 @@ export async function fetchAndProcessOrders() {
             if((allOrdersWithDetail && allOrdersWithDetail.length > 0) && (allEscrowsDetail && allEscrowsDetail.length > 0) && (allReturns && allReturns.length > 0)) {
                 console.log("Pass to handle orders & handle returns function");
                 handleOrders(allOrdersWithDetail, allEscrowsDetail);
-                handleReturns(allReturns);
+                // handleReturns(allReturns);
             } else {
                 console.log("Either orders, escrows, or returns doesnt exist");
+                console.log("All orders: ", allOrdersWithDetail.slice(0, 1));
+                console.log("All escrows: ", allEscrowsDetail.slice(0, 1));
+                console.log("All returns: ", allEscrowsDetail.slice(0, 1));
             }
 
         } 
         // Else, if date ranges from 17 - 30 or 31
-        // Returns belom juga disini
         else {
             console.log("Fetching MTD Orders. Case 17 - 31");
 
@@ -443,26 +382,54 @@ export async function fetchAndProcessOrders() {
 
             }
 
+            let allReturnList = [];
+            for(const interval of intervals) {
+                allReturnList = await getReturnList(interval.from, interval.to);
+                // Pass to getReturnDetail, with return_sn being request parameters
+                if(allReturnList && allReturnList.length > 0) {
+                    const allReturnDetails = await getReturnDetail(allReturnList);
+
+                    allReturns = allReturns.concat(allReturnDetails);
+                } else {
+                    console.log("allReturnList does not exist.\n");
+                    console.log(allReturnList);
+                }
+            }
+
             // Commented for a minute
-            const allOrdersWithDetail = await getOrderDetail(allOrders);
-            const allEscrowsDetail = await getEscrowDetail(allOrders);
+            const allOrdersWithDetail = await getOrderDetail(allOrders && allOrders);
+            const allEscrowsDetail = await getEscrowDetail(allOrders && allOrders);
+
             console.log("\n");
+            if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
+                console.log("Writing to Order List - Eileen Grace");
 
-            if(allOrdersWithDetail.length > 0) {
-                console.log("Writing to Orders Log - Eileen Grace");
-                await writesToChangeLog(allOrdersWithDetail);
-                await writesToOrderDetail(allOrdersWithDetail);
+                // await writesToChangeLog(allOrdersWithDetail);
+
+                console.log("Writing to Order Detail - Eileen Grace");
+
+                // await writesToOrderDetail(allOrdersWithDetail);
             }
 
-            if(allEscrowsDetail.length > 0) {
-                console.log("All Escrows on date > 16");
-                console.log(allEscrowsDetail.slice(0, 2));
+            // if(allEscrowsDetail && allEscrowsDetail.length > 0) {
+            //     console.log("All Escrows on Date <= 16");
+            //     console.log(allEscrowsDetail.slice(0, 2));
+            // }
+
+            // if(allReturns && allReturns.length > 0) {
+            //     console.log("All Returns on Date <= 16");
+            //     console.log(allReturns.slice(0, 2));
+            // }
+
+            if((allOrdersWithDetail && allOrdersWithDetail.length > 0) && (allEscrowsDetail && allEscrowsDetail.length > 0) && (allReturns && allReturns.length > 0)) {
+                console.log("Pass to handle orders & handle returns function");
+                handleOrders(allOrdersWithDetail, allEscrowsDetail);
+                handleReturns(allReturns);
+            } else {
+                console.log("Either orders, escrows, or returns doesnt exist");
             }
 
-            if(allReturns && allReturns.length > 0) {
-                console.log("All Returns on date > 16");
-                console.log(allReturns.slice(0, 2));
-            } 
+
         }
 
     } catch (e) {

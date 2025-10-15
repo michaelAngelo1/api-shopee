@@ -1,6 +1,4 @@
 export function formatUnixTime(origin, unixTimestamp) {
-  if(origin) console.log("Origin: ", origin);
-
   const date = new Date(unixTimestamp * 1000);
   const options = {
     timeZone: 'Asia/Jakarta',

@@ -29,10 +29,10 @@ export async function handleReturns(orderReturns) {
             Jumlah_Item_Return: r.item_returned_qty,
             Daftar_Item: r.item_list.map(item => ({
                 Item_Id: item.item_id,
-                SKU_Varian: item.variation_sku,
+                SKU_Varian: item.variant_sku,
                 SKU_Item: item.item_sku,
-                Nama_Item: item.name,
-                Jumlah_Item: item.amount,
+                Nama_Item: item.item_name,
+                Jumlah_Item: item.item_amount,
                 Harga_Item: item.item_price
             })),
             Jumlah_Refund: r.refund_amount,
