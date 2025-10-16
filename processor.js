@@ -2,10 +2,8 @@ import { getReturnDetail, getReturnList } from './api/getReturns.js';
 import { getEscrowDetail } from './api/getEscrowDetail.js';
 import { getOrderDetail } from './api/getOrderDetail.js';
 import { handleReturns } from './api/handleReturns.js';
-import { writesToChangeLog } from './api/writesToChangeLog.js';
-import { writesToOrderDetail } from './api/writesToOrderDetail.js';
 import { handleOrders } from './api/handleOrders.js';
-
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios from 'axios';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -14,6 +12,7 @@ import 'dotenv/config';
 import { fileURLToPath } from 'url';
 
 const port = 3000
+const secretClient = new SecretManagerServiceClient();
 
 export const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
@@ -55,7 +54,8 @@ function loadTokensFromFile() {
     };
 }
 
-let loadedTokens = loadTokensFromFile();
+// let loadedTokens = loadTokensFromFile();
+let loadedTokens = await loadTokensFromSecret();
 export let ACCESS_TOKEN = loadedTokens.accessToken;
 let REFRESH_TOKEN = loadedTokens.refreshToken;
 
@@ -91,12 +91,51 @@ async function refreshToken() {
             ACCESS_TOKEN = newAccessToken;
             REFRESH_TOKEN = newRefreshToken;
 
-            saveTokensToFile({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
+            // saveTokensToFile({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
+
+            saveTokensToSecret({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
         } else {
             throw new Error("Tokens dont exist");
         }
     } catch (e) {
         console.log("Error refreshing token: ", e.response ? e.response.data : e.message);
+    }
+}
+
+async function saveTokensToSecret(tokens) {
+    const parent = 'projects/231801348950/secrets/shopee-tokens';
+    const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
+
+    try {
+        await secretClient.addSecretVersion({
+            parent: parent,
+            payload: {
+                data: payload,
+            },
+        });
+        console.log("Saved Shopee tokens to Secret Manager");
+    } catch (e) {
+        console.log("Error saving tokens to Secret Manager: ", e);
+    }
+}
+
+async function loadTokensFromSecret() {
+    const secretName = 'projects/231801348950/secrets/shopee-tokens/versions/latest';
+
+    try {
+        const [version] = await secretClient.accessSecretVersion({
+            name: secretName,
+        });
+        const data = version.payload.data.toString('UTF-8');
+        const tokens = JSON.parse(data);
+        console.log("Tokens loaded from Secret Manager: ", tokens);
+        return tokens;
+    } catch (e) {
+        console.log("Error loading tokens from Secret Manager: ", e);
+        return {
+            accessToken: process.env.INITIAL_ACCESS_TOKEN,
+            refreshToken: process.env.INITIAL_REFRESH_TOKEN
+        }
     }
 }
 
@@ -309,7 +348,7 @@ export async function fetchAndProcessOrders() {
             if((allOrdersWithDetail && allOrdersWithDetail.length > 0) && (allEscrowsDetail && allEscrowsDetail.length > 0) && (allReturns && allReturns.length > 0)) {
                 console.log("Pass to handle orders & handle returns function");
                 handleOrders(allOrdersWithDetail, allEscrowsDetail);
-                // handleReturns(allReturns);
+                handleReturns(allReturns);
             } else {
                 console.log("Either orders, escrows, or returns doesnt exist");
                 console.log("All orders: ", allOrdersWithDetail.slice(0, 1));

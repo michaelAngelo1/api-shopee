@@ -38,8 +38,10 @@ export async function handleOrders(orderDetails, orderEscrows) {
             for(let i=0; i<o.item_list.length; i++) {
 
                 const escrowItem = escrowDetail.order_income.items[i];
+                const uniqueRowId = `${o.order_sn}-${o.item_list[i].item_sku}-${o.item_list[i].model_sku}`;
 
                 const sampleOrderObject = {
+                    "Row_Id": uniqueRowId,
                     "No_Pesanan": o.order_sn,
                     "Status_Pesanan": o.order_status,
                     "Alasan_Pembatalan": o.cancel_reason,
@@ -73,8 +75,10 @@ export async function handleOrders(orderDetails, orderEscrows) {
         } else {
 
             const escrowItem = escrowDetail.order_income.items[0];
+            const uniqueRowId = `${o.order_sn}-${o.item_list[0].item_sku}-${o.item_list[0].model_sku}`;
 
             const sampleOrderObject = {
+                "Row_Id": uniqueRowId,
                 "No_Pesanan": o.order_sn,
                 "Status_Pesanan": o.order_status,
                 "Alasan_Pembatalan": o.cancel_reason,
@@ -119,8 +123,6 @@ export async function handleOrders(orderDetails, orderEscrows) {
 async function mergeOrders(orders) {
     console.log("Orders to Merge");
 
-    console.log(JSON.stringify(orders.slice(0, 5), null, 2));
-
     try {
         const datasetId = 'shopee_api';
         const tableNameStaging = 'eileen_grace_orders_staging';
@@ -141,10 +143,11 @@ async function mergeOrders(orders) {
         const mergeQuery = `
             MERGE \`shopee_api.eileen_grace_orders\` T
             USING \`shopee_api.eileen_grace_orders_staging\` S
-            ON T.No_Pesanan = S.No_Pesanan
+            ON T.Row_Id = S.Row_Id
             WHEN MATCHED THEN
                 UPDATE SET
                     T.Status_Pesanan = S.Status_Pesanan,
+                    T.No_Resi = S.No_Resi,
                     T.Alasan_Pembatalan = S.Alasan_Pembatalan,
                     T.Waktu_Pembayaran_Dilakukan = S.Waktu_Pembayaran_Dilakukan
             WHEN NOT MATCHED THEN

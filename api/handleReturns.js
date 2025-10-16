@@ -71,7 +71,7 @@ export async function handleReturns(orderReturns) {
         await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_return_refund_staging\``});
         console.log(`Inserted ${orderReturnsToWrite.length} rows to eileen_grace_return_refund`);
     } catch (e) {
-        console.error("An error occurred during the BigQuery operation.");
+        console.error("HANDLERETURNS: An error occurred during the BigQuery operation.");
 
         if (e.name === 'PartialFailureError' && e.errors && e.errors.length > 0) {
             console.error("Some rows failed to insert into the staging table. See details below:");

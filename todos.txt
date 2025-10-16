@@ -5,14 +5,8 @@ TODOS:
 
 # FEEDBACK - UPDATED WORK
 - Lock GMV. On day 16 of the next month, fetch the previous month's orders & returns again.
-- Orders with more than one Nomor_Referensi_SKU (such as 251009N2U7WW7S with EIGR0007 and EIGR9992)
-will be counted and merged as two individual orders with the same No_Pesanan.
-- Returns becomes a separate table. Define fields for Returns. v
-- Make sure all RETURNS and ESCROWS data are fetched correctly on all date cases: v
-    - On first day of the month v
-    - Not first day of the month but <= 16. v
-    - Middle (17 - 31) v
-- Make sure handleOrders function is called on all date cases. v
+- Integrate & re-run both handleOrders & handleReturns
+- Deploy to GCP.
 
 
 # MINIMUM VIABLE WORK - Oct 6th 2025
