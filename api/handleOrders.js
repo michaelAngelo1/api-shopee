@@ -6,35 +6,29 @@ const bigquery = new BigQuery();
 export async function handleOrders(orderDetails, orderEscrows) {
     console.log("Wrangling order details, escrows, and returns. From October 1st to yesterday.");
 
+    const escrowMap = new Map();
+    orderEscrows.forEach(e => {
+        if(e.escrow_detail && e.escrow_detail.order_sn) {
+            escrowMap.set(e.escrow_detail.order_sn, e.escrow_detail);
+        }
+    });
 
     console.log(`Total orderDetails received: ${orderDetails.length}`);
-    console.log(`Total orderEscrows received: ${orderEscrows.length}`);
-
-    const escrowSnSet = new Set(orderEscrows.map(e => e.escrow_detail.order_sn));
-
-    const mismatchedOrders = orderDetails.filter(o => !escrowSnSet.has(o.order_sn));
-
-    if (mismatchedOrders.length > 0) {
-        console.error(`\nCRITICAL DATA MISMATCH: Found ${mismatchedOrders.length} orders that are missing their escrow details.`);
-        console.error("This confirms the API fetch for escrows is incomplete. Please check your pagination logic (next_cursor).");
-        const sampleMismatchedIds = mismatchedOrders.slice(0, 5).map(o => o.order_sn);
-        console.error("Sample of missing order_sn:", sampleMismatchedIds);
-    } else {
-        console.log("\nData integrity check passed: All orders have a corresponding escrow detail.");
-    }
+    console.log(`Total orderEscrows received: ${escrowMap.size}`);
 
     const sampleOrderObjectList = [];
     
     orderDetails.forEach(o => {
         
-        const escrow = orderEscrows.find(e => e.escrow_detail.order_sn === o.order_sn);
+        // const escrow = orderEscrows.find(e => e.escrow_detail.order_sn === o.order_sn);
+        const escrowDetail = escrowMap.get(o.order_sn);
 
-        if(!escrow || !escrow.escrow_detail.order_income || !escrow.escrow_detail.order_income.items) {
+        if(!escrowDetail || !escrowDetail.order_income || !escrowDetail.order_income.items) {
             console.log(`Couldn't find escrow for order_sn: ${o.order_sn}`);
             return;
         }
 
-        const jumlahProdukDiPesan = escrow.escrow_detail.order_income.items.length;
+        const jumlahProdukDiPesan = escrowDetail.order_income.items.length;
 
         const totalOrderWeight = o.item_list.reduce((sum, currentItem) => {
             return sum + (currentItem.weight * currentItem.model_quantity_purchased);
@@ -43,17 +37,17 @@ export async function handleOrders(orderDetails, orderEscrows) {
         if(o.item_list.length > 1) {
             for(let i=0; i<o.item_list.length; i++) {
 
-                const escrowItem = escrow.escrow_detail.order_income.items[i];
+                const escrowItem = escrowDetail.order_income.items[i];
 
                 const sampleOrderObject = {
                     "No_Pesanan": o.order_sn,
                     "Status_Pesanan": o.order_status,
                     "Alasan_Pembatalan": o.cancel_reason,
-                    "No_Resi": o.package_number,
-                    "Opsi_Pengiriman": o.shipping_carrier,
-                    "Pesanan_Harus_Dikirimkan_Sebelum": formatUnixTime("processor - ship by date", o.ship_by_date),
+                    "No_Resi": o.package_list?.[0]?.package_number ?? "",
+                    "Opsi_Pengiriman": o.package_list?.[0]?.shipping_carrier ?? "",
+                    "Pesanan_Harus_Dikirimkan_Sebelum": o.ship_by_date ? formatUnixTime("processor - ship by date", o.ship_by_date) : null,
                     "Waktu_Pesanan_Dibuat": formatUnixTime("processor - create time", o.create_time),
-                    "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime("processor - pay time", o.pay_time) : "BELUM BAYAR",
+                    "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime("processor - pay time", o.pay_time) : null,
                     "Metode_Pembayaran": o.payment_method ? o.payment_method : "BELUM BAYAR",
                     "SKU_Induk": o.item_list[i].item_sku,
                     "SKU_Varian": o.item_list[i].model_sku,
@@ -78,20 +72,20 @@ export async function handleOrders(orderDetails, orderEscrows) {
             }
         } else {
 
-            const escrowItem = escrow.escrow_detail.order_income.items[0];
+            const escrowItem = escrowDetail.order_income.items[0];
 
             const sampleOrderObject = {
                 "No_Pesanan": o.order_sn,
                 "Status_Pesanan": o.order_status,
                 "Alasan_Pembatalan": o.cancel_reason,
-                "Status_Pembatalan_Pengembalian": "",
-                "No_Resi": o.package_number,
-                "Opsi_Pengiriman": o.shipping_carrier,
-                "Pesanan_Harus_Dikirimkan_Sebelum": formatUnixTime("processor - ship by date", o.ship_by_date),
+                "No_Resi": o.package_list?.[0]?.package_number ?? "",
+                "Opsi_Pengiriman": o.package_list?.[0]?.shipping_carrier ?? "",
+                "Pesanan_Harus_Dikirimkan_Sebelum": o.ship_by_date ? formatUnixTime("processor - ship by date", o.ship_by_date) : null,
                 "Waktu_Pesanan_Dibuat": formatUnixTime("processor - create time", o.create_time),
-                "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime("processor - pay time", o.pay_time) : "BELUM BAYAR",
+                "Waktu_Pembayaran_Dilakukan": o.pay_time ? formatUnixTime("processor - pay time", o.pay_time) : null,
                 "Metode_Pembayaran": o.payment_method ? o.payment_method : "BELUM BAYAR",
                 "SKU_Induk": o.item_list[0].item_sku,
+                "SKU_Varian": o.item_list[0].model_sku,
                 "Nama_Produk": o.item_list[0].item_name,
                 "Nomor_Referensi_SKU": o.item_list[0].item_sku,
                 "Nama_Variasi": o.item_list[0].model_name,
@@ -116,40 +110,72 @@ export async function handleOrders(orderDetails, orderEscrows) {
     });
 
     if(sampleOrderObjectList && sampleOrderObjectList.length > 0) {
-        console.log("Sample Order Object List\n");
-        console.log(sampleOrderObjectList.slice(0, 3));
-        console.log(JSON.stringify(sampleOrderObjectList.slice(0, 3), null, 2));
-    }
+        console.log("Passing orderObjectList to mergeOrders \n");
 
-    const orderObjectList = [];
-    const orderObject = {
-        "No_Pesanan": "",
-        "Status_Pesanan": "",
-        "Alasan_Pembatalan": "",
-        "Status_Pembatalan_Pengembalian": "",
-        "No_Resi": "",
-        "Opsi_Pengiriman": "",
-        "Pesanan_Harus_Dikirimkan_Sebelum": "",
-        "Waktu_Pesanan_Dibuat": "",
-        "Waktu_Pembayaran_Dilakukan": "",
-        "Metode_Pembayaran": "",
-        "SKU_Induk": "",
-        "Nama_Produk": "",
-        "Nomor_Referensi_SKU": "",
-        "Nama_Variasi": "",
-        "Harga_Awal": 0,
-        "Harga_Setelah_Diskon": 0,
-        "Jumlah": 0,
-        "Returned_quantity": 0,
-        "Total_Harga_Produk": 0,
-        "Total_Diskon": 0,
-        "Diskon_Dari_Penjual": 0,
-        "Diskon_Dari_Shopee": 0,
-        "Jumlah_Produk_di_Pesan": 0,
-        "Total_Berat": "",
-        "Voucher_Ditanggung_Penjual": 0,
-        "Voucher_Ditanggung_Shopee": 0,
-        "Total_Pembayaran": 0,
-        "Perkiraan_Ongkos_Kirim": 0,
+        await mergeOrders(sampleOrderObjectList);
     }
 }
+
+async function mergeOrders(orders) {
+    console.log("Orders to Merge");
+
+    console.log(JSON.stringify(orders.slice(0, 5), null, 2));
+
+    try {
+        const datasetId = 'shopee_api';
+        const tableNameStaging = 'eileen_grace_orders_staging';
+        const insertPromises = [];
+        const batchSize = 500;
+
+        for(let i=0; i<orders.length; i+=batchSize) {
+            const chunk = orders.slice(i, i+batchSize);
+            const promise = bigquery
+                .dataset(datasetId)
+                .table(tableNameStaging)
+                .insert(chunk);
+            insertPromises.push(promise);
+        }
+        await Promise.all(insertPromises);
+        console.log("Successfully written orders to eileen_grace_orders_staging");
+
+        const mergeQuery = `
+            MERGE \`shopee_api.eileen_grace_orders\` T
+            USING \`shopee_api.eileen_grace_orders_staging\` S
+            ON T.No_Pesanan = S.No_Pesanan
+            WHEN MATCHED THEN
+                UPDATE SET
+                    T.Status_Pesanan = S.Status_Pesanan,
+                    T.Alasan_Pembatalan = S.Alasan_Pembatalan,
+                    T.Waktu_Pembayaran_Dilakukan = S.Waktu_Pembayaran_Dilakukan
+            WHEN NOT MATCHED THEN
+                INSERT ROW
+        `;
+
+        await bigquery.query({ query: mergeQuery });
+        await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_orders_staging\`` });
+        console.log(`Inserted ${orders.length} rows to eileen_grace_orders`);
+    } catch (e) {
+        console.error("An error occurred during the BigQuery operation.");
+
+        if (e.name === 'PartialFailureError' && e.errors && e.errors.length > 0) {
+            console.error("Some rows failed to insert into the staging table. See details below:");
+
+            // Limit logging to the first 5 failures to avoid flooding the console
+            e.errors.slice(0, 5).forEach((errorDetail, index) => {
+                console.log(`\n--- Failure #${index + 1} ---`);
+                console.error("Problematic Row Data:", JSON.stringify(errorDetail.row, null, 2));
+                console.error("Error Reasons:");
+                
+                // --- THIS IS THE ENHANCED PART ---
+                errorDetail.errors.forEach(reason => {
+                    // Log the reason, the problematic field (location), and the message
+                    console.error(`  - Field: [${reason.location || 'UNKNOWN'}] | Reason: [${reason.reason}] | Message: ${reason.message}`);
+                });
+                console.log("----------------------");
+            });
+        } else {
+            console.error("A non-partial or unknown error occurred:", e);
+        }
+    }
+}
+

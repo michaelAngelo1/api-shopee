@@ -19,7 +19,7 @@ async function scheduleDailyJob() {
     const jobName = "fetch-daily-orders";
     const jobDefinition = {
         // pattern: "55 15 * * *",
-        pattern: "19 11 * * *",
+        pattern: "32 20 * * *",
         tz: "Asia/Jakarta"
     };
 
