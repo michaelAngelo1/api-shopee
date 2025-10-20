@@ -1,7 +1,11 @@
 TODOS:
 
 # PRIORITY
-
+- Cloud Scheduler succesfully runs at 00:05 everyday, but shopee-worker throws an error. v
+- shopee-job-adder has a duplicate jobId bug to fix. v
+- Should be able to consistently force-run after the bug is fixed. v 3rd attempt succeeds
+- To fix: error on shopee-worker, on processor.js. v
+- To create: LockGMV function.
 
 # FEEDBACK - UPDATED WORK
 - Lock GMV. On day 16 of the next month, fetch the previous month's orders & returns again.

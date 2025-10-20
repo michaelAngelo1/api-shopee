@@ -5,10 +5,17 @@ const bigquery = new BigQuery();
 export async function handleReturns(orderReturns) {
     console.log("Merging order returns Eileen Grace");
 
-    console.log("First 3 order returns");
-    // console.log(JSON.stringify(orderReturns.slice(0, 3), 0, 2));
+    const latestReturnsMap = {};
+    for (const returnItem of orderReturns) {
+        const existing = latestReturnsMap[returnItem.order_sn];
+        if (!existing || returnItem.update_time > existing.update_time) {
+            latestReturnsMap[returnItem.order_sn] = returnItem;
+        }
+    }
+    const uniqueLatestReturns = Object.values(latestReturnsMap);
+    console.log(`Received ${orderReturns.length} raw returns, de-duplicated to ${uniqueLatestReturns.length} unique latest returns.`);
 
-     const [rows] = await bigquery.query({
+    const [rows] = await bigquery.query({
         query: `
             SELECT No_Pesanan, Return_Status
             FROM \`shopee_api.eileen_grace_return_refund\`
@@ -20,7 +27,7 @@ export async function handleReturns(orderReturns) {
         lastStatusMap[row.No_Pesanan] = row.Return_Status;
     });
 
-    const orderReturnsToWrite = orderReturns
+    const orderReturnsToWrite = uniqueLatestReturns
         .filter(r => lastStatusMap[r.order_sn] !== r.status)
         .map(r => ({
             No_Pesanan: r.order_sn,
@@ -39,34 +46,38 @@ export async function handleReturns(orderReturns) {
             Create_Time: r.create_time,
             Update_Time: r.update_time
         }));
-    
-
 
     const datasetId = 'shopee_api';
     const tableIdStaging = 'eileen_grace_return_refund_staging';
+
+    if (orderReturnsToWrite.length === 0) {
+        console.log("No new or updated returns to process.");
+        return; // Exit the function early
+    }
 
     try {
         await bigquery
             .dataset(datasetId)
             .table(tableIdStaging)
             .insert(orderReturnsToWrite);
-        console.log(`Merged ${orderReturnsToWrite.length} to eileen_grace_return_refund`);
+        console.log(`Inserted ${orderReturnsToWrite.length} rows to eileen_grace_return_refund_staging`);
 
         const mergeQuery = `
-                MERGE \`shopee_api.eileen_grace_return_refund\` T
-                USING \`shopee_api.eileen_grace_return_refund_staging\` S
-                ON T.No_Pesanan = S.No_Pesanan
-                WHEN MATCHED THEN
-                    UPDATE SET
-                        T.No_Pesanan = S.No_Pesanan,
-                        T.Return_Status = S.Return_Status,
-                        T.Jumlah_Refund = S.Jumlah_Refund,
-                        T.Update_Time = S.Update_Time
-
-                -- When it's a new order, insert the entire row
-                WHEN NOT MATCHED BY TARGET THEN
-                    INSERT ROW
-            `;
+            MERGE \`shopee_api.eileen_grace_return_refund\` T
+            USING (
+              SELECT * FROM \`shopee_api.eileen_grace_return_refund_staging\`
+              QUALIFY ROW_NUMBER() OVER(PARTITION BY No_Pesanan ORDER BY Update_Time DESC) = 1
+            ) S
+            ON T.No_Pesanan = S.No_Pesanan
+            WHEN MATCHED THEN
+                UPDATE SET
+                    Return_Status = S.Return_Status,
+                    Jumlah_Refund = S.Jumlah_Refund,
+                    Update_Time = S.Update_Time
+            WHEN NOT MATCHED BY TARGET THEN
+                INSERT (No_Pesanan, Return_Id, Return_Status, Jumlah_Item_Return, Daftar_Item, Jumlah_Refund, Create_Time, Update_Time)
+                VALUES (S.No_Pesanan, S.Return_Id, S.Return_Status, S.Jumlah_Item_Return, S.Daftar_Item, S.Jumlah_Refund, S.Create_Time, S.Update_Time);
+        `;
         await bigquery.query({ query: mergeQuery});
         await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_return_refund_staging\``});
         console.log(`Inserted ${orderReturnsToWrite.length} rows to eileen_grace_return_refund`);

@@ -12,7 +12,7 @@ import 'dotenv/config';
 import { fileURLToPath } from 'url';
 
 const port = 3000
-const secretClient = new SecretManagerServiceClient();
+let secretClient;
 
 export const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
@@ -55,9 +55,12 @@ function loadTokensFromFile() {
 }
 
 // let loadedTokens = loadTokensFromFile();
-let loadedTokens = await loadTokensFromSecret();
-export let ACCESS_TOKEN = loadedTokens.accessToken;
-let REFRESH_TOKEN = loadedTokens.refreshToken;
+// let loadedTokens = await loadTokensFromSecret();
+// export let ACCESS_TOKEN = loadedTokens.accessToken;
+// let REFRESH_TOKEN = loadedTokens.refreshToken;
+
+export let ACCESS_TOKEN;
+let REFRESH_TOKEN;
 
 async function refreshToken() {
     try {
@@ -105,6 +108,7 @@ async function refreshToken() {
 async function saveTokensToSecret(tokens) {
     const parent = 'projects/231801348950/secrets/shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
+    secretClient = new SecretManagerServiceClient();
 
     try {
         await secretClient.addSecretVersion({
@@ -120,6 +124,7 @@ async function saveTokensToSecret(tokens) {
 }
 
 async function loadTokensFromSecret() {
+    secretClient = new SecretManagerServiceClient();
     const secretName = 'projects/231801348950/secrets/shopee-tokens/versions/latest';
 
     try {
@@ -152,9 +157,96 @@ function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
     return Math.floor(date.getTime() / 1000) - jakartaOffset;
 }
 
+async function fetchOrdersAndReturnsFromPrevMonth(now, ACCESS_TOKEN) {
+    console.log("Fetching all orders from the previous month");
+
+    let allOrdersInBlock = [];
+    let allReturns = [];
+    const lastDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const firstDayOfPrevMonth = new Date(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), 1);
+    const prevMonthTimeFrom = getJakartaTimestampTimeFrom(firstDayOfPrevMonth.getFullYear(), firstDayOfPrevMonth.getMonth(), 1, 0, 0, 0);
+    const prevMonthTimeTo = getJakartaTimestampTimeTo(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), lastDayOfPrevMonth.getDate(), 23, 59, 59);
+
+    let intervals = [];
+    let start = prevMonthTimeFrom;
+    while(start < prevMonthTimeTo) {
+        let end = Math.min(start + 15 * 24 * 60 * 60 - 1, prevMonthTimeTo);
+        intervals.push({ from: start, to: end });
+        start = end + 1;
+    }
+
+    for(const interval of intervals) {
+        let hasMore = true;
+        let cursor = "";
+        while(hasMore) {
+            console.log("\n");
+            console.log(`Fetching data... Interval: ${interval.from} - ${interval.to}, Cursor: ${cursor}`);
+            console.log("\n");
+            const timestamp = Math.floor(Date.now() / 1000);
+            const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+            const sign = crypto.createHmac('sha256', PARTNER_KEY).update(baseString).digest('hex');
+            const params = new URLSearchParams(
+                { 
+                    partner_id: PARTNER_ID, 
+                    timestamp, 
+                    access_token: ACCESS_TOKEN, 
+                    shop_id: SHOP_ID, 
+                    sign, 
+                    time_range_field: 'create_time', 
+                    time_from: interval.from, 
+                    time_to: interval.to, 
+                    page_size: 100, 
+                    response_optional_fields: 'order_status' 
+                }
+            );
+            if (cursor) params.append('cursor', cursor);
+            const fullUrl = `${HOST}${PATH}?${params.toString()}`;
+            const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
+
+
+            if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
+                hasMore = response.data.response.more;
+                cursor = response.data.response.next_cursor || "";
+            } else { hasMore = false; }
+        }
+    }
+
+    console.log("Fetching All Returns from Previous Month");
+    console.log("Intervals for Return List");
+
+    let allReturnList = [];
+    for(const interval of intervals) {
+        allReturnList = await getReturnList(interval.from, interval.to);
+        // Pass to getReturnDetail, with return_sn being request parameters
+        if(allReturnList && allReturnList.length > 0) {
+            const allReturnDetails = await getReturnDetail(allReturnList);
+
+            allReturns = allReturns.concat(allReturnDetails);
+        } else {
+            console.log("allReturnList does not exist.\n");
+            console.log(allReturnList);
+        }
+    }
+
+    return {
+        allOrdersInBlock,
+        allReturns
+    }
+}
+
 export async function fetchAndProcessOrders() {
     console.log("Starting fetchAndProcessOrders job...");
     try {
+
+        const loadedTokens = await loadTokensFromSecret();
+        if(!loadedTokens && !loadedTokens.refreshToken) {
+            throw new Error("INDEXJS: Failed to load valid tokens from secret manager");
+        }
+
+        ACCESS_TOKEN = loadedTokens.accessToken;
+        REFRESH_TOKEN = loadedTokens.refreshToken;
+
         await refreshToken();
         
         const now = new Date();
@@ -220,6 +312,8 @@ export async function fetchAndProcessOrders() {
                         if (cursor) params.append('cursor', cursor);
                         const fullUrl = `${HOST}${PATH}?${params.toString()}`;
                         const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
+
+
                         if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
                             allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
                             hasMore = response.data.response.more;
@@ -248,9 +342,17 @@ export async function fetchAndProcessOrders() {
                     }
                 }
 
+                if(now.getDate() === 16) {
+                    console.log("Today is 16th, triggering Lock GMV function.");
+                }
 
             } else {
                 // If this is the first day of the month
+
+                // const prevMonthData = await fetchOrdersAndReturnsFromPrevMonth(now, ACCESS_TOKEN);
+
+                // allOrdersInBlock = prevMonthData.allOrdersInBlock;
+                // allReturns = prevMonthData.allReturns;
 
                 console.log("Fetching all orders from the previous month");
 
@@ -294,6 +396,8 @@ export async function fetchAndProcessOrders() {
                         if (cursor) params.append('cursor', cursor);
                         const fullUrl = `${HOST}${PATH}?${params.toString()}`;
                         const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
+
+
                         if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
                             allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
                             hasMore = response.data.response.more;
@@ -302,7 +406,7 @@ export async function fetchAndProcessOrders() {
                     }
                 }
 
-                console.log("Fetching Return List Orders - ");
+                console.log("Fetching All Returns from Previous Month");
                 console.log("Intervals for Return List");
 
                 let allReturnList = [];
@@ -408,6 +512,29 @@ export async function fetchAndProcessOrders() {
                         headers: { 'Content-Type': 'application/json' }
                     });
 
+                    // if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                    
+                    //     const onePageOfOrders = response.data.response.order_list;
+
+                    //     if (onePageOfOrders.length > 0) {
+                    //         // 2. PROCESS ONE PAGE AT A TIME
+                    //         console.log(`Processing batch of ${onePageOfOrders.length} orders...`);
+                            
+                    //         const onePageWithDetail = await getOrderDetail(onePageOfOrders);
+                    //         const onePageOfEscrows = await getEscrowDetail(onePageOfOrders);
+
+                    //         // 3. CALL handleOrders FOR JUST THIS PAGE
+                    //         //    (handleOrders will then call mergeOrders for this small batch)
+                    //         await handleOrders(onePageWithDetail, onePageOfEscrows);
+                    //     }
+
+                    //     hasMore = response.data.response.more;
+                    //     cursor = response.data.response.next_cursor || "";
+                    // } else {
+                    //     hasMore = false;
+                    // }
+
+                    // ## Uncomment to rollback if the above case fails.
                     if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
                         allOrders = allOrders.concat(response.data.response.order_list);
                         hasMore = response.data.response.more;

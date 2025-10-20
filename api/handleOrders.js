@@ -23,8 +23,21 @@ export async function handleOrders(orderDetails, orderEscrows) {
         // const escrow = orderEscrows.find(e => e.escrow_detail.order_sn === o.order_sn);
         const escrowDetail = escrowMap.get(o.order_sn);
 
-        if(!escrowDetail || !escrowDetail.order_income || !escrowDetail.order_income.items) {
-            console.log(`Couldn't find escrow for order_sn: ${o.order_sn}`);
+        if (!escrowDetail) {
+            // This log is noisy, so we'll keep it commented out unless we really need it.
+            // console.log(`(SKIPPED) No escrow found for order_sn: ${o.order_sn}`);
+            return; 
+        }
+        
+        if (!escrowDetail.order_income) {
+            // This log will tell you if the 'order_income' object is missing
+            console.log(`(SKIPPED) Escrow for ${o.order_sn} has no 'order_income' key.`);
+            return;
+        }
+        
+        if (!escrowDetail.order_income.items || escrowDetail.order_income.items.length === 0) {
+            // This log will tell you if the 'items' array is missing or empty
+            console.log(`(SKIPPED) Escrow for ${o.order_sn} has no 'items' or the items list is empty.`);
             return;
         }
 
@@ -117,6 +130,8 @@ export async function handleOrders(orderDetails, orderEscrows) {
         console.log("Passing orderObjectList to mergeOrders \n");
 
         await mergeOrders(sampleOrderObjectList);
+    } else {
+        console.log("No orders were eligible for merging. sampleOrderObjectList is empty. Skipping BigQuery.");
     }
 }
 
