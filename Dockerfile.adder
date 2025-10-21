@@ -8,4 +8,7 @@ RUN npm install --omit-dev
 
 COPY . .
 
-CMD ["node","worker.js"]
+ENV PORT=8080
+EXPOSE 8080
+
+CMD [ "node", "index.js" ]

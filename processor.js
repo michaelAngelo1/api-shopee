@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import 'dotenv/config';
 import { fileURLToPath } from 'url';
+import { formatUnixTime } from './functions/formatUnixTime.js';
 
 const port = 3000
 let secretClient;
@@ -268,7 +269,8 @@ export async function fetchAndProcessOrders() {
         if(now.getDate() <= 16) {
             
 
-            let allOrdersInBlock = [];
+            // Uncomment if batch submission does not work
+            // let allOrdersInBlock = [];
             let allReturns = [];
 
             // If it is not first day of the month
@@ -313,14 +315,37 @@ export async function fetchAndProcessOrders() {
                         const fullUrl = `${HOST}${PATH}?${params.toString()}`;
                         const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
 
-
+                        // ## Comment this out if this does not work.
                         if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                            allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
+                        
+                            const onePageOfOrders = response.data.response.order_list;
+
+                            if (onePageOfOrders.length > 0) {
+                                // 2. PROCESS ONE PAGE AT A TIME
+                                console.log(`Processing batch of ${onePageOfOrders.length} orders...`);
+                                
+                                const onePageWithDetail = await getOrderDetail(onePageOfOrders);
+                                const onePageOfEscrows = await getEscrowDetail(onePageOfOrders);
+
+                                // 3. CALL handleOrders FOR JUST THIS PAGE
+                                //    (handleOrders will then call mergeOrders for this small batch)
+                                await handleOrders(onePageWithDetail, onePageOfEscrows);
+                            }
+
                             hasMore = response.data.response.more;
                             cursor = response.data.response.next_cursor || "";
-                        } else { 
-                            hasMore = false; 
+                        } else {
+                            hasMore = false;
                         }
+
+                        // ## Uncomment if the above case does not work.
+                        // if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                        //     allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
+                        //     hasMore = response.data.response.more;
+                        //     cursor = response.data.response.next_cursor || "";
+                        // } else { 
+                        //     hasMore = false; 
+                        // }
                     }
 
                 }
@@ -397,12 +422,35 @@ export async function fetchAndProcessOrders() {
                         const fullUrl = `${HOST}${PATH}?${params.toString()}`;
                         const response = await axios.get(fullUrl, { headers: { 'Content-Type': 'application/json' } });
 
-
+                        // ## Comment this out if this does not work.
                         if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                            allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
+                        
+                            const onePageOfOrders = response.data.response.order_list;
+
+                            if (onePageOfOrders.length > 0) {
+                                // 2. PROCESS ONE PAGE AT A TIME
+                                console.log(`Processing batch of ${onePageOfOrders.length} orders...`);
+                                
+                                const onePageWithDetail = await getOrderDetail(onePageOfOrders);
+                                const onePageOfEscrows = await getEscrowDetail(onePageOfOrders);
+
+                                // 3. CALL handleOrders FOR JUST THIS PAGE
+                                //    (handleOrders will then call mergeOrders for this small batch)
+                                await handleOrders(onePageWithDetail, onePageOfEscrows);
+                            }
+
                             hasMore = response.data.response.more;
                             cursor = response.data.response.next_cursor || "";
-                        } else { hasMore = false; }
+                        } else {
+                            hasMore = false;
+                        }
+
+                        // ## Uncomment if the above case does not work.
+                        // if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                        //     allOrdersInBlock = allOrdersInBlock.concat(response.data.response.order_list);
+                        //     hasMore = response.data.response.more;
+                        //     cursor = response.data.response.next_cursor || "";
+                        // } else { hasMore = false; }
                     }
                 }
 
@@ -425,19 +473,19 @@ export async function fetchAndProcessOrders() {
             }
 
             // Secure check if allOrdersInBlock exists
-            const allOrdersWithDetail = await getOrderDetail(allOrdersInBlock && allOrdersInBlock);
-            const allEscrowsDetail = await getEscrowDetail(allOrdersInBlock && allOrdersInBlock);
+            // const allOrdersWithDetail = await getOrderDetail(allOrdersInBlock && allOrdersInBlock);
+            // const allEscrowsDetail = await getEscrowDetail(allOrdersInBlock && allOrdersInBlock);
 
-            console.log("\n");
-            if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
-                console.log("Writing to Order List - Eileen Grace");
+            // console.log("\n");
+            // if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
+            //     console.log("Writing to Order List - Eileen Grace");
 
                 // await writesToChangeLog(allOrdersWithDetail);
 
-                console.log("Writing to Order Detail - Eileen Grace");
+                // console.log("Writing to Order Detail - Eileen Grace");
 
                 // await writesToOrderDetail(allOrdersWithDetail);
-            }
+            // }
 
             // if(allEscrowsDetail && allEscrowsDetail.length > 0) {
             //     console.log("All Escrows on Date <= 16");
@@ -449,14 +497,12 @@ export async function fetchAndProcessOrders() {
             //     console.log(allReturns.slice(0, 2));
             // }
 
-            if((allOrdersWithDetail && allOrdersWithDetail.length > 0) && (allEscrowsDetail && allEscrowsDetail.length > 0) && (allReturns && allReturns.length > 0)) {
-                console.log("Pass to handle orders & handle returns function");
-                handleOrders(allOrdersWithDetail, allEscrowsDetail);
+            if(allReturns && allReturns.length > 0) {
+                console.log("Pass to handle returns function");
+                // handleOrders(allOrdersWithDetail, allEscrowsDetail);
                 handleReturns(allReturns);
             } else {
-                console.log("Either orders, escrows, or returns doesnt exist");
-                console.log("All orders: ", allOrdersWithDetail.slice(0, 1));
-                console.log("All escrows: ", allEscrowsDetail.slice(0, 1));
+                console.log("Returns doesnt exist");
                 console.log("All returns: ", allEscrowsDetail.slice(0, 1));
             }
 
@@ -473,6 +519,18 @@ export async function fetchAndProcessOrders() {
                 intervals.push({ from: start, to: end });
                 start = end + 1;
             }
+
+            console.log("Intervals\n");
+            console.log("Interval from: ", intervals[0].from);
+            console.log("\n");
+            console.log("Interval to: ", intervals[intervals.length - 1].to);
+            console.log("\n");
+
+            console.log("Full Intervals\n");
+            intervals.forEach(interval => {
+                console.log(`From: ${interval.from} To: ${interval.to}`);
+            });
+            console.log("\n");
 
             let allOrders = [];
             let allReturns = [];
@@ -512,36 +570,37 @@ export async function fetchAndProcessOrders() {
                         headers: { 'Content-Type': 'application/json' }
                     });
 
-                    // if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                    
-                    //     const onePageOfOrders = response.data.response.order_list;
-
-                    //     if (onePageOfOrders.length > 0) {
-                    //         // 2. PROCESS ONE PAGE AT A TIME
-                    //         console.log(`Processing batch of ${onePageOfOrders.length} orders...`);
-                            
-                    //         const onePageWithDetail = await getOrderDetail(onePageOfOrders);
-                    //         const onePageOfEscrows = await getEscrowDetail(onePageOfOrders);
-
-                    //         // 3. CALL handleOrders FOR JUST THIS PAGE
-                    //         //    (handleOrders will then call mergeOrders for this small batch)
-                    //         await handleOrders(onePageWithDetail, onePageOfEscrows);
-                    //     }
-
-                    //     hasMore = response.data.response.more;
-                    //     cursor = response.data.response.next_cursor || "";
-                    // } else {
-                    //     hasMore = false;
-                    // }
-
-                    // ## Uncomment to rollback if the above case fails.
+                    // ## Comment this out if this does not work.
                     if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                        allOrders = allOrders.concat(response.data.response.order_list);
+                    
+                        const onePageOfOrders = response.data.response.order_list;
+
+                        if (onePageOfOrders.length > 0) {
+                            // 2. PROCESS ONE PAGE AT A TIME
+                            console.log(`Processing batch of ${onePageOfOrders.length} orders...`);
+                            
+                            const onePageWithDetail = await getOrderDetail(onePageOfOrders);
+                            const onePageOfEscrows = await getEscrowDetail(onePageOfOrders);
+
+                            // 3. CALL handleOrders FOR JUST THIS PAGE
+                            //    (handleOrders will then call mergeOrders for this small batch)
+                            await handleOrders(onePageWithDetail, onePageOfEscrows);
+                        }
+
                         hasMore = response.data.response.more;
                         cursor = response.data.response.next_cursor || "";
                     } else {
                         hasMore = false;
                     }
+
+                    // ## Uncomment to rollback if the above case fails.
+                    // if (response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
+                    //     allOrders = allOrders.concat(response.data.response.order_list);
+                    //     hasMore = response.data.response.more;
+                    //     cursor = response.data.response.next_cursor || "";
+                    // } else {
+                    //     hasMore = false;
+                    // }
                 
                 }
                 
@@ -563,19 +622,19 @@ export async function fetchAndProcessOrders() {
             }
 
             // Commented for a minute
-            const allOrdersWithDetail = await getOrderDetail(allOrders && allOrders);
-            const allEscrowsDetail = await getEscrowDetail(allOrders && allOrders);
+            // const allOrdersWithDetail = await getOrderDetail(allOrders && allOrders);
+            // const allEscrowsDetail = await getEscrowDetail(allOrders && allOrders);
 
-            console.log("\n");
-            if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
-                console.log("Writing to Order List - Eileen Grace");
+            // console.log("\n");
+            // if(allOrdersWithDetail && allOrdersWithDetail.length > 0) {
+                // console.log("Writing to Order List - Eileen Grace");
 
                 // await writesToChangeLog(allOrdersWithDetail);
 
-                console.log("Writing to Order Detail - Eileen Grace");
+                // console.log("Writing to Order Detail - Eileen Grace");
 
                 // await writesToOrderDetail(allOrdersWithDetail);
-            }
+            // }
 
             // if(allEscrowsDetail && allEscrowsDetail.length > 0) {
             //     console.log("All Escrows on Date <= 16");
@@ -587,12 +646,12 @@ export async function fetchAndProcessOrders() {
             //     console.log(allReturns.slice(0, 2));
             // }
 
-            if((allOrdersWithDetail && allOrdersWithDetail.length > 0) && (allEscrowsDetail && allEscrowsDetail.length > 0) && (allReturns && allReturns.length > 0)) {
-                console.log("Pass to handle orders & handle returns function");
-                handleOrders(allOrdersWithDetail, allEscrowsDetail);
+            if(allReturns && allReturns.length > 0) {
+                console.log("Pass to returns function");
+                // handleOrders(allOrdersWithDetail, allEscrowsDetail);
                 handleReturns(allReturns);
             } else {
-                console.log("Either orders, escrows, or returns doesnt exist");
+                console.log("Returns doesnt exist");
             }
 
 
