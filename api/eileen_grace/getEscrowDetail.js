@@ -6,7 +6,7 @@ import {
     PARTNER_KEY,
     SHOP_ID,
     ACCESS_TOKEN
-} from '../processor.js';
+} from '../../processor.js';
 const ESCROW_DETAIL_PATH = "/api/v2/payment/get_escrow_detail_batch";
 
 export async function getEscrowDetail(orderList) {

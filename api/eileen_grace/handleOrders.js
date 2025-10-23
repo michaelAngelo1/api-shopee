@@ -1,10 +1,10 @@
 import { BigQuery } from '@google-cloud/bigquery';
-import { formatUnixTime } from '../functions/formatUnixTime.js';
+import { formatUnixTime } from '../../functions/formatUnixTime.js';
 
 const bigquery = new BigQuery();
 
 export async function handleOrders(orderDetails, orderEscrows) {
-    console.log("Wrangling order details, escrows, and returns. From October 1st to yesterday.");
+    console.log("Wrangling order details and escrows. From October 1st to yesterday.");
 
     const escrowMap = new Map();
     orderEscrows.forEach(e => {
@@ -19,7 +19,7 @@ export async function handleOrders(orderDetails, orderEscrows) {
     const sampleOrderObjectList = [];
     
     orderDetails.forEach(o => {
-        
+         
         // const escrow = orderEscrows.find(e => e.escrow_detail.order_sn === o.order_sn);
         const escrowDetail = escrowMap.get(o.order_sn);
 
@@ -128,6 +128,7 @@ export async function handleOrders(orderDetails, orderEscrows) {
 
     if(sampleOrderObjectList && sampleOrderObjectList.length > 0) {
         console.log("Passing orderObjectList to mergeOrders \n");
+        console.log(sampleOrderObjectList.length + " order rows to be merged");
 
         await mergeOrders(sampleOrderObjectList);
     } else {
@@ -173,26 +174,20 @@ async function mergeOrders(orders) {
         await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_orders_staging\`` });
         console.log(`Inserted ${orders.length} rows to eileen_grace_orders`);
     } catch (e) {
-        console.error("An error occurred during the BigQuery operation.");
+        console.error("EG: An error occurred during the BigQuery operation.");
 
         if (e.name === 'PartialFailureError' && e.errors && e.errors.length > 0) {
-            console.error("Some rows failed to insert into the staging table. See details below:");
-
-            // Limit logging to the first 5 failures to avoid flooding the console
+            console.error("EG: Some rows failed to insert into the staging table. See details below:");
             e.errors.slice(0, 5).forEach((errorDetail, index) => {
                 console.log(`\n--- Failure #${index + 1} ---`);
                 console.error("Problematic Row Data:", JSON.stringify(errorDetail.row, null, 2));
                 console.error("Error Reasons:");
-                
-                // --- THIS IS THE ENHANCED PART ---
                 errorDetail.errors.forEach(reason => {
-                    // Log the reason, the problematic field (location), and the message
                     console.error(`  - Field: [${reason.location || 'UNKNOWN'}] | Reason: [${reason.reason}] | Message: ${reason.message}`);
                 });
-                console.log("----------------------");
             });
         } else {
-            console.error("A non-partial or unknown error occurred:", e);
+            console.error("EG: A non-partial or unknown error occurred:", e);
         }
     }
 }

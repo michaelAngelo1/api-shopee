@@ -6,13 +6,6 @@ const app = express();
 // const port = 3000;
 const port = process.env.PORT || 8080;
 
-const redisConnection = {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    }
-};
-
 const orderQueue = new Queue("order-processing", {
     connection: {
         url: process.env.REDIS_URL,
@@ -20,70 +13,12 @@ const orderQueue = new Queue("order-processing", {
     }
 });
 
-//ver 3
-async function scheduleDailyJob() {
-    const jobName = "fetch-daily-orders";
-    const jobDefinition = {
-        // pattern: "55 15 * * *",
-        pattern: "07 12 * * *",
-        tz: "Asia/Jakarta"
-    };
-
-    // 1. Get all active schedulers using the correct, modern API
-    const schedulers = await orderQueue.getJobSchedulers();
-
-    // 2. Find the scheduler for this specific job by its name
-    // const existingScheduler = schedulers.find(
-    //     scheduler => scheduler.name === jobName
-    // );
-       
-    for(const sched of schedulers) {
-        if(sched.name === jobName) {
-            await orderQueue.removeJobScheduler(sched.name, sched.cron) 
-        }
-    };
-
-    await orderQueue.add(jobName, {}, {
-        repeat: jobDefinition,
-        jobId: jobName, // This jobId helps differentiate schedulers if needed
-        attempts: 3,
-        backoff: {
-            type: 'exponential',
-            delay: 60000,
-        }
-    });
-    console.log(`Scheduled daily job "${jobName}" with pattern "${jobDefinition.pattern}".`);
-
-    // let needsUpdate = false;
-
-    // if (!existingScheduler) {
-    //     console.log(`Job scheduler for "${jobName}" not found. Creating it.`);
-    //     needsUpdate = true;
-    // } else if (existingScheduler.cron !== jobDefinition.pattern || existingScheduler.tz !== jobDefinition.tz) {
-    //     console.log(`Job scheduler for "${jobName}" has a different schedule. Updating it.`);
-        
-    //     // Remove the old, incorrect scheduler using its name and cron pattern
-    //     await orderQueue.removeJobScheduler(existingScheduler.name, existingScheduler.cron);
-    //     console.log(`Removed old scheduler for "${jobName}".`);
-    //     needsUpdate = true;
-    // }
-
-    // if (needsUpdate) {
-    //     // 3. Add the new job/scheduler since it doesn't exist or was incorrect
-    //     await orderQueue.add(jobName, {}, {
-    //         repeat: jobDefinition,
-    //         jobId: jobName, // This jobId helps differentiate schedulers if needed
-    //         attempts: 3,
-    //         backoff: {
-    //             type: 'exponential',
-    //             delay: 60000,
-    //         }
-    //     });
-    //     console.log(`Scheduled daily job "${jobName}" with pattern "${jobDefinition.pattern}".`);
-    // } else {
-    //     console.log(`Job scheduler for "${jobName}" is already configured correctly. No action needed.`);
-    // }
-}
+const orderQueueMD = new Queue("fetch-orders-md", {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    }
+});
 
 app.get('/trigger-daily-sync', async (req, res) => {
 
@@ -96,6 +31,15 @@ app.get('/trigger-daily-sync', async (req, res) => {
         
         await orderQueue.add('fetch-daily-orders', {}, {
             jobId: `daily-sync-${new Date().toISOString()}`, 
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueMD.add('fetch-orders-md', {}, {
+            jobId: `md-daily-sync-${new Date().toISOString()}`, 
             attempts: 3,
             backoff: {
                 type: 'exponential',

@@ -1,17 +1,16 @@
 import axios from 'axios';
 import crypto from 'crypto';
-import {
+import { 
     HOST,
     PARTNER_ID,
     PARTNER_KEY,
     SHOP_ID,
-    ACCESS_TOKEN
-} from '../processor.js';
+    ACCESS_TOKEN 
+} from '../../sample-fetch/md_processor.js';
 
 const ORDER_DETAIL_PATH = "/api/v2/order/get_order_detail";
 
-export async function getOrderDetail(orderList) {
-
+export async function getOrderDetailMD(orderList) {
     const orderIds = orderList.map(order => order.order_sn);
     const orderIdChunks = [];
 
@@ -20,10 +19,9 @@ export async function getOrderDetail(orderList) {
     }
 
     try {
-        let allOrdersWithDetail = [];
+        let MDOrdersWithDetail = [];
 
-        for (const orderIdChunk of orderIdChunks) {
-
+        for(const orderIdChunk of orderIdChunks) {
             const path = ORDER_DETAIL_PATH;
             const timestamp = Math.floor(Date.now() / 1000);
             const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
@@ -31,7 +29,7 @@ export async function getOrderDetail(orderList) {
             const sign = crypto.createHmac('sha256', PARTNER_KEY)
                 .update(baseString)
                 .digest('hex');
-            
+
             let optional_fields = [
                 "actual_shipping_fee",
                 "buyer_user_id",
@@ -54,29 +52,25 @@ export async function getOrderDetail(orderList) {
                 sign: sign,
                 order_sn_list: orderIdChunk,
                 response_optional_fields: optional_fields.join(','),
-                // butuh timeTo and timeFrom. Check for reference below
             });
 
-    
             const fullUrl = `${HOST}${path}?${params.toString()}`;
-            console.log("Hitting Order Detail endpoint:", fullUrl);
-    
+            console.log("MD: Hitting Order Detail endpoint: ", fullUrl);
+
             const response = await axios.get(fullUrl, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             if(response && response.data.response && Array.isArray(response.data.response.order_list)) {
-                console.log("Order Detail response: ", response.data.response.order_list);
-                allOrdersWithDetail = allOrdersWithDetail.concat(response.data.response.order_list);
+                MDOrdersWithDetail = MDOrdersWithDetail.concat(response.data.response.order_list);
+                console.log("MD: order detail exists");
             }
-        
         }
 
-        return allOrdersWithDetail;
-
+        return MDOrdersWithDetail
     } catch (e) {
-        console.log("Error getting order detail: ", e);
+        console.log("MD: Error getting order detail: ", e);
     }
 }

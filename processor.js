@@ -1,16 +1,15 @@
-import { getReturnDetail, getReturnList } from './api/getReturns.js';
-import { getEscrowDetail } from './api/getEscrowDetail.js';
-import { getOrderDetail } from './api/getOrderDetail.js';
-import { handleReturns } from './api/handleReturns.js';
-import { handleOrders } from './api/handleOrders.js';
+import { getReturnDetail, getReturnList } from './api/eileen_grace/getReturns.js';
+import { getEscrowDetail } from './api/eileen_grace/getEscrowDetail.js';
+import { getOrderDetail } from './api/eileen_grace/getOrderDetail.js';
+import { handleReturns } from './api/eileen_grace/handleReturns.js';
+import { handleOrders } from './api/eileen_grace/handleOrders.js';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios from 'axios';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
 import 'dotenv/config';
-import { fileURLToPath } from 'url';
-import { formatUnixTime } from './functions/formatUnixTime.js';
+// import fs from 'fs';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
 
 const port = 3000
 let secretClient;
@@ -23,42 +22,6 @@ export const PARTNER_KEY = process.env.PARTNER_KEY;
 export const SHOP_ID = parseInt(process.env.SHOP_ID);
 
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const token_file_path = path.join(__dirname, 'shopee-tokens.json');
-
-function saveTokensToFile(tokens) {
-    try {
-        fs.writeFileSync(token_file_path, JSON.stringify(tokens, null, 2));
-        console.log("Tokens saved to file.");
-    } catch (e) {
-        console.log("Error saving tokens to file: ", e.message);
-    }
-}
-
-function loadTokensFromFile() {
-    try {
-        if(fs.existsSync(token_file_path)) {
-            const data = fs.readFileSync(token_file_path, 'utf-8');
-            const tokens = JSON.parse(data);
-            console.log("Tokens loaded from file.");
-            return tokens;
-        }
-    } catch (e) {
-        console.log("Error loading tokens from file: ", e.message);
-    }
-
-    return {
-        accessToken: process.env.INITIAL_ACCESS_TOKEN,
-        refreshToken: process.env.INITIAL_REFRESH_TOKEN
-    };
-}
-
-// let loadedTokens = loadTokensFromFile();
-// let loadedTokens = await loadTokensFromSecret();
-// export let ACCESS_TOKEN = loadedTokens.accessToken;
-// let REFRESH_TOKEN = loadedTokens.refreshToken;
 
 export let ACCESS_TOKEN;
 let REFRESH_TOKEN;
@@ -145,7 +108,6 @@ async function loadTokensFromSecret() {
     }
 }
 
-
 const jakartaOffset = 7 * 60 * 60;
 
 function getJakartaTimestampTimeFrom(year, month, day, hour, minute, second) {
@@ -158,6 +120,52 @@ function getJakartaTimestampTimeTo(year, month, day, hour, minute, second) {
     return Math.floor(date.getTime() / 1000) - jakartaOffset;
 }
 
+export function getStartOfMonthTimestampWIB() {
+    const now = new Date(); 
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const startOfMonthUTC = new Date(Date.UTC(year, month, 0, 0, 0, 0)); 
+    const startOfMonthWIB = new Date(startOfMonthUTC.getTime() - (7 * 60 * 60 * 1000));
+    return Math.floor(startOfMonthWIB.getTime() / 1000);
+}
+
+export function getEndOfYesterdayTimestampWIB() {
+    const now = new Date(); 
+    const startOfTodayUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0));
+    const startOfTodayWIB = new Date(startOfTodayUTC.getTime() - (7 * 60 * 60 * 1000));
+    const endOfYesterdayWIB = new Date(startOfTodayWIB.getTime() - 1000); // Subtract 1 second
+    return Math.floor(endOfYesterdayWIB.getTime() / 1000);
+}
+
+// Function to get UTC Unix timestamp for the START of the PREVIOUS month in WIB
+export function getStartOfPreviousMonthTimestampWIB() {
+    const now = new Date();
+    // Calculate the year and month of the previous month
+    let prevMonthYear = now.getFullYear();
+    let prevMonthMonth = now.getMonth() - 1; // Month is 0-indexed (Jan=0)
+    if (prevMonthMonth < 0) {
+        prevMonthMonth = 11; // December
+        prevMonthYear--;
+    }
+    // Create date for the 1st of the PREVIOUS month IN UTC, then adjust back 7 hours for WIB
+    const startOfPrevMonthUTC = new Date(Date.UTC(prevMonthYear, prevMonthMonth, 1, 0, 0, 0));
+    const startOfPrevMonthWIB = new Date(startOfPrevMonthUTC.getTime() - (7 * 60 * 60 * 1000));
+    return Math.floor(startOfPrevMonthWIB.getTime() / 1000);
+}
+
+// Function to get UTC Unix timestamp for the END of the PREVIOUS month in WIB
+export function getEndOfPreviousMonthTimestampWIB() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // Current month
+    // Create date for the 1st of the CURRENT month IN UTC, adjust back 7 hours for WIB midnight
+    const startOfMonthUTC = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+    const startOfMonthWIB = new Date(startOfMonthUTC.getTime() - (7 * 60 * 60 * 1000));
+    // Subtract 1 second to get the end of the PREVIOUS month WIB
+    const endOfPrevMonthWIB = new Date(startOfMonthWIB.getTime() - 1000);
+    return Math.floor(endOfPrevMonthWIB.getTime() / 1000);
+}
+
 async function fetchOrdersAndReturnsFromPrevMonth(now, ACCESS_TOKEN) {
     console.log("Fetching all orders from the previous month");
 
@@ -167,6 +175,9 @@ async function fetchOrdersAndReturnsFromPrevMonth(now, ACCESS_TOKEN) {
     const firstDayOfPrevMonth = new Date(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), 1);
     const prevMonthTimeFrom = getJakartaTimestampTimeFrom(firstDayOfPrevMonth.getFullYear(), firstDayOfPrevMonth.getMonth(), 1, 0, 0, 0);
     const prevMonthTimeTo = getJakartaTimestampTimeTo(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), lastDayOfPrevMonth.getDate(), 23, 59, 59);
+
+    const timeFrom = getStartOfMonthTimestampWIB();
+    const timeTo = getEndOfYesterdayTimestampWIB();
 
     let intervals = [];
     let start = prevMonthTimeFrom;
@@ -253,21 +264,22 @@ export async function fetchAndProcessOrders() {
         const now = new Date();
         let response;
         
-        // Jakarta time for first day of month, 00:00:00
-        const timeFrom = getJakartaTimestampTimeFrom(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        // Jakarta time for first day of month, 00:00:00. - 1
+        // const timeFrom = getJakartaTimestampTimeFrom(now.getFullYear(), now.getMonth(), 0, 0, 0, 0);
         // Jakarta time for yesterday, 23:59:59
-        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-        const timeTo = getJakartaTimestampTimeTo(
-            yesterday.getFullYear(),
-            yesterday.getMonth(),
-            yesterday.getDate(),
-            23, 59, 59
-        );
+        // const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        // const timeTo = getJakartaTimestampTimeTo(
+        //     yesterday.getFullYear(),
+        //     yesterday.getMonth(),
+        //     yesterday.getDate(),
+        //     23, 59, 59
+        // );
+        const timeFrom = getStartOfMonthTimestampWIB();
+        const timeTo = getEndOfYesterdayTimestampWIB();
 
         // If date is around 1 - 16
         // Returns are done in this if-block.
         if(now.getDate() <= 16) {
-            
 
             // Uncomment if batch submission does not work
             // let allOrdersInBlock = [];
@@ -382,9 +394,25 @@ export async function fetchAndProcessOrders() {
                 console.log("Fetching all orders from the previous month");
 
                 const lastDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-                const firstDayOfPrevMonth = new Date(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), 1);
-                const prevMonthTimeFrom = getJakartaTimestampTimeFrom(firstDayOfPrevMonth.getFullYear(), firstDayOfPrevMonth.getMonth(), 1, 0, 0, 0);
-                const prevMonthTimeTo = getJakartaTimestampTimeTo(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), lastDayOfPrevMonth.getDate(), 23, 59, 59);
+
+                // This should also fetch the day before the first day of the previous month.
+                const firstDayOfPrevMonth = new Date(lastDayOfPrevMonth.getFullYear(), lastDayOfPrevMonth.getMonth(), 0);
+
+                // const prevMonthTimeFrom = getJakartaTimestampTimeFrom(
+                //     firstDayOfPrevMonth.getFullYear(), 
+                //     firstDayOfPrevMonth.getMonth(), 
+                //     firstDayOfPrevMonth.getDate(),
+                //     0, 0, 0
+                // );
+                // const prevMonthTimeTo = getJakartaTimestampTimeTo(
+                //     lastDayOfPrevMonth.getFullYear(), 
+                //     lastDayOfPrevMonth.getMonth(), 
+                //     lastDayOfPrevMonth.getDate(), 
+                //     23, 59, 59
+                // );
+
+                const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
+                const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
             
                 let intervals = [];
                 let start = prevMonthTimeFrom;

@@ -1,4 +1,4 @@
-import { formatUnixTime } from '../functions/formatUnixTime.js';
+import { formatUnixTime } from '../../functions/formatUnixTime.js';
 import axios from 'axios';
 import crypto from 'crypto';
 import {
@@ -7,7 +7,7 @@ import {
     PARTNER_KEY,
     SHOP_ID,
     ACCESS_TOKEN
-} from '../processor.js';
+} from '../../processor.js';
 
 const RETURN_LIST_PATH = "/api/v2/returns/get_return_list";
 

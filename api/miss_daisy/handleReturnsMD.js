@@ -1,9 +1,9 @@
-import { formatUnixTime } from '../functions/formatUnixTime.js';
 import { BigQuery } from '@google-cloud/bigquery';
 
 const bigquery = new BigQuery();
-export async function handleReturns(orderReturns) {
-    console.log("Merging order returns Eileen Grace");
+
+export async function handleReturnsMD(orderReturns) {
+    console.log("MD: Merging order returns Miss Daisy");
 
     const latestReturnsMap = {};
     for (const returnItem of orderReturns) {
@@ -13,12 +13,12 @@ export async function handleReturns(orderReturns) {
         }
     }
     const uniqueLatestReturns = Object.values(latestReturnsMap);
-    console.log(`Received ${orderReturns.length} raw returns, de-duplicated to ${uniqueLatestReturns.length} unique latest returns.`);
+    console.log(`MD: Received ${orderReturns.length} raw returns, de-duplicated to ${uniqueLatestReturns.length} unique latest returns.`);
 
     const [rows] = await bigquery.query({
         query: `
             SELECT No_Pesanan, Return_Status
-            FROM \`shopee_api.eileen_grace_return_refund\`
+            FROM \`shopee_api.miss_daisy_return_refund\`
             QUALIFY ROW_NUMBER() OVER (PARTITION BY No_Pesanan ORDER BY Update_Time DESC) = 1
         `
     });
@@ -48,10 +48,10 @@ export async function handleReturns(orderReturns) {
         }));
 
     const datasetId = 'shopee_api';
-    const tableIdStaging = 'eileen_grace_return_refund_staging';
+    const tableIdStaging = 'miss_daisy_return_refund_staging';
 
     if (orderReturnsToWrite.length === 0) {
-        console.log("No new or updated returns to process.");
+        console.log("MD: No new or updated returns to process.");
         return; // Exit the function early
     }
 
@@ -60,12 +60,12 @@ export async function handleReturns(orderReturns) {
             .dataset(datasetId)
             .table(tableIdStaging)
             .insert(orderReturnsToWrite);
-        console.log(`Inserted ${orderReturnsToWrite.length} rows to eileen_grace_return_refund_staging`);
+        console.log(`MD: Inserted ${orderReturnsToWrite.length} miss_daisy_return_refund_staging`);
 
         const mergeQuery = `
-            MERGE \`shopee_api.eileen_grace_return_refund\` T
+            MERGE \`shopee_api.miss_daisy_return_refund\` T
             USING (
-              SELECT * FROM \`shopee_api.eileen_grace_return_refund_staging\`
+              SELECT * FROM \`shopee_api.miss_daisy_return_refund_staging\`
               QUALIFY ROW_NUMBER() OVER(PARTITION BY No_Pesanan ORDER BY Update_Time DESC) = 1
             ) S
             ON T.No_Pesanan = S.No_Pesanan
@@ -79,13 +79,13 @@ export async function handleReturns(orderReturns) {
                 VALUES (S.No_Pesanan, S.Return_Id, S.Return_Status, S.Jumlah_Item_Return, S.Daftar_Item, S.Jumlah_Refund, S.Create_Time, S.Update_Time);
         `;
         await bigquery.query({ query: mergeQuery});
-        await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.eileen_grace_return_refund_staging\``});
-        console.log(`Inserted ${orderReturnsToWrite.length} rows to eileen_grace_return_refund`);
+        await bigquery.query({ query: `TRUNCATE TABLE \`shopee_api.miss_daisy_return_refund_staging\``});
+        console.log(`MD HandleReturns: Inserted ${orderReturnsToWrite.length} rows to miss_daisy_return_refund`);
     } catch (e) {
-        console.error("HANDLERETURNS: An error occurred during the BigQuery operation.");
+        console.error("MD HandleReturns: An error occurred during the BigQuery operation.");
 
         if (e.name === 'PartialFailureError' && e.errors && e.errors.length > 0) {
-            console.error("Some rows failed to insert into the staging table. See details below:");
+            console.error("MD HandleReturns: Some rows failed to insert into the staging table. See details below:");
 
             e.errors.forEach((errorDetail, index) => {
                 console.log(`\n--- Failure #${index + 1} ---`);
@@ -99,7 +99,7 @@ export async function handleReturns(orderReturns) {
                 console.log("----------------------");
             });
         } else {
-            console.error("A non-partial or unknown error occurred:", e);
+            console.error("MD HandleReturns: A non-partial or unknown error occurred:", e);
         }
     }
 }
