@@ -23,6 +23,14 @@ const workerOptions = {
     lockDuration: 5400000,
 }
 
+const workerOptionsMD = {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    },
+    lockDuration: 5400000,
+}
+
 console.log("Worker is starting!");
 
 const orderProcessor = async (job) => {
@@ -44,7 +52,7 @@ const mdOrderProcessor = async (job) => {
             throw new Error(`Unknown job name: ${job.name}`);
     }
 }
-const mdWorker = new Worker("fetch-orders-md", mdOrderProcessor, workerOptions);
+const mdWorker = new Worker("fetch-orders-md", mdOrderProcessor, workerOptionsMD);
 
 
 // Eileen Grace worker events
