@@ -18,8 +18,8 @@ const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/a
 export const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
 
-export let ACCESS_TOKEN;
-let REFRESH_TOKEN;
+export let MD_ACCESS_TOKEN;
+let MD_REFRESH_TOKEN;
 
 async function refreshToken() {
     try {
@@ -33,7 +33,7 @@ async function refreshToken() {
         const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
         const body = {
-            refresh_token: REFRESH_TOKEN,
+            refresh_token: MD_REFRESH_TOKEN,
             partner_id: PARTNER_ID,
             shop_id: SHOP_ID
         }
@@ -50,12 +50,12 @@ async function refreshToken() {
         const newRefreshToken = response.data.refresh_token;
 
         if(newAccessToken && newRefreshToken) {
-            ACCESS_TOKEN = newAccessToken;
-            REFRESH_TOKEN = newRefreshToken;
+            MD_ACCESS_TOKEN = newAccessToken;
+            MD_REFRESH_TOKEN = newRefreshToken;
 
             saveTokensToSecret({
-                accessToken: ACCESS_TOKEN,
-                refreshToken: REFRESH_TOKEN
+                accessToken: MD_ACCESS_TOKEN,
+                refreshToken: MD_REFRESH_TOKEN
             });
         } else {
             console.log("token refresh not found :(")
@@ -103,7 +103,7 @@ async function loadTokensFromSecret() {
     }
 }
 
-async function fetchReturnsByTimeframe(timeFrom, timeTo) {
+async function fetchReturnsByTimeframe(timeFrom, timeTo, accessToken) {
     let intervals = [];
     let start = timeFrom;
     while(start < timeTo) {
@@ -115,7 +115,7 @@ async function fetchReturnsByTimeframe(timeFrom, timeTo) {
     let allReturnList = [];
     let allReturnDetails = [];
     for(const interval of intervals) {
-        const newReturnList = await getReturnListMD(interval.from, interval.to);
+        const newReturnList = await getReturnListMD(interval.from, interval.to, accessToken);
         if(newReturnList && newReturnList.length > 0) {
             allReturnList = allReturnList.concat(newReturnList);
         } else {
@@ -132,7 +132,7 @@ async function fetchReturnsByTimeframe(timeFrom, timeTo) {
     }
 }
 
-async function fetchByTimeframe(timeFrom, timeTo) {
+async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
     // Divide the timeframe into 15-day intervals
     let intervals = [];
     let start = timeFrom;
@@ -151,7 +151,7 @@ async function fetchByTimeframe(timeFrom, timeTo) {
         while(hasMore) {
 
             const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${PATH}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+            const baseString = `${PARTNER_ID}${PATH}${timestamp}${accessToken}${SHOP_ID}`;
             const sign = crypto.createHmac('sha256', PARTNER_KEY)
                 .update(baseString)
                 .digest('hex');
@@ -159,7 +159,7 @@ async function fetchByTimeframe(timeFrom, timeTo) {
             const params = new URLSearchParams({
                 partner_id: PARTNER_ID,
                 timestamp,
-                access_token: ACCESS_TOKEN,
+                access_token: accessToken,
                 shop_id: SHOP_ID,
                 sign,
                 time_range_field: "create_time",
@@ -209,14 +209,21 @@ export async function fetchAndProcessOrdersMD() {
     console.log("Starting fetch orders MD");
 
     const now = new Date();
+
+    const loadedTokens = await loadTokensFromSecret();
+    MD_ACCESS_TOKEN = loadedTokens.accessToken;
+    MD_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshToken();
+
     if (now.getDate() === 1) {
         // Day 1
         console.log("MD: First day of the month. Fetch ALL orders & returns from prev month.");
         const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
         const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
 
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo); 
+        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN);
+        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN); 
 
     } else {
         // Day 2 - 31
@@ -224,7 +231,7 @@ export async function fetchAndProcessOrdersMD() {
         const timeFrom = getStartOfMonthTimestampWIB();
         const timeTo = getEndOfYesterdayTimestampWIB();
 
-        await fetchByTimeframe(timeFrom, timeTo);
-        await fetchReturnsByTimeframe(timeFrom, timeTo);
+        await fetchByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
+        await fetchReturnsByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
     }
 }

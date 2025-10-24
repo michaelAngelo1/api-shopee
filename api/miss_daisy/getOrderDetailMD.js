@@ -5,7 +5,7 @@ import {
     PARTNER_ID,
     PARTNER_KEY,
     SHOP_ID,
-    ACCESS_TOKEN 
+    MD_ACCESS_TOKEN
 } from '../../sample-fetch/md_processor.js';
 
 const ORDER_DETAIL_PATH = "/api/v2/order/get_order_detail";
@@ -24,7 +24,7 @@ export async function getOrderDetailMD(orderList) {
         for(const orderIdChunk of orderIdChunks) {
             const path = ORDER_DETAIL_PATH;
             const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+            const baseString = `${PARTNER_ID}${path}${timestamp}${MD_ACCESS_TOKEN}${SHOP_ID}`;
     
             const sign = crypto.createHmac('sha256', PARTNER_KEY)
                 .update(baseString)
@@ -47,7 +47,7 @@ export async function getOrderDetailMD(orderList) {
             const params = new URLSearchParams({
                 partner_id: PARTNER_ID,
                 timestamp: timestamp,
-                access_token: ACCESS_TOKEN,
+                access_token: MD_ACCESS_TOKEN,
                 shop_id: SHOP_ID,
                 sign: sign,
                 order_sn_list: orderIdChunk,

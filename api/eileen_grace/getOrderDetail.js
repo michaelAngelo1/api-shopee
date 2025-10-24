@@ -68,7 +68,7 @@ export async function getOrderDetail(orderList) {
             });
     
             if(response && response.data.response && Array.isArray(response.data.response.order_list)) {
-                console.log("Order Detail response: ", response.data.response.order_list);
+                // console.log("Order Detail response: ", response.data.response.order_list);
                 allOrdersWithDetail = allOrdersWithDetail.concat(response.data.response.order_list);
             }
         

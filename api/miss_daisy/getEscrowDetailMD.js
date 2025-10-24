@@ -5,7 +5,7 @@ import {
     PARTNER_ID,
     PARTNER_KEY,
     SHOP_ID,
-    ACCESS_TOKEN 
+    MD_ACCESS_TOKEN
 } from '../../sample-fetch/md_processor.js';
 
 const ESCROW_DETAIL_PATH = "/api/v2/payment/get_escrow_detail_batch";
@@ -26,7 +26,7 @@ export async function getEscrowDetailMD(orderList) {
         for(const orderIdChunk of orderIdsContainer) {
             const path = ESCROW_DETAIL_PATH;
             const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${path}${timestamp}${ACCESS_TOKEN}${SHOP_ID}`;
+            const baseString = `${PARTNER_ID}${path}${timestamp}${MD_ACCESS_TOKEN}${SHOP_ID}`;
             const sign = crypto.createHmac('sha256', PARTNER_KEY)
                 .update(baseString)
                 .digest('hex');
@@ -34,7 +34,7 @@ export async function getEscrowDetailMD(orderList) {
             const params = new URLSearchParams({
                 partner_id: PARTNER_ID,
                 timestamp: timestamp,
-                access_token: ACCESS_TOKEN,
+                access_token: MD_ACCESS_TOKEN,
                 shop_id: SHOP_ID,
                 sign: sign,
             });
