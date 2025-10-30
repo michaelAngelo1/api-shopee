@@ -20,6 +20,13 @@ const orderQueueMD = new Queue("fetch-orders-md", {
     }
 });
 
+const orderQueueSHRD = new Queue("fetch-orders-shrd", {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    }
+});
+
 app.get('/trigger-daily-sync', async (req, res) => {
 
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
@@ -40,6 +47,15 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueMD.add('fetch-orders-md', {}, {
             jobId: `md-daily-sync-${new Date().toISOString()}`, 
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueSHRD.add('fetch-orders-shrd', {}, {
+            jobId: `shrd-daily-sync-${new Date().toISOString()}`, 
             attempts: 3,
             backoff: {
                 type: 'exponential',
@@ -74,8 +90,10 @@ app.get("/orders", async (req, res) => {
 app.get('/admin/pause-queue', async (req, res) => {
     try {
         await orderQueue.pause();
-        console.log("ADMIN: Queue 'order-processing' has been PAUSED.");
-        res.status(200).send("Queue 'order-processing' has been PAUSED.");
+        await orderQueueMD.pause();
+        await orderQueueSHRD.pause();
+        console.log("ADMIN: all queues have been paused.");
+        res.status(200).send("All queues have been PAUSED.");
     } catch (e) {
         console.error("ADMIN: Error pausing queue:", e);
         res.status(500).send("Error pausing queue");
@@ -110,15 +128,15 @@ app.get('/admin/remove-job', async (req, res) => {
 app.get('/admin/resume-queue', async (req, res) => {
     try {
         await orderQueue.resume();
-        console.log("ADMIN: Queue 'order-processing' has been RESUMED.");
-        res.status(200).send("Queue 'order-processing' has been RESUMED.");
+        await orderQueueMD.resume();
+        await orderQueueSHRD.resume();
+        console.log("ADMIN: all queues have been resumed");
+        res.status(200).send("All queues have been RESUMED.");
     } catch (e) {
         console.error("ADMIN: Error resuming queue:", e);
         res.status(500).send("Error resuming queue");
     }
 });
-
-// ... Your other admin endpoints ...
 
 //
 // ADD THIS NEW ENDPOINT TO STOP AND CLEAN ALL JOBS
@@ -127,13 +145,23 @@ app.get('/admin/stop-all-jobs', async (req, res) => {
     try {
         // 1. Pause the queue. This stops workers from picking up NEW jobs.
         await orderQueue.pause();
-        console.log("ADMIN: Queue 'order-processing' has been PAUSED.");
+        await orderQueueMD.pause();
+        await orderQueueSHRD.pause();
+        console.log("ADMIN: all queues have been paused.");
 
         // 2. Clean all jobs in these states.
         // This clears all retries and jobs waiting to run.
-        await orderQueue.clean(0, 'wait'); // Clears all waiting jobs
-        await orderQueue.clean(0, 'delayed'); // Clears all delayed (retry) jobs
-        await orderQueue.clean(0, 'failed'); // Clears all failed jobs
+        await orderQueue.clean(0, 'wait'); 
+        await orderQueue.clean(0, 'delayed'); 
+        await orderQueue.clean(0, 'failed'); 
+
+        await orderQueueMD.clean(0, 'wait'); 
+        await orderQueueMD.clean(0, 'delayed'); 
+        await orderQueueMD.clean(0, 'failed');
+
+        await orderQueueSHRD.clean(0, 'wait'); 
+        await orderQueueSHRD.clean(0, 'delayed'); 
+        await orderQueueSHRD.clean(0, 'failed');
 
         console.log("ADMIN: CLEARED all waiting, delayed, and failed jobs.");
 

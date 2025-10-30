@@ -1,25 +1,27 @@
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-import axios, { all } from 'axios';
-import crypto from 'crypto';
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { getEndOfPreviousMonthTimestampWIB, getEndOfYesterdayTimestampWIB, getStartOfMonthTimestampWIB, getStartOfPreviousMonthTimestampWIB } from '../processor.js';
-import { getOrderDetailMD } from '../api/miss_daisy/getOrderDetailMD.js';
-import { getEscrowDetailMD } from '../api/miss_daisy/getEscrowDetailMD.js';
-import { handleOrdersMD } from '../api/miss_daisy/handleOrdersMD.js';
-import { getReturnDetailMD, getReturnListMD } from '../api/miss_daisy/getReturnsMD.js';
-import { handleReturnsMD } from '../api/miss_daisy/handleReturnsMD.js';
+import axios from 'axios';
+import crypto from "crypto";
+import { getOrderDetailSHRD } from '../api/shrd/getOrderDetailSHRD.js';
+import { getEscrowDetailSHRD } from '../api/shrd/getEscrowDetailSHRD.js';
+import { handleOrdersSHRD } from '../api/shrd/handleOrdersSHRD.js';
+import { getReturnDetailSHRD, getReturnListSHRD } from '../api/shrd/getReturnsSHRD.js';
+import { handleReturnsSHRD } from '../api/shrd/handleReturnsSHRD.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = process.env.MD_PARTNER_ID;
-export const PARTNER_KEY = process.env.MD_PARTNER_KEY;
-export const SHOP_ID = process.env.MD_SHOP_ID;
+export const PARTNER_ID = process.env.SHRD_PARTNER_ID;
+export const PARTNER_KEY = process.env.SHRD_PARTNER_KEY;
+export const SHOP_ID = process.env.SHRD_SHOP_ID;
+export const SHRD_INITIAL_ACCESS_TOKEN = process.env.SHRD_INITIAL_ACCESS_TOKEN;
+export const SHRD_INITIAL_REFRESH_TOKEN = process.env.SHRD_INITIAL_REFRESH_TOKEN;
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 
 export const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
 
-export let MD_ACCESS_TOKEN;
-let MD_REFRESH_TOKEN;
+export let SHRD_ACCESS_TOKEN;
+let SHRD_REFRESH_TOKEN;
 
 async function refreshToken() {
     const path = "/api/v2/auth/access_token/get";
@@ -32,12 +34,12 @@ async function refreshToken() {
     const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
-        refresh_token: MD_REFRESH_TOKEN,
+        refresh_token: SHRD_REFRESH_TOKEN,
         partner_id: PARTNER_ID,
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint MD: ", fullUrl);
+    console.log("Hitting Refresh Token endpoint SHRD: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -49,12 +51,12 @@ async function refreshToken() {
     const newRefreshToken = response.data.refresh_token;
 
     if(newAccessToken && newRefreshToken) {
-        MD_ACCESS_TOKEN = newAccessToken;
-        MD_REFRESH_TOKEN = newRefreshToken;
+        SHRD_ACCESS_TOKEN = newAccessToken;
+        SHRD_REFRESH_TOKEN = newRefreshToken;
 
         saveTokensToSecret({
-            accessToken: MD_ACCESS_TOKEN,
-            refreshToken: MD_REFRESH_TOKEN
+            accessToken: SHRD_ACCESS_TOKEN,
+            refreshToken: SHRD_REFRESH_TOKEN
         });
     } else {
         console.log("token refresh not found :(")
@@ -63,7 +65,7 @@ async function refreshToken() {
 }
 
 async function saveTokensToSecret(tokens) {
-    const parent = 'projects/231801348950/secrets/md-shopee-tokens';
+    const parent = 'projects/231801348950/secrets/shrd-shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
@@ -73,14 +75,14 @@ async function saveTokensToSecret(tokens) {
                 data: payload,
             }
         });
-        console.log("[MD] Successfully saved tokens to MD Secret Manager: ", parent);
+        console.log("[SHRD] Saved tokens to SHRD Secret Manager");
     } catch (e) {
-        console.error("[MD] Error saving tokens to Secret Manager: ", e);
+        console.log("[SHRD] Error saving tokens to Secret Manager", )
     }
 }
 
 async function loadTokensFromSecret() {
-    const secretName = 'projects/231801348950/secrets/md-shopee-tokens/versions/latest';
+    const secretName = 'projects/231801348950/secrets/shrd-shopee-tokens/versions/latest';
 
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -88,13 +90,13 @@ async function loadTokensFromSecret() {
         });
         const data = version.payload.data.toString('UTF-8');
         const tokens = JSON.parse(data);
-        console.log("Tokens loaded from Secret Manager: ", tokens);
+        console.log("[SHRD] Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
-        console.error("Error loading tokens from Secret Manager: ", e);
+        console.log("[SHRD] Error loading tokens from Secret Manager: ", e);
         return {
-            accessToken: process.env.MD_INITIAL_ACCESS_TOKEN,
-            refreshToken: process.env.MD_INITIAL_REFRESH_TOKEN
+            accessToken: process.env.SHRD_INITIAL_ACCESS_TOKEN,
+            refreshToken: process.env.SHRD_INITIAL_REFRESH_TOKEN
         }
     }
 }
@@ -111,20 +113,20 @@ async function fetchReturnsByTimeframe(timeFrom, timeTo, accessToken) {
     let allReturnList = [];
     let allReturnDetails = [];
     for(const interval of intervals) {
-        const newReturnList = await getReturnListMD(interval.from, interval.to, accessToken);
+        const newReturnList = await getReturnListSHRD(interval.from, interval.to, accessToken);
         if(newReturnList && newReturnList.length > 0) {
             allReturnList = allReturnList.concat(newReturnList);
         } else {
-            console.log("MD: No returns found for interval: ", interval);
+            console.log("SHRD: No returns found for interval: ", interval);
         }
     }
     
 
     if(allReturnList && allReturnList.length > 0) {
-        allReturnDetails = await getReturnDetailMD(allReturnList);
-        await handleReturnsMD(allReturnDetails);
+        allReturnDetails = await getReturnDetailSHRD(allReturnList);
+        await handleReturnsSHRD(allReturnDetails);
     } else {
-        console.log("MD: No return details to process.");
+        console.log("SHRD: No return details to process.");
     }
 }
 
@@ -167,7 +169,7 @@ async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
             if(cursor) params.append('cursor', cursor);
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log("Hitting Get Order List MD endpoint:", fullUrl);
+            console.log("Hitting Get Order List SHRD endpoint:", fullUrl);
 
             try {
                 const response = await axios.get(fullUrl, {
@@ -178,14 +180,14 @@ async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
 
                 if(response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
                     const onePageOfOrders = response.data.response.order_list;
-                    console.log("Fetched one-page of MD orders monthly");
+                    console.log("Fetched one-page of SHRD orders monthly");
 
                     if(onePageOfOrders.length > 0) {
                         
-                        const onePageWithDetail = await getOrderDetailMD(onePageOfOrders);
-                        const onePageWithEscrow = await getEscrowDetailMD(onePageOfOrders);
+                        const onePageWithDetail = await getOrderDetailSHRD(onePageOfOrders);
+                        const onePageWithEscrow = await getEscrowDetailSHRD(onePageOfOrders);
 
-                        await handleOrdersMD(onePageWithDetail, onePageWithEscrow);
+                        await handleOrdersSHRD(onePageWithDetail, onePageWithEscrow);
                     }
 
                     hasMore = response.data.response.more;
@@ -194,55 +196,55 @@ async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
                     hasMore = false;
                 }
             } catch (e) {
-                console.log("Error fetching MD orders: ", e);
+                console.log("Error fetching SHRD orders: ", e);
                 hasMore = false;
             }
         }
     }
 }
 
-export async function fetchAndProcessOrdersMD() {
-    console.log("Starting fetch orders MD");
-
+export async function fetchAndProcessOrdersSHRD() {
+    console.log("Starting fetch orders SHRD");
+    
     const now = new Date();
 
     const loadedTokens = await loadTokensFromSecret();
-    MD_ACCESS_TOKEN = loadedTokens.accessToken;
-    MD_REFRESH_TOKEN = loadedTokens.refreshToken;
+    SHRD_ACCESS_TOKEN = loadedTokens.accessToken;
+    SHRD_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
 
     if (now.getDate() === 1) {
         // Day 1
-        console.log("MD: First day of the month. Fetch ALL orders & returns from prev month.");
+        console.log("SHRD: First day of the month. Fetch ALL orders & returns from prev month.");
         const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
         const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
 
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN); 
+        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN);
+        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN); 
 
     } else if(now.getDate() === 15) {
-        console.log("MD: 15th day of the month. Fetch all orders from prev month and MTD orders");
+        console.log("SHRD: 15th day of the month. Fetch all orders from prev month and MTD orders");
 
-        console.log("MD: Case 15. Fetch previous month orders & returns");
+        console.log("SHRD: Case 15. Fetch previous month orders & returns");
         const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
         const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN); 
+        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN);
+        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN); 
 
-        console.log("MD: Case 15. Fetch MTD orders & returns.");
+        console.log("SHRD: Case 15. Fetch MTD orders & returns.");
         const timeFrom = getStartOfMonthTimestampWIB();
         const timeTo = getEndOfYesterdayTimestampWIB();
-        await fetchByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
+        await fetchByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
+        await fetchReturnsByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
 
     } else {
         // Day 2 - 31
-        console.log("MD: Fetching MTD orders & returns.");
+        console.log("SHRD: Fetching MTD orders & returns.");
         const timeFrom = getStartOfMonthTimestampWIB();
         const timeTo = getEndOfYesterdayTimestampWIB();
 
-        await fetchByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
+        await fetchByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
+        await fetchReturnsByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
     }
 }

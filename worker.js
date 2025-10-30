@@ -1,5 +1,6 @@
 import { fetchAndProcessOrdersMD } from './sample-fetch/md_processor.js';
 import { fetchAndProcessOrders } from './processor.js';
+import { fetchAndProcessOrdersSHRD } from './sample-fetch/shrd_processor.js';
 import { Worker } from 'bullmq';
 import 'dotenv/config';
 import express from 'express';
@@ -31,6 +32,14 @@ const workerOptionsMD = {
     lockDuration: 5400000,
 }
 
+const workerOptionsSHRD = {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    },
+    lockDuration: 5400000,
+}
+
 console.log("Worker is starting!");
 
 const orderProcessor = async (job) => {
@@ -54,22 +63,32 @@ const mdOrderProcessor = async (job) => {
 }
 const mdWorker = new Worker("fetch-orders-md", mdOrderProcessor, workerOptionsMD);
 
+const shrdOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-shrd':
+            return fetchAndProcessOrdersSHRD();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const shrdWorker = new Worker("fetch-orders-shrd", shrdOrderProcessor, workerOptionsSHRD);
+
 
 // Eileen Grace worker events
 orderWorker.on('active', (job) => {
-    console.log(`ACTIVE: Picked up job with ID ${job.id}.`);
+    console.log(`[eg-worker] Picked up job with ID ${job.id}.`);
 });
 orderWorker.on('completed', (job) => {
-    console.log(`INDEXJS: Job with ID ${job.id} has completed.`);
+    console.log(`[eg-worker] Job with ID ${job.id} has completed.`);
 });
 orderWorker.on('ready', (job) => {
-    console.log("INDEXJS: Worker is ready to listen.");
+    console.log("[eg-worker] Worker is ready to listen.");
 });
 orderWorker.on('failed', (job, err) => {
-    console.error(`INDEXJS: Job with ID ${job.id} has failed. Error:`, err);
+    console.error(`[eg-worker] Job with ID ${job.id} has failed. Error:`, err);
 });
 orderWorker.on('error', (err) => {
-    console.error('INDEXJS: Worker encountered an error:', err);
+    console.error('[eg-worker] Worker encountered an error:', err);
 });
 
 // Miss Daisy worker events
@@ -86,12 +105,26 @@ mdWorker.on('failed', (job, err) => {
     console.error(`[fetch-orders-md] FAILED: Job ${job.id}.`, err);
 });
 
+shrdWorker.on('active', (job) => {
+    console.log(`[fetch-orders-shrd] ACTIVE: Job ${job.id}.`);
+});
+shrdWorker.on('completed', (job) => {
+    console.log(`[fetch-orders-shrd] COMPLETED: Job ${job.id}.`);
+});
+shrdWorker.on('ready', (job) => {
+    console.log("[fetch-orders-shrd] MD Worker is ready to listen");
+});
+shrdWorker.on('failed', (job, err) => {
+    console.error(`[fetch-orders-shrd] FAILED: Job ${job.id}.`, err);
+});
+
 const gracefulShutdown = async () => {
     console.log("Shutting down worker...");
 
     await Promise.all([
         orderWorker.close(),
         mdWorker.close(),
+        shrdWorker.close()
     ])
     
     console.log("Worker shut down complete.");
