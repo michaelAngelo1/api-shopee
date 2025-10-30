@@ -10,9 +10,9 @@ import { handleReturnsMD } from '../api/miss_daisy/handleReturnsMD.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = process.env.MD_PARTNER_ID;
+export const PARTNER_ID = parseInt(process.env.MD_PARTNER_ID);
 export const PARTNER_KEY = process.env.MD_PARTNER_KEY;
-export const SHOP_ID = process.env.MD_SHOP_ID;
+export const SHOP_ID = parseInt(process.env.MD_SHOP_ID);
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 
 export const HOST = "https://partner.shopeemobile.com";

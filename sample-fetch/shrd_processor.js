@@ -10,9 +10,9 @@ import { handleReturnsSHRD } from '../api/shrd/handleReturnsSHRD.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = process.env.SHRD_PARTNER_ID;
+export const PARTNER_ID = parseInt(process.env.SHRD_PARTNER_ID);
 export const PARTNER_KEY = process.env.SHRD_PARTNER_KEY;
-export const SHOP_ID = process.env.SHRD_SHOP_ID;
+export const SHOP_ID = parseInt(process.env.SHRD_SHOP_ID);
 export const SHRD_INITIAL_ACCESS_TOKEN = process.env.SHRD_INITIAL_ACCESS_TOKEN;
 export const SHRD_INITIAL_REFRESH_TOKEN = process.env.SHRD_INITIAL_REFRESH_TOKEN;
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
