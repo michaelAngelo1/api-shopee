@@ -27,6 +27,13 @@ const orderQueueSHRD = new Queue("fetch-orders-shrd", {
     }
 });
 
+const orderQueueCLEV = new Queue("fetch-orders-clev", {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    }
+})
+
 app.get('/trigger-daily-sync', async (req, res) => {
 
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
@@ -63,6 +70,15 @@ app.get('/trigger-daily-sync', async (req, res) => {
             }
         });
 
+        await orderQueueCLEV.add('fetch-orders-clev', {}, {
+            jobId: `clev-daily-sync-${new Date().toISOString()}`,
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
         console.log("Daily sync job enqueued by Cloud Scheduler");
         res.status(200).send("Successfully enqueued daily sync job");
     } catch (e) {
@@ -92,6 +108,8 @@ app.get('/admin/pause-queue', async (req, res) => {
         await orderQueue.pause();
         await orderQueueMD.pause();
         await orderQueueSHRD.pause();
+        await orderQueueCLEV.pause();
+
         console.log("ADMIN: all queues have been paused.");
         res.status(200).send("All queues have been PAUSED.");
     } catch (e) {
@@ -130,6 +148,7 @@ app.get('/admin/resume-queue', async (req, res) => {
         await orderQueue.resume();
         await orderQueueMD.resume();
         await orderQueueSHRD.resume();
+        await orderQueueCLEV.resume();
         console.log("ADMIN: all queues have been resumed");
         res.status(200).send("All queues have been RESUMED.");
     } catch (e) {
@@ -147,6 +166,7 @@ app.get('/admin/stop-all-jobs', async (req, res) => {
         await orderQueue.pause();
         await orderQueueMD.pause();
         await orderQueueSHRD.pause();
+        await orderQueueCLEV.pause();
         console.log("ADMIN: all queues have been paused.");
 
         // 2. Clean all jobs in these states.
@@ -162,6 +182,10 @@ app.get('/admin/stop-all-jobs', async (req, res) => {
         await orderQueueSHRD.clean(0, 'wait'); 
         await orderQueueSHRD.clean(0, 'delayed'); 
         await orderQueueSHRD.clean(0, 'failed');
+
+        await orderQueueCLEV.clean(0, 'wait'); 
+        await orderQueueCLEV.clean(0, 'delayed'); 
+        await orderQueueCLEV.clean(0, 'failed');
 
         console.log("ADMIN: CLEARED all waiting, delayed, and failed jobs.");
 
