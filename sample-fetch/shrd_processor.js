@@ -7,6 +7,7 @@ import { getEscrowDetailSHRD } from '../api/shrd/getEscrowDetailSHRD.js';
 import { handleOrdersSHRD } from '../api/shrd/handleOrdersSHRD.js';
 import { getReturnDetailSHRD, getReturnListSHRD } from '../api/shrd/getReturnsSHRD.js';
 import { handleReturnsSHRD } from '../api/shrd/handleReturnsSHRD.js';
+import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
 
 const secretClient = new SecretManagerServiceClient();
 

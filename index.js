@@ -32,7 +32,21 @@ const orderQueueCLEV = new Queue("fetch-orders-clev", {
         url: process.env.REDIS_URL,
         connectTimeout: 30000,
     }
-})
+});
+
+const orderQueueDRJOU = new Queue("fetch-orders-drjou", {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    }
+});
+
+const orderQueueMOSS = new Queue("fetch-orders-moss", {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    }
+});
 
 app.get('/trigger-daily-sync', async (req, res) => {
 
@@ -72,6 +86,24 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueCLEV.add('fetch-orders-clev', {}, {
             jobId: `clev-daily-sync-${new Date().toISOString()}`,
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueDRJOU.add('fetch-orders-drjou', {}, {
+            jobId: `drjou-daily-sync-${new Date().toISOString()}`,
+            attempts: 3,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueMOSS.add('fetch-orders-moss', {}, {
+            jobId: `moss-daily-sync-${new Date().toISOString()}`,
             attempts: 3,
             backoff: {
                 type: 'exponential',

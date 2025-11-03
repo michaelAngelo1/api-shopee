@@ -1,5 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
+import { BigQuery } from '@google-cloud/bigquery';
+const bigquery = new BigQuery();
 
 export async function fetchAdsTotalBalance(brand, partner_id, partner_key, accessToken, shop_id) {
     console.log("Fetch Ads Total Balance of brand: ", brand);
@@ -41,8 +43,42 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
 
         if(response && response.data.response) {
             console.log(`${brand} Ads Total Balance: ${response.data.response[0].expense} on ${response.data.response[0].date}`);
+            await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
         }
     } catch (e) {
         console.log(`Error fetching total balance for ${brand}`);
+    }
+}
+
+async function submitData(brand, expense, date) {
+    let tableName = ""
+    
+    if(brand == "Eileen Grace") {
+        tableName = "eileen_grace_ads_spending";
+    } else if(brand == "Miss Daisy") {
+        tableName = "miss_daisy_ads_spending";
+    } else if(brand == "SH-RD") {
+        tableName = "shrd_ads_spending";
+    } else if(brand == "Cleviant") {
+        tableName = "cleviant_ads_spending";
+    } else if(brand == "Mosseru") {
+        tableName = "mosseru_ads_spending";
+    } else if(brand == "Dr.Jou") {
+        tableName = "drjou_ads_spending";
+    }
+ 
+    const datasetId = 'shopee_api';
+
+    try {
+        await bigquery
+            .dataset(datasetId)
+            .table(tableName)
+            .insert({
+                Tanggal_Dibuat: date,
+                Spending: expense,
+            });
+        console.log(`Successfully written ads spending to ${brand} table.`)
+    } catch (e) {
+        console.error(`Error inserting ads spending on ${brand}: ${e}`);
     }
 }

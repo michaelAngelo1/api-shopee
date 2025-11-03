@@ -5,6 +5,8 @@ import { Worker } from 'bullmq';
 import 'dotenv/config';
 import express from 'express';
 import { fetchAndProcessOrdersCLEV } from './sample-fetch/clev_processor.js';
+import { fetchAndProcessOrdersDRJOU } from './sample-fetch/drjou_processor.js';
+import { fetchAndProcessOrdersMOSS } from './sample-fetch/moss_processor.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -42,6 +44,22 @@ const workerOptionsSHRD = {
 }
 
 const workerOptionsCLEV = {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    },
+    lockDuration: 5400000,
+}
+
+const workerOptionsDRJOU = {
+    connection: {
+        url: process.env.REDIS_URL,
+        connectTimeout: 30000,
+    },
+    lockDuration: 5400000,
+}
+
+const workerOptionsMOSS = {
     connection: {
         url: process.env.REDIS_URL,
         connectTimeout: 30000,
@@ -91,6 +109,26 @@ const clevOrderProcessor = async (job) => {
     }
 }
 const clevWorker = new Worker("fetch-orders-clev", clevOrderProcessor, workerOptionsCLEV);
+
+const drjouOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-drjou':
+            return fetchAndProcessOrdersDRJOU();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const drjouWorker = new Worker("fetch-orders-drjou", drjouOrderProcessor, workerOptionsDRJOU);
+
+const mossOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-moss':
+            return fetchAndProcessOrdersMOSS();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const mossWorker = new Worker("fetch-orders-moss", mossOrderProcessor, workerOptionsMOSS);
 
 // Eileen Grace worker events
 orderWorker.on('active', (job) => {
@@ -149,6 +187,20 @@ clevWorker.on('ready', (job) => {
 });
 clevWorker.on('failed', (job, err) => {
     console.error(`[fetch-orders-clev] FAILED: Job ${job.id}.`, err);
+});
+
+// Dr. Jou
+drjouWorker.on('active', (job) => {
+    console.log(`[fetch-orders-drjou] ACTIVE: Job ${job.id}.`);
+});
+drjouWorker.on('completed', (job) => {
+    console.log(`[fetch-orders-drjou] COMPLETED: Job ${job.id}.`);
+});
+drjouWorker.on('ready', (job) => {
+    console.log("[fetch-orders-drjou] DRJOU Worker is ready to listen");
+});
+drjouWorker.on('failed', (job, err) => {
+    console.error(`[fetch-orders-drjou] FAILED: Job ${job.id}.`, err);
 });
 
 const gracefulShutdown = async () => {

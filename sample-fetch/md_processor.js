@@ -7,6 +7,7 @@ import { getEscrowDetailMD } from '../api/miss_daisy/getEscrowDetailMD.js';
 import { handleOrdersMD } from '../api/miss_daisy/handleOrdersMD.js';
 import { getReturnDetailMD, getReturnListMD } from '../api/miss_daisy/getReturnsMD.js';
 import { handleReturnsMD } from '../api/miss_daisy/handleReturnsMD.js';
+import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 
 const secretClient = new SecretManagerServiceClient();
 
