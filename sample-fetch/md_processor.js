@@ -203,8 +203,7 @@ async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
 
 export async function fetchAndProcessOrdersMD() {
     console.log("Starting fetch orders MD");
-
-    const now = new Date();
+    let brand = "Miss Daisy";
 
     const loadedTokens = await loadTokensFromSecret();
     MD_ACCESS_TOKEN = loadedTokens.accessToken;
@@ -212,37 +211,5 @@ export async function fetchAndProcessOrdersMD() {
 
     await refreshToken();
 
-    if (now.getDate() === 1) {
-        // Day 1
-        console.log("MD: First day of the month. Fetch ALL orders & returns from prev month.");
-        const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
-        const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
-
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN); 
-
-    } else if(now.getDate() === 15) {
-        console.log("MD: 15th day of the month. Fetch all orders from prev month and MTD orders");
-
-        console.log("MD: Case 15. Fetch previous month orders & returns");
-        const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
-        const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, MD_ACCESS_TOKEN); 
-
-        console.log("MD: Case 15. Fetch MTD orders & returns.");
-        const timeFrom = getStartOfMonthTimestampWIB();
-        const timeTo = getEndOfYesterdayTimestampWIB();
-        await fetchByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
-
-    } else {
-        // Day 2 - 31
-        console.log("MD: Fetching MTD orders & returns.");
-        const timeFrom = getStartOfMonthTimestampWIB();
-        const timeTo = getEndOfYesterdayTimestampWIB();
-
-        await fetchByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(timeFrom, timeTo, MD_ACCESS_TOKEN);
-    }
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
 }

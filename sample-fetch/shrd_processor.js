@@ -204,9 +204,8 @@ async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
 }
 
 export async function fetchAndProcessOrdersSHRD() {
-    console.log("Starting fetch orders SHRD");
-    
-    const now = new Date();
+    console.log("[SH-RD] Start fetching ads total balance. Calling the function.");
+    let brand = "SH-RD";
 
     const loadedTokens = await loadTokensFromSecret();
     SHRD_ACCESS_TOKEN = loadedTokens.accessToken;
@@ -214,37 +213,5 @@ export async function fetchAndProcessOrdersSHRD() {
 
     await refreshToken();
 
-    if (now.getDate() === 1) {
-        // Day 1
-        console.log("SHRD: First day of the month. Fetch ALL orders & returns from prev month.");
-        const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
-        const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
-
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN); 
-
-    } else if(now.getDate() === 15) {
-        console.log("SHRD: 15th day of the month. Fetch all orders from prev month and MTD orders");
-
-        console.log("SHRD: Case 15. Fetch previous month orders & returns");
-        const prevMonthTimeFrom = getStartOfPreviousMonthTimestampWIB();
-        const prevMonthTimeTo = getEndOfPreviousMonthTimestampWIB();
-        await fetchByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(prevMonthTimeFrom, prevMonthTimeTo, SHRD_ACCESS_TOKEN); 
-
-        console.log("SHRD: Case 15. Fetch MTD orders & returns.");
-        const timeFrom = getStartOfMonthTimestampWIB();
-        const timeTo = getEndOfYesterdayTimestampWIB();
-        await fetchByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
-
-    } else {
-        // Day 2 - 31
-        console.log("SHRD: Fetching MTD orders & returns.");
-        const timeFrom = getStartOfMonthTimestampWIB();
-        const timeTo = getEndOfYesterdayTimestampWIB();
-
-        await fetchByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
-        await fetchReturnsByTimeframe(timeFrom, timeTo, SHRD_ACCESS_TOKEN);
-    }
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID);
 }
