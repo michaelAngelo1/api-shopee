@@ -6,47 +6,24 @@ const app = express();
 // const port = 3000;
 const port = process.env.PORT || 8080;
 
-const orderQueue = new Queue("order-processing", {
+const redisConnection = {
     connection: {
         url: process.env.REDIS_URL,
         connectTimeout: 30000,
     }
-});
+}
 
-const orderQueueMD = new Queue("fetch-orders-md", {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    }
-});
-
-const orderQueueSHRD = new Queue("fetch-orders-shrd", {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    }
-});
-
-const orderQueueCLEV = new Queue("fetch-orders-clev", {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    }
-});
-
-const orderQueueDRJOU = new Queue("fetch-orders-drjou", {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    }
-});
-
-const orderQueueMOSS = new Queue("fetch-orders-moss", {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    }
-});
+const orderQueue = new Queue("order-processing", redisConnection);
+const orderQueueMD = new Queue("fetch-orders-md", redisConnection);
+const orderQueueSHRD = new Queue("fetch-orders-shrd", redisConnection);
+const orderQueueCLEV = new Queue("fetch-orders-clev", redisConnection);
+const orderQueueDRJOU = new Queue("fetch-orders-drjou", redisConnection);
+const orderQueueMOSS = new Queue("fetch-orders-moss", redisConnection);
+const orderQueueGB = new Queue("fetch-orders-gb", redisConnection);
+const orderQueueIL = new Queue("fetch-orders-il", redisConnection);
+const orderQueueEV = new Queue("fetch-orders-evoke", redisConnection);
+const orderQueueMMW = new Queue("fetch-orders-mmw", redisConnection);
+const orderQueueCHESS = new Queue("fetch-orders-chess", redisConnection);
 
 app.get('/trigger-daily-sync', async (req, res) => {
 
@@ -59,7 +36,7 @@ app.get('/trigger-daily-sync', async (req, res) => {
         
         await orderQueue.add('fetch-daily-orders', {}, {
             jobId: `daily-sync-${new Date().toISOString()}`, 
-            attempts: 3,
+            attempts: 5,
             backoff: {
                 type: 'exponential',
                 delay: 60000,
@@ -68,7 +45,7 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueMD.add('fetch-orders-md', {}, {
             jobId: `md-daily-sync-${new Date().toISOString()}`, 
-            attempts: 3,
+            attempts: 5,
             backoff: {
                 type: 'exponential',
                 delay: 60000,
@@ -77,7 +54,7 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueSHRD.add('fetch-orders-shrd', {}, {
             jobId: `shrd-daily-sync-${new Date().toISOString()}`, 
-            attempts: 3,
+            attempts: 5,
             backoff: {
                 type: 'exponential',
                 delay: 60000,
@@ -86,7 +63,7 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueCLEV.add('fetch-orders-clev', {}, {
             jobId: `clev-daily-sync-${new Date().toISOString()}`,
-            attempts: 3,
+            attempts: 5,
             backoff: {
                 type: 'exponential',
                 delay: 60000,
@@ -95,7 +72,7 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueDRJOU.add('fetch-orders-drjou', {}, {
             jobId: `drjou-daily-sync-${new Date().toISOString()}`,
-            attempts: 3,
+            attempts: 5,
             backoff: {
                 type: 'exponential',
                 delay: 60000,
@@ -104,7 +81,52 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueMOSS.add('fetch-orders-moss', {}, {
             jobId: `moss-daily-sync-${new Date().toISOString()}`,
-            attempts: 3,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueGB.add('fetch-orders-gb', {}, {
+            jobId: `gb-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueIL.add('fetch-orders-il', {}, {
+            jobId: `il-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueEV.add('fetch-orders-evoke', {}, {
+            jobId: `evoke-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueMMW.add('fetch-orders-mmw', {}, {
+            jobId: `mmw-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueCHESS.add('fetch-orders-chess', {}, {
+            jobId: `chess-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
             backoff: {
                 type: 'exponential',
                 delay: 60000,

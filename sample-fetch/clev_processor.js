@@ -93,6 +93,7 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[CLEV] Error loading tokens from Secret Manager: ", e);
+        throw e;
     }
 }
 

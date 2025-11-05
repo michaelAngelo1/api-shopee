@@ -93,10 +93,7 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[MD] Error loading tokens from Secret Manager: ", e);
-        return {
-            accessToken: process.env.MD_INITIAL_ACCESS_TOKEN,
-            refreshToken: process.env.MD_INITIAL_REFRESH_TOKEN
-        }
+        throw e;
     }
 }
 

@@ -7,6 +7,11 @@ import express from 'express';
 import { fetchAndProcessOrdersCLEV } from './sample-fetch/clev_processor.js';
 import { fetchAndProcessOrdersDRJOU } from './sample-fetch/drjou_processor.js';
 import { fetchAndProcessOrdersMOSS } from './sample-fetch/moss_processor.js';
+import { fetchAndProcessOrdersGB } from './sample-fetch/gb_processor.js';
+import { fetchAndProcessOrdersIL } from './sample-fetch/il_processor.js';
+import { fetchAndProcessOrdersEVOKE } from './sample-fetch/evoke_processor.js';
+import { fetchAndProcessOrdersMMW } from './sample-fetch/mmw_processor.js';
+import { fetchAndProcessOrdersCHESS } from './sample-fetch/chess_processor.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -20,46 +25,6 @@ workerApp.listen(port, () => {
 });
 
 const workerOptions = {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    },
-    lockDuration: 5400000,
-}
-
-const workerOptionsMD = {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    },
-    lockDuration: 5400000,
-}
-
-const workerOptionsSHRD = {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    },
-    lockDuration: 5400000,
-}
-
-const workerOptionsCLEV = {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    },
-    lockDuration: 5400000,
-}
-
-const workerOptionsDRJOU = {
-    connection: {
-        url: process.env.REDIS_URL,
-        connectTimeout: 30000,
-    },
-    lockDuration: 5400000,
-}
-
-const workerOptionsMOSS = {
     connection: {
         url: process.env.REDIS_URL,
         connectTimeout: 30000,
@@ -88,7 +53,7 @@ const mdOrderProcessor = async (job) => {
             throw new Error(`Unknown job name: ${job.name}`);
     }
 }
-const mdWorker = new Worker("fetch-orders-md", mdOrderProcessor, workerOptionsMD);
+const mdWorker = new Worker("fetch-orders-md", mdOrderProcessor, workerOptions);
 
 const shrdOrderProcessor = async (job) => {
     switch (job.name) {
@@ -98,7 +63,7 @@ const shrdOrderProcessor = async (job) => {
             throw new Error(`Unknown job name: ${job.name}`);
     }
 }
-const shrdWorker = new Worker("fetch-orders-shrd", shrdOrderProcessor, workerOptionsSHRD);
+const shrdWorker = new Worker("fetch-orders-shrd", shrdOrderProcessor, workerOptions);
 
 const clevOrderProcessor = async (job) => {
     switch (job.name) {
@@ -108,7 +73,7 @@ const clevOrderProcessor = async (job) => {
             throw new Error(`Unknown job name: ${job.name}`);
     }
 }
-const clevWorker = new Worker("fetch-orders-clev", clevOrderProcessor, workerOptionsCLEV);
+const clevWorker = new Worker("fetch-orders-clev", clevOrderProcessor, workerOptions);
 
 const drjouOrderProcessor = async (job) => {
     switch (job.name) {
@@ -118,7 +83,7 @@ const drjouOrderProcessor = async (job) => {
             throw new Error(`Unknown job name: ${job.name}`);
     }
 }
-const drjouWorker = new Worker("fetch-orders-drjou", drjouOrderProcessor, workerOptionsDRJOU);
+const drjouWorker = new Worker("fetch-orders-drjou", drjouOrderProcessor, workerOptions);
 
 const mossOrderProcessor = async (job) => {
     switch (job.name) {
@@ -128,7 +93,57 @@ const mossOrderProcessor = async (job) => {
             throw new Error(`Unknown job name: ${job.name}`);
     }
 }
-const mossWorker = new Worker("fetch-orders-moss", mossOrderProcessor, workerOptionsMOSS);
+const mossWorker = new Worker("fetch-orders-moss", mossOrderProcessor, workerOptions);
+
+const gbOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-gb':
+            return fetchAndProcessOrdersGB();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const gbWorker = new Worker("fetch-orders-gb", gbOrderProcessor, workerOptions);
+
+const ilOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-il':
+            return fetchAndProcessOrdersIL();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const ilWorker = new Worker("fetch-orders-il", ilOrderProcessor, workerOptions);
+
+const evOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-evoke':
+            return fetchAndProcessOrdersEVOKE();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const evWorker = new Worker("fetch-orders-evoke", evOrderProcessor, workerOptions);
+
+const mmwOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-mmw':
+            return fetchAndProcessOrdersMMW();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const mmwWorker = new Worker("fetch-orders-mmw", mmwOrderProcessor, workerOptions);
+
+const chessOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-chess':
+            return fetchAndProcessOrdersCHESS();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const chessWorker = new Worker("fetch-orders-chess", chessOrderProcessor, workerOptions);
 
 // Eileen Grace worker events
 orderWorker.on('active', (job) => {
@@ -149,58 +164,142 @@ orderWorker.on('error', (err) => {
 
 // Miss Daisy worker events
 mdWorker.on('active', (job) => {
-    console.log(`[fetch-orders-md] ACTIVE: Job ${job.id}.`);
+    console.log(`[MD] ACTIVE: Job ${job.id}.`);
 });
 mdWorker.on('completed', (job) => {
-    console.log(`[fetch-orders-md] COMPLETED: Job ${job.id}.`);
+    console.log(`[MD] COMPLETED: Job ${job.id}.`);
 });
 mdWorker.on('ready', (job) => {
-    console.log("[fetch-orders-md] MD Worker is ready to listen");
+    console.log("[MD] MD Worker is ready to listen");
 });
 mdWorker.on('failed', (job, err) => {
-    console.error(`[fetch-orders-md] FAILED: Job ${job.id}.`, err);
+    console.error(`[MD] FAILED: Job ${job.id}.`, err);
 });
 
 // SHRD
 shrdWorker.on('active', (job) => {
-    console.log(`[fetch-orders-shrd] ACTIVE: Job ${job.id}.`);
+    console.log(`[SHRD] ACTIVE: Job ${job.id}.`);
 });
 shrdWorker.on('completed', (job) => {
-    console.log(`[fetch-orders-shrd] COMPLETED: Job ${job.id}.`);
+    console.log(`[SHRD] COMPLETED: Job ${job.id}.`);
 });
 shrdWorker.on('ready', (job) => {
-    console.log("[fetch-orders-shrd] SHRD Worker is ready to listen");
+    console.log("[SHRD] SHRD Worker is ready to listen");
 });
 shrdWorker.on('failed', (job, err) => {
-    console.error(`[fetch-orders-shrd] FAILED: Job ${job.id}.`, err);
+    console.error(`[SHRD] FAILED: Job ${job.id}.`, err);
 });
 
 // Cleviant
 clevWorker.on('active', (job) => {
-    console.log(`[fetch-orders-clev] ACTIVE: Job ${job.id}.`);
+    console.log(`[CLEV] ACTIVE: Job ${job.id}.`);
 });
 clevWorker.on('completed', (job) => {
-    console.log(`[fetch-orders-clev] COMPLETED: Job ${job.id}.`);
+    console.log(`[CLEV] COMPLETED: Job ${job.id}.`);
 });
 clevWorker.on('ready', (job) => {
-    console.log("[fetch-orders-clev] CLEV Worker is ready to listen");
+    console.log("[CLEV] CLEV Worker is ready to listen");
 });
 clevWorker.on('failed', (job, err) => {
-    console.error(`[fetch-orders-clev] FAILED: Job ${job.id}.`, err);
+    console.error(`[CLEV] FAILED: Job ${job.id}.`, err);
 });
 
 // Dr. Jou
 drjouWorker.on('active', (job) => {
-    console.log(`[fetch-orders-drjou] ACTIVE: Job ${job.id}.`);
+    console.log(`[DRJOU] ACTIVE: Job ${job.id}.`);
 });
 drjouWorker.on('completed', (job) => {
-    console.log(`[fetch-orders-drjou] COMPLETED: Job ${job.id}.`);
+    console.log(`[DRJOU] COMPLETED: Job ${job.id}.`);
 });
 drjouWorker.on('ready', (job) => {
-    console.log("[fetch-orders-drjou] DRJOU Worker is ready to listen");
+    console.log("[DRJOU] DRJOU Worker is ready to listen");
 });
 drjouWorker.on('failed', (job, err) => {
-    console.error(`[fetch-orders-drjou] FAILED: Job ${job.id}.`, err);
+    console.error(`[DRJOU] FAILED: Job ${job.id}.`, err);
+});
+
+// Mosseru
+mossWorker.on('active', (job) => {
+    console.log(`[MOSS] ACTIVE: Job ${job.id}.`);
+});
+mossWorker.on('completed', (job) => {
+    console.log(`[MOSS] COMPLETED: Job ${job.id}.`);
+});
+mossWorker.on('ready', (job) => {
+    console.log("[MOSS] MOSS Worker is ready to listen");
+});
+mossWorker.on('failed', (job, err) => {
+    console.error(`[MOSS] FAILED: Job ${job.id}.`, err);
+});
+
+// G-Belle
+gbWorker.on('active', (job) => {
+    console.log(`[GBELLE] ACTIVE: Job ${job.id}.`);
+});
+gbWorker.on('completed', (job) => {
+    console.log(`[GBELLE] COMPLETED: Job ${job.id}.`);
+});
+gbWorker.on('ready', (job) => {
+    console.log("[GBELLE] GBELLE Worker is ready to listen");
+});
+gbWorker.on('failed', (job, err) => {
+    console.error(`[GBELLE] FAILED: Job ${job.id}.`, err);
+});
+
+// Ivy & Lily
+ilWorker.on('active', (job) => {
+    console.log(`[IVYLILY] ACTIVE: Job ${job.id}.`);
+});
+ilWorker.on('completed', (job) => {
+    console.log(`[IVYLILY] COMPLETED: Job ${job.id}.`);
+});
+ilWorker.on('ready', (job) => {
+    console.log("[IVYLILY] IVYLILY Worker is ready to listen");
+});
+ilWorker.on('failed', (job, err) => {
+    console.error(`[IVYLILY] FAILED: Job ${job.id}.`, err);
+});
+
+// Evoke
+evWorker.on('active', (job) => {
+    console.log(`[EVOKE] ACTIVE: Job ${job.id}.`);
+});
+evWorker.on('completed', (job) => {
+    console.log(`[EVOKE] COMPLETED: Job ${job.id}.`);
+});
+evWorker.on('ready', (job) => {
+    console.log("[EVOKE] EVOKE Worker is ready to listen");
+});
+evWorker.on('failed', (job, err) => {
+    console.error(`[EVOKE] FAILED: Job ${job.id}.`, err);
+});
+
+// MMW
+mmwWorker.on('active', (job) => {
+    console.log(`[MMW] ACTIVE: Job ${job.id}.`);
+});
+mmwWorker.on('completed', (job) => {
+    console.log(`[MMW] COMPLETED: Job ${job.id}.`);
+});
+mmwWorker.on('ready', (job) => {
+    console.log("[MMW] MMW Worker is ready to listen");
+});
+mmwWorker.on('failed', (job, err) => {
+    console.error(`[MMW] FAILED: Job ${job.id}.`, err);
+});
+
+// CHESS
+chessWorker.on('active', (job) => {
+    console.log(`[CHESS] ACTIVE: Job ${job.id}.`);
+});
+chessWorker.on('completed', (job) => {
+    console.log(`[CHESS] COMPLETED: Job ${job.id}.`);
+});
+chessWorker.on('ready', (job) => {
+    console.log("[CHESS] CHESS Worker is ready to listen");
+});
+chessWorker.on('failed', (job, err) => {
+    console.error(`[CHESS] FAILED: Job ${job.id}.`, err);
 });
 
 const gracefulShutdown = async () => {

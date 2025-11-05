@@ -15,7 +15,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         .update(baseString)
         .digest('hex');
 
-    const yesterday = new Date(Date.now() - 86400000);
+    const yesterday = new Date(Date.now() - 86400000 * 2);
     const day = String(yesterday.getDate()).padStart(2, '0');
     const month = String(yesterday.getMonth() + 1).padStart(2, '0'); 
     const year = yesterday.getFullYear();
@@ -46,7 +46,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
             await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
         }
     } catch (e) {
-        console.log(`Error fetching total balance for ${brand}`);
+        console.log(`Error fetching total balance for ${brand}: ${e}`);
     }
 }
 
@@ -65,11 +65,38 @@ async function submitData(brand, expense, date) {
         tableName = "mosseru_ads_spending";
     } else if(brand == "Dr.Jou") {
         tableName = "drjou_ads_spending";
+    } else if(brand == "G-Belle") {
+        tableName = "gbelle_ads_spending";
+    } else if(brand == "Ivy & Lily") {
+        tableName = "ivylily_ads_spending"
+    } else if(brand == "Evoke") {
+        tableName = "evoke_ads_spending";
+    } else if(brand == "Mamaway") {
+        tableName = "mmw_ads_spending";
+    } else if(brand == "Chess") {
+        tableName = "chess_ads_spending";
     }
  
     const datasetId = 'shopee_api';
 
     try {
+        const query = `
+            SELECT Tanggal_Dibuat
+            FROM \`${datasetId}.${tableName}\`
+            WHERE Tanggal_Dibuat = @date
+            LIMIT 1
+        `;
+        const options = {
+            query,
+            params: { date }
+        }
+        const [rows] = await bigquery.query(options);
+
+        if(rows.length > 0) {
+            console.log("Row already exists");
+            return;
+        }
+
         await bigquery
             .dataset(datasetId)
             .table(tableName)

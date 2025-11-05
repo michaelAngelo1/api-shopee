@@ -85,10 +85,7 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[MOSS] Error loading tokens from Secret Manager: ", e);
-        return {
-            accessToken: process.env.MOSS_INITIAL_ACCESS_TOKEN,
-            refreshToken: process.env.MOSS_INITIAL_REFRESH_TOKEN
-        }
+        throw e;
     }
 }
 
