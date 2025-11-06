@@ -62,7 +62,7 @@ async function refreshToken() {
 
         saveTokensToSecret({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
     } else {
-        throw new Error("Tokens dont exist");
+        console.log("[EG] Tokens dont exist");
     }
 }
 
@@ -98,7 +98,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.log("Error loading tokens from Secret Manager: ", e);
-        throw e;
     }
 }
 

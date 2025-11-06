@@ -50,13 +50,13 @@ async function refreshToken() {
             refreshToken: SV_REFRESH_TOKEN
         });
     } else {
-        console.log("token refresh not found :(")
+        console.log("[SV] Token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
 
 async function saveTokensToSecret(tokens) {
-    const parent = 'projects/231801348950/secrets/moss-shopee-tokens';
+    const parent = 'projects/231801348950/secrets/sv-shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
@@ -73,7 +73,7 @@ async function saveTokensToSecret(tokens) {
 }
 
 async function loadTokensFromSecret() {
-    const secretName = 'projects/231801348950/secrets/moss-shopee-tokens/versions/latest';
+    const secretName = 'projects/231801348950/secrets/sv-shopee-tokens/versions/latest';
 
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -85,7 +85,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[SV] Error loading tokens from Secret Manager: ", e);
-        throw e;
     }
 }
 

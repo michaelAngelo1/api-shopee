@@ -58,7 +58,7 @@ async function refreshToken() {
             refreshToken: CLEV_REFRESH_TOKEN
         });
     } else {
-        console.log("token refresh not found :(")
+        console.log("[CLEV] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
@@ -93,7 +93,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[CLEV] Error loading tokens from Secret Manager: ", e);
-        throw e;
     }
 }
 

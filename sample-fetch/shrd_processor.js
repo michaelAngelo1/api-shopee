@@ -60,7 +60,7 @@ async function refreshToken() {
             refreshToken: SHRD_REFRESH_TOKEN
         });
     } else {
-        console.log("token refresh not found :(")
+        console.log("[SHRD] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
@@ -95,7 +95,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.log("[SHRD] Error loading tokens from Secret Manager: ", e);
-        throw e;
     }
 }
 

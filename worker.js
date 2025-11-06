@@ -12,6 +12,7 @@ import { fetchAndProcessOrdersIL } from './sample-fetch/il_processor.js';
 import { fetchAndProcessOrdersEVOKE } from './sample-fetch/evoke_processor.js';
 import { fetchAndProcessOrdersMMW } from './sample-fetch/mmw_processor.js';
 import { fetchAndProcessOrdersCHESS } from './sample-fetch/chess_processor.js';
+import { fetchAndProcessOrdersSV } from './sample-fetch/sv_processor.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -144,6 +145,16 @@ const chessOrderProcessor = async (job) => {
     }
 }
 const chessWorker = new Worker("fetch-orders-chess", chessOrderProcessor, workerOptions);
+
+const svOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-sv':
+            return fetchAndProcessOrdersSV();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const svWorker = new Worker("fetch-orders-sv", svOrderProcessor, workerOptions);
 
 // Eileen Grace worker events
 orderWorker.on('active', (job) => {
@@ -300,6 +311,20 @@ chessWorker.on('ready', (job) => {
 });
 chessWorker.on('failed', (job, err) => {
     console.error(`[CHESS] FAILED: Job ${job.id}.`, err);
+});
+
+// SV
+svWorker.on('active', (job) => {
+    console.log(`[SV] ACTIVE: Job ${job.id}.`);
+});
+svWorker.on('completed', (job) => {
+    console.log(`[SV] COMPLETED: Job ${job.id}.`);
+});
+svWorker.on('ready', (job) => {
+    console.log("[SV] SV Worker is ready to listen");
+});
+svWorker.on('failed', (job, err) => {
+    console.error(`[SV] FAILED: Job ${job.id}.`, err);
 });
 
 const gracefulShutdown = async () => {

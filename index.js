@@ -24,6 +24,7 @@ const orderQueueIL = new Queue("fetch-orders-il", redisConnection);
 const orderQueueEV = new Queue("fetch-orders-evoke", redisConnection);
 const orderQueueMMW = new Queue("fetch-orders-mmw", redisConnection);
 const orderQueueCHESS = new Queue("fetch-orders-chess", redisConnection);
+const orderQueueSV = new Queue("fetch-orders-sv", redisConnection);
 
 app.get('/trigger-daily-sync', async (req, res) => {
 
@@ -126,6 +127,15 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueCHESS.add('fetch-orders-chess', {}, {
             jobId: `chess-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueSV.add('fetch-orders-sv', {}, {
+            jobId: `sv-daily-sync-${new Date().toISOString()}`,
             attempts: 5,
             backoff: {
                 type: 'exponential',

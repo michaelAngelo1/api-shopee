@@ -15,7 +15,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         .update(baseString)
         .digest('hex');
 
-    const yesterday = new Date(Date.now() - 86400000 * 2);
+    const yesterday = new Date(Date.now() - 86400000 * 1);
     const day = String(yesterday.getDate()).padStart(2, '0');
     const month = String(yesterday.getMonth() + 1).padStart(2, '0'); 
     const year = yesterday.getFullYear();
@@ -75,6 +75,8 @@ async function submitData(brand, expense, date) {
         tableName = "mmw_ads_spending";
     } else if(brand == "Chess") {
         tableName = "chess_ads_spending";
+    } else if(brand == "Swissvita") {
+        tableName = "swissvita_ads_spending";
     }
  
     const datasetId = 'shopee_api';

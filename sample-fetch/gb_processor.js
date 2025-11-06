@@ -50,7 +50,7 @@ async function refreshToken() {
             refreshToken: GB_REFRESH_TOKEN
         });
     } else {
-        console.log("token refresh not found :(")
+        console.log("[GBELLE] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
@@ -85,7 +85,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[GB] Error loading tokens from Secret Manager: ", e);
-        throw e;
     }
 }
 

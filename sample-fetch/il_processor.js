@@ -50,7 +50,7 @@ async function refreshToken() {
             refreshToken: IL_REFRESH_TOKEN
         });
     } else {
-        console.log("token refresh not found :(")
+        console.log("[IL] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
@@ -85,7 +85,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[IL] Error loading tokens from Secret Manager: ", e);
-        throw e;
     }
 }
 
