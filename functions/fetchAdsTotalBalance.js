@@ -77,6 +77,10 @@ async function submitData(brand, expense, date) {
         tableName = "chess_ads_spending";
     } else if(brand == "Swissvita") {
         tableName = "swissvita_ads_spending";
+    } else if(brand == "Past Nine") {
+        tableName = "pastnine_ads_spending";
+    } else if(brand == "Nutri & Beyond") {
+        tableName = "nutribeyond_ads_spending";
     }
  
     const datasetId = 'shopee_api';

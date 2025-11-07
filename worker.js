@@ -13,6 +13,8 @@ import { fetchAndProcessOrdersEVOKE } from './sample-fetch/evoke_processor.js';
 import { fetchAndProcessOrdersMMW } from './sample-fetch/mmw_processor.js';
 import { fetchAndProcessOrdersCHESS } from './sample-fetch/chess_processor.js';
 import { fetchAndProcessOrdersSV } from './sample-fetch/sv_processor.js';
+import { fetchAndProcessOrdersPN } from './sample-fetch/pn_processor.js';
+import { fetchAndProcessOrdersNB } from './sample-fetch/nb_processor.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -155,6 +157,26 @@ const svOrderProcessor = async (job) => {
     }
 }
 const svWorker = new Worker("fetch-orders-sv", svOrderProcessor, workerOptions);
+
+const pnOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-pn':
+            return fetchAndProcessOrdersPN();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const pnWorker = new Worker("fetch-orders-pn", pnOrderProcessor, workerOptions);
+
+const nbOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-nb':
+            return fetchAndProcessOrdersNB();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const nbWorker = new Worker("fetch-orders-nb", nbOrderProcessor, workerOptions);
 
 // Eileen Grace worker events
 orderWorker.on('active', (job) => {
@@ -325,6 +347,34 @@ svWorker.on('ready', (job) => {
 });
 svWorker.on('failed', (job, err) => {
     console.error(`[SV] FAILED: Job ${job.id}.`, err);
+});
+
+// PN
+pnWorker.on('active', (job) => {
+    console.log(`[PN] ACTIVE: Job ${job.id}.`);
+});
+pnWorker.on('completed', (job) => {
+    console.log(`[PN] COMPLETED: Job ${job.id}.`);
+});
+pnWorker.on('ready', (job) => {
+    console.log("[PN] PN Worker is ready to listen");
+});
+pnWorker.on('failed', (job, err) => {
+    console.error(`[PN] FAILED: Job ${job.id}.`, err);
+});
+
+// NB
+nbWorker.on('active', (job) => {
+    console.log(`[NB] ACTIVE: Job ${job.id}.`);
+});
+nbWorker.on('completed', (job) => {
+    console.log(`[NB] COMPLETED: Job ${job.id}.`);
+});
+nbWorker.on('ready', (job) => {
+    console.log("[NB] NB Worker is ready to listen");
+});
+nbWorker.on('failed', (job, err) => {
+    console.error(`[NB] FAILED: Job ${job.id}.`, err);
 });
 
 const gracefulShutdown = async () => {
