@@ -74,6 +74,7 @@ async function saveTokensToSecret(tokens) {
                 data: payload,
             }
         });
+        
         console.log("[CLEV] Successfully saved tokens to CLEV Secret Manager: ", parent);
     } catch (e) {
         console.error("[CLEV] Error saving tokens to Secret Manager: ", e);

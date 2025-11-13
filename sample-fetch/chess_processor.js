@@ -66,6 +66,24 @@ async function saveTokensToSecret(tokens) {
                 data: payload,
             }
         });
+
+        // const [allVersions] = await secretClient.listSecretVersions({
+        //     parent: parent,
+        // });
+
+        // // Disable all past versions
+        // for (const version of allVersions) {
+        //     if (version.name !== newVersion.name && version.state === 'ENABLED') {
+        //         try {
+        //             await secretClient.disableSecretVersion({
+        //                 name: version.name,
+        //             });
+        //             console.log(`Successfully disabled old version: ${version.name}`);
+        //         } catch (disableError) {
+        //             console.error(`Error disabling version ${version.name}:`, disableError);
+        //         }
+        //     }
+        // }
         console.log("[CHESS] Successfully saved tokens to CHESS Secret Manager: ", parent);
     } catch (e) {
         console.error("[CHESS] Error saving tokens to Secret Manager: ", e);

@@ -27,6 +27,8 @@ const orderQueueCHESS = new Queue("fetch-orders-chess", redisConnection);
 const orderQueueSV = new Queue("fetch-orders-sv", redisConnection);
 const orderQueuePN = new Queue("fetch-orders-pn", redisConnection);
 const orderQueueNB = new Queue("fetch-orders-nb", redisConnection);
+const orderQueueMIRAE = new Queue("fetch-orders-mirae", redisConnection);
+const orderQueuePOLY = new Queue("fetch-orders-poly", redisConnection);
 
 app.get('/trigger-daily-sync', async (req, res) => {
 
@@ -156,6 +158,24 @@ app.get('/trigger-daily-sync', async (req, res) => {
 
         await orderQueueNB.add('fetch-orders-nb', {}, {
             jobId: `nb-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueueMIRAE.add('fetch-orders-mirae', {}, {
+            jobId: `mirae-daily-sync-${new Date().toISOString()}`,
+            attempts: 5,
+            backoff: {
+                type: 'exponential',
+                delay: 60000,
+            }
+        });
+
+        await orderQueuePOLY.add('fetch-orders-poly', {}, {
+            jobId: `poly-daily-sync-${new Date().toISOString()}`,
             attempts: 5,
             backoff: {
                 type: 'exponential',

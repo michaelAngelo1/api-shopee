@@ -15,6 +15,8 @@ import { fetchAndProcessOrdersCHESS } from './sample-fetch/chess_processor.js';
 import { fetchAndProcessOrdersSV } from './sample-fetch/sv_processor.js';
 import { fetchAndProcessOrdersPN } from './sample-fetch/pn_processor.js';
 import { fetchAndProcessOrdersNB } from './sample-fetch/nb_processor.js';
+import { fetchAndProcessOrdersMIRAE } from './sample-fetch/mirae_processor.js';
+import { fetchAndProcessOrdersPOLY } from './sample-fetch/poly_processor.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -167,6 +169,26 @@ const pnOrderProcessor = async (job) => {
     }
 }
 const pnWorker = new Worker("fetch-orders-pn", pnOrderProcessor, workerOptions);
+
+const miraeOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-mirae':
+            return fetchAndProcessOrdersMIRAE();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const miraeWorker = new Worker("fetch-orders-mirae", miraeOrderProcessor, workerOptions);
+
+const polyOrderProcessor = async (job) => {
+    switch (job.name) {
+        case 'fetch-orders-poly':
+            return fetchAndProcessOrdersPOLY();
+        default:
+            throw new Error(`Unknown job name: ${job.name}`);
+    }
+}
+const polyWorker = new Worker("fetch-orders-poly", polyOrderProcessor, workerOptions);
 
 const nbOrderProcessor = async (job) => {
     switch (job.name) {
@@ -375,6 +397,34 @@ nbWorker.on('ready', (job) => {
 });
 nbWorker.on('failed', (job, err) => {
     console.error(`[NB] FAILED: Job ${job.id}.`, err);
+});
+
+// Poly
+polyWorker.on('active', (job) => {
+    console.log(`[POLY] ACTIVE: Job ${job.id}.`);
+});
+polyWorker.on('completed', (job) => {
+    console.log(`[POLY] COMPLETED: Job ${job.id}.`);
+});
+polyWorker.on('ready', (job) => {
+    console.log("[POLY] POLY Worker is ready to listen");
+});
+polyWorker.on('failed', (job, err) => {
+    console.error(`[POLY] FAILED: Job ${job.id}.`, err);
+});
+
+// Mirae
+miraeWorker.on('active', (job) => {
+    console.log(`[MIRAE] ACTIVE: Job ${job.id}.`);
+});
+miraeWorker.on('completed', (job) => {
+    console.log(`[MIRAE] COMPLETED: Job ${job.id}.`);
+});
+miraeWorker.on('ready', (job) => {
+    console.log("[MIRAE] MIRAE Worker is ready to listen");
+});
+miraeWorker.on('failed', (job, err) => {
+    console.error(`[MIRAE] FAILED: Job ${job.id}.`, err);
 });
 
 const gracefulShutdown = async () => {

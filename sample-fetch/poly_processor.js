@@ -5,14 +5,14 @@ import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = parseInt(process.env.MOSS_PARTNER_ID);
-export const PARTNER_KEY = process.env.MOSS_PARTNER_KEY;
-export const SHOP_ID = parseInt(process.env.MOSS_SHOP_ID);
+export const PARTNER_ID = parseInt(process.env.POLY_PARTNER_ID);
+export const PARTNER_KEY = process.env.POLY_PARTNER_KEY;
+export const SHOP_ID = parseInt(process.env.POLY_SHOP_ID);
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 export const HOST = "https://partner.shopeemobile.com";
 
-export let MOSS_ACCESS_TOKEN;
-let MOSS_REFRESH_TOKEN;
+export let POLY_ACCESS_TOKEN;
+let POLY_REFRESH_TOKEN;
 
 async function refreshToken() {
     const path = "/api/v2/auth/access_token/get";
@@ -25,12 +25,12 @@ async function refreshToken() {
     const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
-        refresh_token: MOSS_REFRESH_TOKEN,
+        refresh_token: POLY_REFRESH_TOKEN,
         partner_id: PARTNER_ID,
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint MOSS: ", fullUrl);
+    console.log("Hitting Refresh Token endpoint POLY: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -42,21 +42,21 @@ async function refreshToken() {
     const newRefreshToken = response.data.refresh_token;
 
     if(newAccessToken && newRefreshToken) {
-        MOSS_ACCESS_TOKEN = newAccessToken;
-        MOSS_REFRESH_TOKEN = newRefreshToken;
+        POLY_ACCESS_TOKEN = newAccessToken;
+        POLY_REFRESH_TOKEN = newRefreshToken;
 
         saveTokensToSecret({
-            accessToken: MOSS_ACCESS_TOKEN,
-            refreshToken: MOSS_REFRESH_TOKEN
+            accessToken: POLY_ACCESS_TOKEN,
+            refreshToken: POLY_REFRESH_TOKEN
         });
     } else {
-        console.log("[MOSS] token refresh not found :(")
+        console.log("[POLY] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
 
 async function saveTokensToSecret(tokens) {
-    const parent = 'projects/231801348950/secrets/moss-shopee-tokens';
+    const parent = 'projects/231801348950/secrets/poly-shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
@@ -67,14 +67,14 @@ async function saveTokensToSecret(tokens) {
             }
         });
 
-        console.log("[MOSS] Successfully saved tokens to MOSS Secret Manager: ", parent);
+        console.log("[POLY] Successfully saved tokens to POLY Secret Manager: ", parent);
     } catch (e) {
-        console.error("[MOSS] Error saving tokens to Secret Manager: ", e);
+        console.error("[POLY] Error saving tokens to Secret Manager: ", e);
     }
 }
 
 async function loadTokensFromSecret() {
-    const secretName = 'projects/231801348950/secrets/moss-shopee-tokens/versions/latest';
+    const secretName = 'projects/231801348950/secrets/poly-shopee-tokens/versions/latest';
 
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -85,19 +85,19 @@ async function loadTokensFromSecret() {
         console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
-        console.error("[MOSS] Error loading tokens from Secret Manager: ", e);
+        console.error("[POLY] Error loading tokens from Secret Manager: ", e);
     }
 }
 
-export async function fetchAndProcessOrdersMOSS() {
-    console.log("Starting fetch orders MOSS");
-    let brand = "Mosseru";
+export async function fetchAndProcessOrdersPOLY() {
+    console.log("Starting fetch orders POLY");
+    let brand = "Polynia";
 
     const loadedTokens = await loadTokensFromSecret();
-    MOSS_ACCESS_TOKEN = loadedTokens.accessToken;
-    MOSS_REFRESH_TOKEN = loadedTokens.refreshToken;
+    POLY_ACCESS_TOKEN = loadedTokens.accessToken;
+    POLY_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
 }

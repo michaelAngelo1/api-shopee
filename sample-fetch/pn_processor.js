@@ -66,6 +66,7 @@ async function saveTokensToSecret(tokens) {
                 data: payload,
             }
         });
+
         console.log("[PN] Successfully saved tokens to PN Secret Manager: ", parent);
     } catch (e) {
         console.error("[PN] Error saving tokens to Secret Manager: ", e);

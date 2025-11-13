@@ -66,6 +66,7 @@ async function saveTokensToSecret(tokens) {
                 data: payload,
             }
         });
+
         console.log("[IL] Successfully saved tokens to IL Secret Manager: ", parent);
     } catch (e) {
         console.error("[IL] Error saving tokens to Secret Manager: ", e);

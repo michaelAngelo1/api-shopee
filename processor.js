@@ -8,6 +8,8 @@ import axios from 'axios';
 import crypto from 'crypto';
 import 'dotenv/config';
 import { fetchAdsTotalBalance } from './functions/fetchAdsTotalBalance.js';
+import { fetchAffiliateSpending } from './functions/fetchAffiliateSpending.js';
+import { getAdsInformation } from './tiktok-api/parent.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -76,8 +78,9 @@ async function saveTokensToSecret(tokens) {
             parent: parent,
             payload: {
                 data: payload,
-            },
+            }
         });
+
         console.log("Saved Shopee tokens to Secret Manager");
     } catch (e) {
         console.log("Error saving tokens to Secret Manager: ", e);
@@ -170,4 +173,6 @@ export async function fetchAndProcessOrders() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await fetchAffiliateSpending(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await getAdsInformation();
 }
