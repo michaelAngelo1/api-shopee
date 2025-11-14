@@ -1,0 +1,422 @@
+{
+  "code": 0,
+  "message": "OK",
+  "request_id": "20251114155938363D0A64394AF648D1D9",
+  "data": {
+    "list": [
+      {
+        "dimensions": {
+          "campaign_id": "1845471573444610",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1832717944552466",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1831256551835745",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1845471573444610",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "2529",
+          "spend": "2562"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1840857928059986",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1832717944552466",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "698140",
+          "spend": "738964"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1848007708145793",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1835776428640354",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1847473520538642",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1845956224839810",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1847474152825953",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "1147",
+          "spend": "1147"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1845956224839810",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "423048",
+          "spend": "423048"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1835776428640354",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1846143399992418",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "690",
+          "spend": "709"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1847473520538642",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "376610",
+          "spend": "376610"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1831256551835745",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "1130342",
+          "spend": "1222401"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1840857928059986",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "283670",
+          "spend": "283670"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1845471573444610",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "144",
+          "spend": "144"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1840857928059986",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1835776428640354",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "1224529",
+          "spend": "1224529"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1840857928059986",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "274488",
+          "spend": "296516"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1832717944552466",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1831256551835745",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1835776428640354",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "MY"
+        },
+        "metrics": {
+          "billed_cost": "1",
+          "spend": "1"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1834778192991490",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1834778192991490",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "4943",
+          "spend": "4980"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1847473520538642",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1832717944552466",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "409906",
+          "spend": "409906"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1847474152825953",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "3074",
+          "spend": "3247"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1847473520538642",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "186284",
+          "spend": "193818"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1834778192991490",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1834778192991490",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "45263",
+          "spend": "45263"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1845956224839810",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "328710",
+          "spend": "335592"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1845956224839810",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None"
+        },
+        "metrics": {
+          "billed_cost": "0",
+          "spend": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1831256551835745",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "1021656",
+          "spend": "1021656"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1835776428640354",
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "909723",
+          "spend": "911885"
+        }
+      },
+      {
+        "dimensions": {
+          "campaign_id": "1846143399992418",
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID"
+        },
+        "metrics": {
+          "billed_cost": "169",
+          "spend": "169"
+        }
+      }
+    ],
+    "page_info": {
+      "total_page": 1,
+      "total_number": 37,
+      "page": 1,
+      "page_size": 37
+    }
+  }
+}

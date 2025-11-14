@@ -5,3 +5,18 @@ curl --location --request GET  'https://business-api.tiktok.com/open_api/v1.3/re
 # Basic Ads
 curl --location --request GET  'https://business-api.tiktok.com/open_api/v1.3/report/integrated/get/?advertiser_id=6899326735087566850&service_type=AUCTION&report_type=BASIC&data_level=AUCTION_ADVERTISER&dimensions=["advertiser_id"]&metrics=["spend","impressions","reach"]&start_date=2025-11-01&end_date=2025-11-13&page=1&page_size=100' \
 --header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
+
+# Per campaign_id
+curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/report/integrated/get/' \
+--header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
+--data-urlencode 'advertiser_id=7329483707528691714' \
+--data-urlencode 'campaign_id=IDLCDBNLW8V' \
+--data-urlencode 'service_type=AUCTION' \
+--data-urlencode 'report_type=TT_SHOP' \
+--data-urlencode 'data_level=AUCTION_CAMPAIGN' \
+--data-urlencode 'dimensions=["campaign_id", "country_code", "stat_time_day"]' \
+--data-urlencode 'metrics=["spend","billed_cost"]' \
+--data-urlencode 'start_date=2025-11-12' \
+--data-urlencode 'end_date=2025-11-13' \
+--data-urlencode 'page=1' \
+--data-urlencode 'page_size=100'
