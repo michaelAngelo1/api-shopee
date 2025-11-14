@@ -1,0 +1,290 @@
+{
+  "code": 0,
+  "message": "OK",
+  "request_id": "20251114113337267C3017B572313C5F0A",
+  "data": {
+    "page_info": {
+      "page_size": 26,
+      "page": 1,
+      "total_number": 26,
+      "total_page": 1
+    },
+    "list": [
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "6865538",
+          "billed_cost": "6865538"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-07 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "11358015",
+          "billed_cost": "11358015"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-02 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "5582123",
+          "billed_cost": "5582123"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-12 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-07 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-02 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-10 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "12936042",
+          "billed_cost": "12915271"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-05 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "9941071",
+          "billed_cost": "9714060"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-08 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-03 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-13 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "5763834",
+          "billed_cost": "4990692"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-08 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "6249525",
+          "billed_cost": "6249525"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-10 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-05 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-03 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "11832322",
+          "billed_cost": "11832322"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-01 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-11 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-06 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-06 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "7003382",
+          "billed_cost": "7003382"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-01 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "7291475",
+          "billed_cost": "7291475"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-11 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "34697710",
+          "billed_cost": "34631273"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-09 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "9663607",
+          "billed_cost": "9663607"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-04 00:00:00",
+          "country_code": "ID",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "10465411",
+          "billed_cost": "10465411"
+        }
+      },
+      {
+        "dimensions": {
+          "stat_time_day": "2025-11-09 00:00:00",
+          "country_code": "None",
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "0",
+          "billed_cost": "0"
+        }
+      }
+    ]
+  }
+}

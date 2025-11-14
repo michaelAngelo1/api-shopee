@@ -1,0 +1,2 @@
+curl --location --request GET  'https://business-api.tiktok.com/open_api/v1.3/report/integrated/get/?advertiser_id=6899326735087566850&service_type=AUCTION&report_type=TT_SHOP&data_level=AUCTION_ADVERTISER&dimensions=["advertiser_id","country_code","stat_time_day"]&metrics=["spend","billed_cost"]&start_date=2025-11-01&end_date=2025-11-13&page=1&page_size=100' \
+--header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
