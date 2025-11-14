@@ -1,0 +1,25 @@
+{
+  "code": 0,
+  "message": "OK",
+  "request_id": "20251114114917D53FA4AF5A7FD040100D",
+  "data": {
+    "list": [
+      {
+        "dimensions": {
+          "advertiser_id": "6899326735087566850"
+        },
+        "metrics": {
+          "spend": "38984663",
+          "reach": "2207000",
+          "impressions": "9329192"
+        }
+      }
+    ],
+    "page_info": {
+      "page_size": 1,
+      "total_number": 1,
+      "page": 1,
+      "total_page": 1
+    }
+  }
+}
