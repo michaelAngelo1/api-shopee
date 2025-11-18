@@ -2,6 +2,8 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
+import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
+import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -92,6 +94,8 @@ async function loadTokensFromSecret() {
 export async function fetchAndProcessOrdersIL() {
     console.log("Starting fetch orders IL");
     let brand = "Ivy & Lily";
+    let brandTT = "Ivy Lily";
+    let brandNaruko = "Naruko";
 
     const loadedTokens = await loadTokensFromSecret();
     IL_ACCESS_TOKEN = loadedTokens.accessToken;
@@ -100,4 +104,11 @@ export async function fetchAndProcessOrdersIL() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
+
+    let advIdGbellePastnineIvyLilyNaruko = "7329483707528691714";
+    await fetchGMVMaxSpending(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    await fetchGMVMaxSpending(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+
+    await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    await fetchTiktokBasicAds(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
 }

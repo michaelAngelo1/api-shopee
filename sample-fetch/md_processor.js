@@ -8,6 +8,7 @@ import { handleOrdersMD } from '../api/miss_daisy/handleOrdersMD.js';
 import { getReturnDetailMD, getReturnListMD } from '../api/miss_daisy/getReturnsMD.js';
 import { handleReturnsMD } from '../api/miss_daisy/handleReturnsMD.js';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
+import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -209,4 +210,7 @@ export async function fetchAndProcessOrdersMD() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
+
+    let advIdMD = "7271210972684451842";
+    await fetchGMVMaxSpending(brand, advIdMD);
 }

@@ -2,6 +2,8 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
+import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
+import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -91,6 +93,7 @@ async function loadTokensFromSecret() {
 export async function fetchAndProcessOrdersDRJOU() {
     console.log("Starting fetch orders DRJOU");
     let brand = "Dr.Jou";
+    let brandTT = "Dr Jou";
 
     const loadedTokens = await loadTokensFromSecret();
     DRJOU_ACCESS_TOKEN = loadedTokens.accessToken;
@@ -99,4 +102,9 @@ export async function fetchAndProcessOrdersDRJOU() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
+
+    let advIdEvokeDrJouSwiss = "7374337917889953808"
+    await fetchGMVMaxSpending(brandTT, advIdEvokeDrJouSwiss);
+    
+    await fetchTiktokBasicAds(brandTT, advIdEvokeDrJouSwiss);
 }

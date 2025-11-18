@@ -2,6 +2,7 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
+import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -100,4 +101,7 @@ export async function fetchAndProcessOrdersMOSS() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
+
+    let advIdMoss = "7553574194160746513";
+    await fetchGMVMaxSpending(brand, advIdMoss);
 }

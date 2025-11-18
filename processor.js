@@ -9,7 +9,7 @@ import crypto from 'crypto';
 import 'dotenv/config';
 import { fetchAdsTotalBalance } from './functions/fetchAdsTotalBalance.js';
 import { fetchAffiliateSpending } from './functions/fetchAffiliateSpending.js';
-import { getAdsInformation } from './tiktok-api/parent.js';
+import { fetchGMVMaxSpending } from './functions/fetchGMVMaxSpending.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -173,6 +173,7 @@ export async function fetchAndProcessOrders() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await fetchAffiliateSpending(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await getAdsInformation();
+
+    let advIdEG = "6899326735087566850";
+    await fetchGMVMaxSpending(brand, advIdEG);
 }

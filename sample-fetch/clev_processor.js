@@ -8,6 +8,7 @@ import { handleOrdersCLEV } from '../api/cleviant/handleOrdersCLEV.js';
 import { getReturnDetailCLEV, getReturnListCLEV } from '../api/cleviant/getReturnsCLEV.js';
 import { handleReturnsCLEV } from '../api/cleviant/handleReturnsCLEV.js';
 import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
+import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -210,4 +211,7 @@ export async function fetchAndProcessOrdersCLEV() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
+
+    let advIdClev = "7553576714043965448";
+    await fetchGMVMaxSpending(brand, advIdClev);
 }

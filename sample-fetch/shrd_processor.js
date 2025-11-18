@@ -8,6 +8,7 @@ import { handleOrdersSHRD } from '../api/shrd/handleOrdersSHRD.js';
 import { getReturnDetailSHRD, getReturnListSHRD } from '../api/shrd/getReturnsSHRD.js';
 import { handleReturnsSHRD } from '../api/shrd/handleReturnsSHRD.js';
 import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
+import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -203,6 +204,7 @@ async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
 export async function fetchAndProcessOrdersSHRD() {
     console.log("[SH-RD] Start fetching ads total balance. Calling the function.");
     let brand = "SH-RD";
+    let brandTT = "SHRD";
 
     const loadedTokens = await loadTokensFromSecret();
     SHRD_ACCESS_TOKEN = loadedTokens.accessToken;
@@ -211,4 +213,6 @@ export async function fetchAndProcessOrdersSHRD() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID);
+    let adsIdSHRD = "7377330420947632145";
+    await fetchGMVMaxSpending(brandTT, adsIdSHRD);
 }

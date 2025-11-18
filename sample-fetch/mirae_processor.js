@@ -2,6 +2,7 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
+import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -100,4 +101,7 @@ export async function fetchAndProcessOrdersMIRAE() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
+
+    let advIdMirae = "7306798768821387265";
+    await fetchGMVMaxSpending(brand, advIdMirae);
 }
