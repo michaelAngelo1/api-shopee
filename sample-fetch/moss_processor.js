@@ -3,6 +3,7 @@ import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
+import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -104,4 +105,6 @@ export async function fetchAndProcessOrdersMOSS() {
 
     let advIdMoss = "7553574194160746513";
     await fetchGMVMaxSpending(brand, advIdMoss);
+
+    await fetchTiktokBasicAds(brand, advIdMoss);
 }

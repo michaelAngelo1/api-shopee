@@ -9,6 +9,7 @@ import { getReturnDetailCLEV, getReturnListCLEV } from '../api/cleviant/getRetur
 import { handleReturnsCLEV } from '../api/cleviant/handleReturnsCLEV.js';
 import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
 import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
+import { fetchTiktokBasicAds } from "../functions/fetchTiktokBasicAds.js";
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -214,4 +215,6 @@ export async function fetchAndProcessOrdersCLEV() {
 
     let advIdClev = "7553576714043965448";
     await fetchGMVMaxSpending(brand, advIdClev);
+
+    await fetchTiktokBasicAds(brand, advIdClev);
 }

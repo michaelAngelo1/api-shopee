@@ -106,5 +106,5 @@ export async function fetchAndProcessOrdersNB() {
     let advIdMMWCHESSNB = "7306800699382251521";
     await fetchGMVMaxSpending(brandTT, advIdMMWCHESSNB);
 
-    await fetchTiktokBasicAds(brand, advIdMMWCHESSNB);
+    await fetchTiktokBasicAds(brandTT, advIdMMWCHESSNB);
 }

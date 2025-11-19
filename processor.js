@@ -10,6 +10,7 @@ import 'dotenv/config';
 import { fetchAdsTotalBalance } from './functions/fetchAdsTotalBalance.js';
 import { fetchAffiliateSpending } from './functions/fetchAffiliateSpending.js';
 import { fetchGMVMaxSpending } from './functions/fetchGMVMaxSpending.js';
+import { fetchTiktokBasicAds } from './functions/fetchTiktokBasicAds.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -176,4 +177,6 @@ export async function fetchAndProcessOrders() {
 
     let advIdEG = "6899326735087566850";
     await fetchGMVMaxSpending(brand, advIdEG);
+
+    await fetchTiktokBasicAds(brand, advIdEG);
 }

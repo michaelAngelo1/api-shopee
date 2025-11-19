@@ -9,6 +9,7 @@ import { getReturnDetailSHRD, getReturnListSHRD } from '../api/shrd/getReturnsSH
 import { handleReturnsSHRD } from '../api/shrd/handleReturnsSHRD.js';
 import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
 import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
+import { fetchTiktokBasicAds } from "../functions/fetchTiktokBasicAds.js";
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -215,4 +216,6 @@ export async function fetchAndProcessOrdersSHRD() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID);
     let adsIdSHRD = "7377330420947632145";
     await fetchGMVMaxSpending(brandTT, adsIdSHRD);
+
+    await fetchTiktokBasicAds(brandTT, adsIdSHRD);
 }

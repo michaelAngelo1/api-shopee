@@ -3,6 +3,7 @@ import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
+import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -104,4 +105,6 @@ export async function fetchAndProcessOrdersMIRAE() {
 
     let advIdMirae = "7306798768821387265";
     await fetchGMVMaxSpending(brand, advIdMirae);
+
+    await fetchTiktokBasicAds(brand, advIdMirae);
 }
