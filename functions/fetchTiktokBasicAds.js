@@ -3,7 +3,14 @@ import { formatToDDMMYYYY } from './fetchGMVMaxSpending.js';
 import { BigQuery } from '@google-cloud/bigquery';
 const bigquery = new BigQuery();
 
-export async function fetchTiktokBasicAds(brand, advertiser_id) {
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=4000) {
+
+    sleep(sleepValue);
+
     let multiBrandAcc = [
         "mamaway",
         "chess",
@@ -20,6 +27,13 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
     const access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
     let brandName = brand.toLowerCase().replace(/\s/g, "");
     let tableName = `${brandName}_basicads`;
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yyyy = yesterday.getFullYear();
+    const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const dd = String(yesterday.getDate()).padStart(2, '0');
+    const yesterdayStr = `${yyyy}-${mm}-${dd}`;
     
     if(multiBrandAcc.includes(brandName)) {
 
@@ -56,7 +70,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
                 dimensions: JSON.stringify(["campaign_id", "stat_time_day"]),
                 metrics: JSON.stringify(["spend", "impressions", "reach"]),
                 start_date: "2025-11-01",
-                end_date: "2025-11-18",
+                end_date: "2025-11-19",
                 page: 1,
                 page_size: 200
             };
@@ -68,7 +82,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
                 params
             });
             
-            // console.log(`[BASIC - GROUPED] response on ${brandName}`);
+            console.log(`[BASIC - GROUPED] response on ${brandName}`);
             // console.log(response.data.data.list);
 
             resData2 = resData2.concat(response.data.data.list);
@@ -77,10 +91,12 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
         }
 
         if(resData1.length > 0 && resData2.length > 0) {
-            await processData(brandName, tableName, resData1, resData2);
+            let filteredSpending = processData(brandName, tableName, resData1, resData2);
+            console.log(`${brand} filteredSpending`);
+            return filteredSpending;
         }
     } else {
-        console.log("[BASIC] Fetching single brand account");
+        console.log("[BASIC] Fetching single brand account: ", brand);
         
         const singleUrl = "https://business-api.tiktok.com/open_api/v1.3/report/integrated/get/";
 
@@ -93,7 +109,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["spend", "impressions", "reach"]),
                 start_date: "2025-11-01",
-                end_date: "2025-11-18",
+                end_date: "2025-11-19",
                 page: 1,
                 page_size: 200
             }
@@ -106,6 +122,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
             });
 
             console.log(`[BASIC-SINGLE] Res on ${brandName}`);
+            // console.log(response.data)
             
             if(response && response.data && response.data.data && response.data.data.list) {
                 const costList = response.data.data.list;
@@ -114,17 +131,17 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
                 costList.forEach(c => {
                     if(c.metrics.spend !== "0") {
                         let costElement = {
-                            "Tanggal_Dibuat": formatToDDMMYYYY(c.dimensions.stat_time_day),
-                            "Spending": parseInt(c.metrics.spend),
-                            "Reach": parseInt(c.metrics.reach),
-                            "Impressions": parseInt(c.metrics.impressions)
+                            "date": c.dimensions.stat_time_day,
+                            "basic_cost": parseInt(c.metrics.spend),
                         }
                         singleCostList.push(costElement);
                     }
                 });
 
                 if(singleCostList) {
-                    await mergeBasicAds(tableName, singleCostList);
+                    console.log(`[BASIC-SINGLE] ${brand} singleCostList`);
+                    console.log(singleCostList);
+                    return singleCostList;
                 }
             } else {
                 console.log(`[BASIC-SINGLE] Data on brand ${brandName} does not exist.`);
@@ -135,7 +152,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id) {
     }
 }
 
-async function processData(brandName, tableName, resData1, resData2) {
+function processData(brandName, tableName, resData1, resData2) {
     console.log("Processing data: ", brandName);
 
     // 1. Define the mapping logic from normalized brandName to Campaign Prefix
@@ -202,10 +219,8 @@ async function processData(brandName, tableName, resData1, resData2) {
     
                 if(spending > 0) {
                     filteredSpending.push({
-                        "Tanggal_Dibuat": formatToDDMMYYYY(dateStr),
-                        "Spending": spending,
-                        "Reach": parseInt(reportItem.metrics.reach),
-                        "Impressions": parseInt(reportItem.metrics.impressions)
+                        "date": dateStr,
+                        "basic_cost": spending,
                     });
                 }
             }
@@ -214,52 +229,5 @@ async function processData(brandName, tableName, resData1, resData2) {
 
     console.log(`Successfully filtered ${filteredSpending.length} records for ${brandName} (Prefix: ${campaignPrefixes})`);
     
-    await mergeBasicAds(tableName, filteredSpending);
-    
     return filteredSpending; 
-}
-
-async function mergeBasicAds(tableName, data) {
-    
-    const datasetId = "tiktok_api_us";
-    
-    if(tableName == "eileengrace_basicads") tableName = "eileen_grace_basicads";
-    
-    console.log("\n");
-    console.log("Merging data to: ", tableName);
-    console.log("Data length: ", data.length);
-    console.log("\n");
-    
-    try {
-        if(!data.length) return;
-
-        const dates = data.map(c => c.Tanggal_Dibuat);
-        const query = `
-            SELECT Tanggal_Dibuat
-            FROM \`${datasetId}.${tableName}\`
-            WHERE Tanggal_Dibuat IN UNNEST(@dates)
-        `;
-        const options = {
-            query,
-            params: { dates }
-        };
-
-        const [rows] = await bigquery.query(options);
-        const existingDates = new Set(rows.map(r => r.Tanggal_Dibuat));
-        const newRows = data.filter(c => !existingDates.has(c.Tanggal_Dibuat));
-
-        if(!newRows.length) {
-            console.log("[BASIC] All rows already exist. Nothing to insert.");
-        }
-
-        // console.log(`${brandName} new rows: ${newRows}`);
-        await bigquery
-            .dataset(datasetId)
-            .table(tableName)
-            .insert(newRows)
-        
-        console.log(`[BASIC] Merged ${newRows.length} cost element to ${tableName} table`);
-    } catch (e) {
-        console.log(`[BASIC] Failed to merge to bigquery on ${tableName}: ${e}`);
-    }
 }

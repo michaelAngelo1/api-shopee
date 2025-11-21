@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
+import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
+import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -104,7 +106,13 @@ export async function fetchAndProcessOrdersNB() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMMWCHESSNB = "7306800699382251521";
-    await fetchGMVMaxSpending(brandTT, advIdMMWCHESSNB);
-
-    await fetchTiktokBasicAds(brandTT, advIdMMWCHESSNB);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdMMWCHESSNB);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdMMWCHESSNB);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdMMWCHESSNB);
+    
+    console.log("[NB] All data on: ", brand);
+    console.log(basicAdsData);
+    console.log(pgmvMaxData);
+    console.log(lgmvMaxData);
+    console.log("\n");
 }

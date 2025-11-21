@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
+import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
+import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -103,8 +105,14 @@ export async function fetchAndProcessOrdersEVOKE() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
 
     let advIdEvokeDrJouSwiss = "7374337917889953808"
-    await fetchGMVMaxSpending(brand, advIdEvokeDrJouSwiss);
-
-    await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvokeDrJouSwiss);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvokeDrJouSwiss);
+    
+    console.log("[EVOKE] All data on: ", brand);
+    console.log(basicAdsData);
+    console.log(pgmvMaxData);
+    console.log(lgmvMaxData);
+    console.log("\n");
 }
 

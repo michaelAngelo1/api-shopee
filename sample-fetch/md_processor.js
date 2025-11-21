@@ -10,6 +10,8 @@ import { handleReturnsMD } from '../api/miss_daisy/handleReturnsMD.js';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
+import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
+import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -213,7 +215,13 @@ export async function fetchAndProcessOrdersMD() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMD = "7271210972684451842";
-    await fetchGMVMaxSpending(brand, advIdMD);
-
-    await fetchTiktokBasicAds(brand, advIdMD);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMD);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMD);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMD);
+    
+    console.log("[MISSDAISY] All data on: ", brand);
+    console.log(basicAdsData);
+    console.log(pgmvMaxData);
+    console.log(lgmvMaxData);
+    console.log("\n");
 }

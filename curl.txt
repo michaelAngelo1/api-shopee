@@ -1,3 +1,21 @@
+### Product GMV Max
+
+# By store_id. 
+curl -G --location 'https://business-api.tiktok.com/open_api/v1.3/gmv_max/report/get/' \
+--header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
+--data-urlencode 'advertiser_id=7271210972684451842' \
+--data-urlencode 'store_ids=["7495827950440450460"]' \
+--data-urlencode 'start_date=2025-11-01' \
+--data-urlencode 'end_date=2025-11-18' \
+--data-urlencode 'dimensions=["advertiser_id", "stat_time_day"]' \
+--data-urlencode 'metrics=["cost", "orders", "cost_per_order", "gross_revenue", "roi", "net_cost"]' \
+--data-urlencode 'gmv_max_promotion_types=["PRODUCT"]' \
+--data-urlencode 'page=1' \
+--data-urlencode 'page_size=1000'
+
+
+### Live GMV Max
+
 # TESTING PLAYGROUND
 
 - Eileen Grace
@@ -70,7 +88,7 @@ curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/report/inte
 # Get store_id by advertiser_id
 curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/gmv_max/store/list/' \
 --header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
---data-urlencode 'advertiser_id=7306800699382251521'
+--data-urlencode 'advertiser_id=7374337917889953808'
 
 # Get GMV Max cost by advertiser_id & store_id
 curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/gmv_max/report/get/' \

@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
+import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
+import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -104,7 +106,13 @@ export async function fetchAndProcessOrdersMIRAE() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMirae = "7306798768821387265";
-    await fetchGMVMaxSpending(brand, advIdMirae);
-
-    await fetchTiktokBasicAds(brand, advIdMirae);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMirae);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMirae);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMirae);
+    
+    console.log("[MIRAE] All data on: ", brand);
+    console.log(basicAdsData);
+    console.log(pgmvMaxData);
+    console.log(lgmvMaxData);
+    console.log("\n");
 }

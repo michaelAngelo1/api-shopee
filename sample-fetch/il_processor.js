@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
+import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
+import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -106,9 +108,23 @@ export async function fetchAndProcessOrdersIL() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
 
     let advIdGbellePastnineIvyLilyNaruko = "7329483707528691714";
-    await fetchGMVMaxSpending(brandTT, advIdGbellePastnineIvyLilyNaruko);
-    await fetchGMVMaxSpending(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    
+    console.log("[IVYLILY] All data on: ", brand);
+    console.log(basicAdsData);
+    console.log(pgmvMaxData);
+    console.log(lgmvMaxData);
+    console.log("\n");
 
-    await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko);
-    await fetchTiktokBasicAds(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+    
+    console.log("[NARUKO] All data on: ", brandNaruko);
+    console.log(basicAdsDataNaruko);
+    console.log(pgmvMaxDataNaruko);
+    console.log(lgmvMaxDataNaruko);
+    console.log("\n");
 }

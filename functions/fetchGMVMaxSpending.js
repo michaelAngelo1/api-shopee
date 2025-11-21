@@ -124,10 +124,10 @@ export async function fetchGMVMaxSpending(brand, advertiser_id) {
                     let processedCostList = [];
         
                     costList.forEach(c => {
-                        if(c.metrics.net_cost !== "0") {
+                        if(c.metrics.cost !== "0") {
                             let costElement = {
                                 "Tanggal_Dibuat": formatToDDMMYYYY(c.dimensions.stat_time_day),
-                                "Spending": parseInt(c.metrics.net_cost)
+                                "Spending": parseInt(c.metrics.cost)
                             }
                             processedCostList.push(costElement);
                         }
@@ -182,7 +182,7 @@ async function mergeGMVMax(tableName, costList) {
         const newRows = costList.filter(c => !existingDates.has(c.Tanggal_Dibuat));
 
         if (!newRows.length) {
-            console.log("All rows already exist, nothing to insert.");
+            console.log("[BASIC] All rows already exist, nothing to insert.");
             return;
         }
 
