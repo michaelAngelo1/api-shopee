@@ -7,7 +7,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=3000) {
+export async function fetchProductGMVMax(brand, advertiser_id, sleepValue) {
 
     sleep(sleepValue);
 
@@ -52,8 +52,8 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=3000) 
             const params = {
                 advertiser_id: advertiser_id,
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
-                start_date: "2025-11-01",
-                end_date: "2025-11-19",
+                start_date: yesterdayStr,
+                end_date: yesterdayStr,
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["cost", "orders", "net_cost"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["PRODUCT"] }),
@@ -95,8 +95,8 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=3000) 
             } else {
                 retries -= 1;
                 console.log(`[PRODUCT] ${brandName} does not exist. Retries left: ${retries}`);
-                console.log("[PRODUCT] Failed response: ", response);
-                if(retries > 0) await sleep(3000);
+                // console.log("[PRODUCT] Failed response: ", response);
+                if(retries > 0) await sleep(sleepValue);
             }
         }
     } catch (e) {

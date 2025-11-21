@@ -6,6 +6,7 @@ import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -108,9 +109,9 @@ export async function fetchAndProcessOrdersIL() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
 
     let advIdGbellePastnineIvyLilyNaruko = "7329483707528691714";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko, 16000);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko, 17000);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko, 18000);
     
     console.log("[IVYLILY] All data on: ", brand);
     console.log(basicAdsData);
@@ -118,13 +119,17 @@ export async function fetchAndProcessOrdersIL() {
     console.log(lgmvMaxData);
     console.log("\n");
 
-    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
-    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
-    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdGbellePastnineIvyLilyNaruko);
+    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdGbellePastnineIvyLilyNaruko, 19000);
+    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdGbellePastnineIvyLilyNaruko, 20000);
+    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdGbellePastnineIvyLilyNaruko, 21000);
     
     console.log("[NARUKO] All data on: ", brandNaruko);
     console.log(basicAdsDataNaruko);
     console.log(pgmvMaxDataNaruko);
     console.log(lgmvMaxDataNaruko);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+
+    await handleTiktokAdsData(basicAdsDataNaruko, pgmvMaxDataNaruko, lgmvMaxDataNaruko, brandNaruko);
 }

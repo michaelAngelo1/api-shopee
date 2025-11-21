@@ -6,6 +6,7 @@ import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -107,13 +108,15 @@ export async function fetchAndProcessOrdersDRJOU() {
 
     let advIdEvokeDrJouSwiss = "7374337917889953808"
     
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdEvokeDrJouSwiss);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdEvokeDrJouSwiss, 2000);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdEvokeDrJouSwiss);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdEvokeDrJouSwiss, 7000);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdEvokeDrJouSwiss, 8000);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdEvokeDrJouSwiss, 9000);
     
     console.log("[DRJOU] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }

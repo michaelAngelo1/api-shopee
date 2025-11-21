@@ -7,7 +7,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=4000) {
+export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue) {
 
     sleep(sleepValue);
 
@@ -69,8 +69,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=4000)
                 data_level: "AUCTION_CAMPAIGN",
                 dimensions: JSON.stringify(["campaign_id", "stat_time_day"]),
                 metrics: JSON.stringify(["spend", "impressions", "reach"]),
-                start_date: "2025-11-01",
-                end_date: "2025-11-19",
+                start_date: yesterdayStr,
+                end_date: yesterdayStr,
                 page: 1,
                 page_size: 200
             };
@@ -108,8 +108,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=4000)
                 data_level: "AUCTION_ADVERTISER",
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["spend", "impressions", "reach"]),
-                start_date: "2025-11-01",
-                end_date: "2025-11-19",
+                start_date: yesterdayStr,
+                end_date: yesterdayStr,
                 page: 1,
                 page_size: 200
             }

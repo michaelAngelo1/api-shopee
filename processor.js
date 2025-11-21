@@ -13,6 +13,7 @@ import { fetchGMVMaxSpending } from './functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from './functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from './functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from './functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -178,13 +179,15 @@ export async function fetchAndProcessOrders() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
     let advIdEG = "6899326735087566850";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG, 49000);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG, 50000);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG, 51000);
     
     console.log("[EG] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }

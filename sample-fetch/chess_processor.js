@@ -6,6 +6,7 @@ import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -124,15 +125,17 @@ export async function fetchAndProcessOrdersCHESS() {
 
     let advIdMMWCHESSNB = "7306800699382251521";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMMWCHESSNB);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMMWCHESSNB, 1000);
 
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMMWCHESSNB);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMMWCHESSNB, 2000);
 
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMMWCHESSNB);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMMWCHESSNB, 3000);
 
     console.log("[CHESS] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }

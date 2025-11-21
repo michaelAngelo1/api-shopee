@@ -6,6 +6,7 @@ import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -106,13 +107,15 @@ export async function fetchAndProcessOrdersPOLY() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
 
     let advIdPoly = "7275178424493211650";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly, 40000);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly, 41000);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly, 42000);
     
     console.log("[POLYNIA] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }

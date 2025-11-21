@@ -7,9 +7,9 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function fetchLiveGMVMax(brand, advertiser_id) {
+export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue) {
 
-    sleep(5000);
+    sleep(sleepValue);
 
     console.log(`[LIVE] GMV MAX - ${brand}`);
     let access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
@@ -52,8 +52,8 @@ export async function fetchLiveGMVMax(brand, advertiser_id) {
             const params = {
                 advertiser_id: advertiser_id,
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
-                start_date: "2025-11-01",
-                end_date: "2025-11-19",
+                start_date: yesterdayStr,
+                end_date: yesterdayStr,
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["cost", "orders", "net_cost"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["LIVE"] }),
@@ -94,14 +94,14 @@ export async function fetchLiveGMVMax(brand, advertiser_id) {
             } else {
                 retries -= 1;
                 console.log(`[LIVE] ${brandName} does not exist. Retries left: ${retries}`);
-                console.log("[LIVE] Failed response: ", response);
+                // console.log("[LIVE] Failed response: ", response);
                 if(retries > 0) await sleep(3000);
             }
         }
     } catch (e) {
         retries -= 1;
         console.log(`[LIVE] Error fetching Product GMV Max spending on ${brandName}: ${e}`)
-        if(retries > 0) await sleep(3000);
+        if(retries > 0) await sleep(sleepValue);
     }
 }
 

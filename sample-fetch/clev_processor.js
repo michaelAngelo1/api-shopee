@@ -12,6 +12,7 @@ import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
 import { fetchTiktokBasicAds } from "../functions/fetchTiktokBasicAds.js";
 import { fetchProductGMVMax } from "../functions/fetchProductGMVMax.js";
 import { fetchLiveGMVMax } from "../functions/fetchLiveGMVMax.js";
+import { handleTiktokAdsData } from "../functions/handleTiktokAdsData.js";
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -217,13 +218,15 @@ export async function fetchAndProcessOrdersCLEV() {
 
     let advIdClev = "7553576714043965448";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdClev);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdClev);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdClev);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdClev, 4000);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdClev, 5000);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdClev, 6000);
     
     console.log("[CLEV] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }

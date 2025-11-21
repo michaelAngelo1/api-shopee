@@ -6,6 +6,7 @@ import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -106,13 +107,15 @@ export async function fetchAndProcessOrdersNB() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMMWCHESSNB = "7306800699382251521";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdMMWCHESSNB);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdMMWCHESSNB);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdMMWCHESSNB);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdMMWCHESSNB, 34000);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdMMWCHESSNB, 35000);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdMMWCHESSNB, 36000);
     
     console.log("[NB] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }

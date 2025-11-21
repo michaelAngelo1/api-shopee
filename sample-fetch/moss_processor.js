@@ -6,6 +6,7 @@ import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -106,9 +107,9 @@ export async function fetchAndProcessOrdersMOSS() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMoss = "7553574194160746513";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMoss, 5000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMoss);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMoss);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMoss, 31000);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMoss, 32000);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMoss, 33000);
     
     console.log("[MOSS] All data on: ", brand);
 
@@ -116,4 +117,6 @@ export async function fetchAndProcessOrdersMOSS() {
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
     console.log("\n");
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 }
