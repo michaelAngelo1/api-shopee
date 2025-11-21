@@ -23,8 +23,9 @@ let tableNameMap = {
 
 export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand) {
     console.log(`Handle Tiktok Ads Brand ${brand}`);
-    if(basicAdsData && pgmvMaxData && lgmvMaxData) {
 
+    if (basicAdsData && pgmvMaxData && lgmvMaxData) {
+        // 1. Calculate Yesterday
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yyyy = yesterday.getFullYear();
@@ -32,72 +33,54 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
         const dd = String(yesterday.getDate()).padStart(2, '0');
         const yesterdayStr = `${yyyy}-${mm}-${dd}`;
 
-        let dataTiktokAds = [];
-        // Process basicAdsData first, then pgmvMax, then lgmvMax
+        // 2. Initialize the single object (No loop needed for 1 day)
+        let dailyData = {
+            "date": yesterdayStr,
+            "basic_cost": 0,
+            "pgmax_cost": 0,
+            "lgmax_cost": 0
+        };
 
-        let startDate = new Date("2025-11-01");
-        let endDate = new Date("2025-11-20");
-        let currentDate = new Date(startDate);
+        // 3. Map Data (Using yesterdayStr directly)
+        // Check basicAdsData
+        const basicMatch = basicAdsData.find((b) => b.date.substring(0, 10) === yesterdayStr);
+        if (basicMatch) dailyData.basic_cost = basicMatch.basic_cost;
 
-        while(currentDate <= endDate) {
+        // Check pgmvMaxData
+        const pgMatch = pgmvMaxData.find((b) => b.date.substring(0, 10) === yesterdayStr);
+        if (pgMatch) dailyData.pgmax_cost = pgMatch.pgmax_cost;
 
-            let tiktokAds = {
-                "date": currentDate.toISOString().substring(0, 10),
-                "basic_cost": 0,
-                "pgmax_cost": 0,
-                "lgmax_cost": 0
-            }
-            dataTiktokAds.push(tiktokAds);
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
+        // Check lgmvMaxData
+        const lgMatch = lgmvMaxData.find((b) => b.date.substring(0, 10) === yesterdayStr);
+        if (lgMatch) dailyData.lgmax_cost = lgMatch.lgmax_cost;
 
-        // Process basicAdsData
-        dataTiktokAds.forEach((d) => {
-            const match = basicAdsData.find((b) => b.date.substring(0, 10) === d.date);
-            if(match) {
-                d.basic_cost = match.basic_cost;
-            }
-        });
-
-        // Process pgmvMaxData
-        dataTiktokAds.forEach((d) => {
-            const match = pgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
-            if(match) {
-                d.pgmax_cost = match.pgmax_cost;
-            }
-        });
-
-        // Process lgmvMaxData
-        dataTiktokAds.forEach((d) => {
-            const match = lgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
-            if(match) {
-                d.lgmax_cost = match.lgmax_cost;
-            }
-        });
-
-        await mergeTiktokAdsData(dataTiktokAds, tableNameMap[brand]);
+        // 4. Merge (Pass brand for logging)
+        // We wrap dailyData in an array [] because insert expects rows
+        await mergeTiktokAdsData([dailyData], tableNameMap[brand], brand);
     }
 }
 
-async function mergeTiktokAdsData(data, tableName) {
+// Updated merge function
+async function mergeTiktokAdsData(data, tableName, brand) {
     console.log("Merging data to table: ", tableName);
-
     const datasetId = "tiktok_api_us";
 
     try {
-        for(const d of data) {
-            await bigquery
-                .dataset(datasetId)
-                .table(tableName)
-                .insert({
-                    date: d.date,
-                    basic_cost: d.basic_cost, 
-                    pgmax_cost: d.pgmax_cost,
-                    lgmax_cost: d.lgmax_cost
-                });
-        }
+        // OPTIMIZATION: Insert all rows at once, outside of a loop.
+        // BigQuery accepts an array of objects.
+        await bigquery
+            .dataset(datasetId)
+            .table(tableName)
+            .insert(data);
+            
         console.log(`Successfully merged ${data.length} data to ${tableName}`);
     } catch (e) {
+        // Now 'brand' is defined here
         console.log("Error merge tiktok ads data on: ", brand, "error: ", e);
+        
+        // Helpful for debugging BigQuery partial failures
+        if (e.name === 'PartialFailureError') {
+             console.log("Partial errors:", JSON.stringify(e.errors, null, 2));
+        }
     }
 }
