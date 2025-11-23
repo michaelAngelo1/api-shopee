@@ -35,9 +35,9 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
         let dataTiktokAds = [];
         // Process basicAdsData first, then pgmvMax, then lgmvMax
 
-        let startDate = new Date("2025-11-01");
-        let endDate = new Date("2025-11-21");
-        let currentDate = new Date(startDate);
+        // let startDate = new Date(yesterdayStr);
+        let endDate = new Date(yesterdayStr);
+        let currentDate = new Date(yesterdayStr);
 
         while(currentDate <= endDate) {
 
@@ -80,7 +80,7 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
         // Additional: data duplication.
         // Probable cause: race condition, rate limiting. 
         console.log("TO MERGE - Data Tiktok Ads: ", brand);
-        // await mergeTiktokAdsData(dataTiktokAds, tableNameMap[brand]);
+        await mergeTiktokAdsData(dataTiktokAds, tableNameMap[brand]);
     }
 }
 
