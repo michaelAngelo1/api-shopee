@@ -7,7 +7,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue) {
+export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=0) {
 
     sleep(sleepValue);
 

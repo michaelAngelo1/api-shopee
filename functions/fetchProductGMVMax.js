@@ -7,7 +7,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function fetchProductGMVMax(brand, advertiser_id, sleepValue) {
+export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=0) {
 
     sleep(sleepValue);
 
