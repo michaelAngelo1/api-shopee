@@ -107,9 +107,9 @@ export async function fetchAndProcessOrdersPOLY() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
 
     let advIdPoly = "7275178424493211650";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly, 40000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly, 41000);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly, 42000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly);
     
     console.log("[POLYNIA] All data on: ", brand);
     console.log(basicAdsData);

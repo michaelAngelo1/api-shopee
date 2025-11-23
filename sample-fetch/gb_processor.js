@@ -107,9 +107,9 @@ export async function fetchAndProcessOrdersGB() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID);
     
     let advIdGbellePastnineIvyLilyNaruko = "7329483707528691714";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko, 13000);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko, 14000);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko, 15000);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
     
     console.log("[GBELLE] All data on: ", brand);
     console.log(basicAdsData);

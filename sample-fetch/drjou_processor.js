@@ -108,9 +108,9 @@ export async function fetchAndProcessOrdersDRJOU() {
 
     let advIdEvokeDrJouSwiss = "7374337917889953808"
     
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdEvokeDrJouSwiss, 7000);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdEvokeDrJouSwiss, 8000);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdEvokeDrJouSwiss, 9000);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdEvokeDrJouSwiss);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdEvokeDrJouSwiss);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdEvokeDrJouSwiss);
     
     console.log("[DRJOU] All data on: ", brand);
     console.log(basicAdsData);

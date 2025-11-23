@@ -106,9 +106,9 @@ export async function fetchAndProcessOrdersSV() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SV_ACCESS_TOKEN, SHOP_ID);
 
     let advIdEvokeDrJouSwiss = "7374337917889953808"
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss, 46000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvokeDrJouSwiss, 47000);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvokeDrJouSwiss, 48000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvokeDrJouSwiss);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvokeDrJouSwiss);
     
     console.log("[SWISSVITA] All data on: ", brand);
     console.log(basicAdsData);

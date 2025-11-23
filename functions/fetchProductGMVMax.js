@@ -17,7 +17,9 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue) {
     let tableName = `${brandName}_productgmvmax`;
 
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+
+    yesterday.setDate(yesterday.getDate() - 2);
+
     const yyyy = yesterday.getFullYear();
     const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
     const dd = String(yesterday.getDate()).padStart(2, '0');
@@ -52,8 +54,8 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue) {
             const params = {
                 advertiser_id: advertiser_id,
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
-                start_date: yesterdayStr,
-                end_date: yesterdayStr,
+                start_date: "2025-11-01",
+                end_date: "2025-11-21",
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["cost", "orders", "net_cost"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["PRODUCT"] }),

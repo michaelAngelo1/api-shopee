@@ -218,9 +218,9 @@ export async function fetchAndProcessOrdersSHRD() {
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID);
     let adsIdSHRD = "7377330420947632145";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, adsIdSHRD, 43000);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, adsIdSHRD, 44000);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, adsIdSHRD, 45000);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, adsIdSHRD);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, adsIdSHRD);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, adsIdSHRD);
     
     console.log("[SHRD] All data on: ", brand);
     console.log(basicAdsData);

@@ -125,11 +125,11 @@ export async function fetchAndProcessOrdersCHESS() {
 
     let advIdMMWCHESSNB = "7306800699382251521";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMMWCHESSNB, 1000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMMWCHESSNB);
 
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMMWCHESSNB, 2000);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMMWCHESSNB);
 
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMMWCHESSNB, 3000);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMMWCHESSNB);
 
     console.log("[CHESS] All data on: ", brand);
     console.log(basicAdsData);

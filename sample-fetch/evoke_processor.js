@@ -106,9 +106,9 @@ export async function fetchAndProcessOrdersEVOKE() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
 
     let advIdEvokeDrJouSwiss = "7374337917889953808"
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss, 10000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvokeDrJouSwiss, 11000);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvokeDrJouSwiss, 12000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvokeDrJouSwiss);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvokeDrJouSwiss);
     
     console.log("[EVOKE] All data on: ", brand);
     console.log(basicAdsData);

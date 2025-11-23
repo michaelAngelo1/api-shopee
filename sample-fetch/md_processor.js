@@ -216,9 +216,9 @@ export async function fetchAndProcessOrdersMD() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMD = "7271210972684451842";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMD, 22000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMD, 23000);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMD, 24000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMD);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMD);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMD);
     
     console.log("[MISSDAISY] All data on: ", brand);
     console.log(basicAdsData);

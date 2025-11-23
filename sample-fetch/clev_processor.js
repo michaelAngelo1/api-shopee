@@ -218,9 +218,9 @@ export async function fetchAndProcessOrdersCLEV() {
 
     let advIdClev = "7553576714043965448";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdClev, 4000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdClev, 5000);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdClev, 6000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdClev);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdClev);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdClev);
     
     console.log("[CLEV] All data on: ", brand);
     console.log(basicAdsData);

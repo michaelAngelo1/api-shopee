@@ -107,9 +107,9 @@ export async function fetchAndProcessOrdersMIRAE() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMirae = "7306798768821387265";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMirae, 25000);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMirae, 26000);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMirae, 27000);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMirae);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMirae);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMirae);
     
     console.log("[MIRAE] All data on: ", brand);
     console.log(basicAdsData);
