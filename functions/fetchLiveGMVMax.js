@@ -96,7 +96,7 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=0) {
             } else {
                 retries -= 1;
                 console.log(`[LIVE] ${brandName} does not exist. Retries left: ${retries}`);
-                // console.log("[LIVE] Failed response: ", response);
+                console.log("[LIVE] Failed response: ", response?.data);
                 if(retries > 0) await sleep(3000);
             }
         }

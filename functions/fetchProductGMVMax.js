@@ -97,7 +97,7 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=0) {
             } else {
                 retries -= 1;
                 console.log(`[PRODUCT] ${brandName} does not exist. Retries left: ${retries}`);
-                // console.log("[PRODUCT] Failed response: ", response);
+                console.log("[PRODUCT] Failed response: ", response?.data);
                 if(retries > 0) await sleep(sleepValue);
             }
         }
