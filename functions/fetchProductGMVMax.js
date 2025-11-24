@@ -9,7 +9,7 @@ function sleep(ms) {
 
 export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) {
 
-    sleep(sleepValue);
+    await sleep(sleepValue);
 
     console.log(`[PRODUCT] GMV MAX - ${brand}`);
     let access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
@@ -104,7 +104,21 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
     } catch (e) {
         retries -= 1;
         console.log(`[PRODUCT] Error fetching Product GMV Max spending on ${brandName}: ${e}`)
-        if(retries > 0) await sleep(3000);
+
+        // --- ACTION: HARD WAIT ON RATE LIMIT ---
+        if (e.response?.status === 429 || e.message.includes('40100')) {
+             console.log("[PRODUCT] Hit Rate Limit. Sleeping 15s before retry...");
+             await sleep(15000);
+        } else {
+             if(retries > 0) await sleep(5000);
+        }
+
+        // --- THE CRITICAL FIX ---
+        // If we ran out of retries, THROW THE ERROR.
+        // Do NOT let the function finish and return undefined.
+        if (retries === 0) {
+            throw new Error(`[STRICT MODE] Failed to fetch data for ${brand} after all retries. Failing job to trigger BullMQ backoff.`);
+        }
     }
 }
 
