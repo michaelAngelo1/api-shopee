@@ -14,7 +14,6 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
     console.log(`[PRODUCT] GMV MAX - ${brand}`);
     let access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
     let brandName = brand.toLowerCase().replace(/\s/g, "");
-    let tableName = `${brandName}_productgmvmax`;
 
     const yesterday = new Date();
 

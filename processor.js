@@ -14,6 +14,7 @@ import { fetchTiktokBasicAds } from './functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from './functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from './functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
+import { fetchPGMVMaxBreakdown } from './functions/fetchPGMVMaxBreakdown.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -190,4 +191,6 @@ export async function fetchAndProcessOrders() {
     console.log("\n");
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+
+    await fetchPGMVMaxBreakdown(brand, advIdEG);
 }

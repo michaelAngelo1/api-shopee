@@ -13,6 +13,7 @@ import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
+import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -227,4 +228,6 @@ export async function fetchAndProcessOrdersMD() {
     console.log("\n");
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+
+    await fetchPGMVMaxBreakdown(brand, advIdMD);
 }
