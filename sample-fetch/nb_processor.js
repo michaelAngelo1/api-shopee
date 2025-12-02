@@ -66,12 +66,32 @@ async function saveTokensToSecret(tokens) {
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
-        await secretClient.addSecretVersion({
+        const [newVersion] = await secretClient.addSecretVersion({
             parent: parent,
             payload: {
                 data: payload,
             }
         });
+
+        console.log("Saved Shopee tokens to Secret Manager");
+
+        // Destroying previous token version
+        const [versions] = await secretClient.listSecretVersions({
+            parent: parent
+        });
+
+        for (const version of versions) {
+            if (version.name !== newVersion.name && version.state !== 'DESTROYED') {
+                try {
+                    await secretClient.destroySecretVersion({
+                        name: version.name
+                    });
+                    console.log(`Destroyed old token version: ${version.name}`);
+                } catch (destroyError) {
+                    console.error(`Failed to destroy version ${version.name}:`, destroyError);
+                }
+            }
+        }
         console.log("[NB] Successfully saved tokens to NB Secret Manager: ", parent);
     } catch (e) {
         console.error("[NB] Error saving tokens to Secret Manager: ", e);
@@ -107,10 +127,10 @@ export async function fetchAndProcessOrdersNB() {
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
 
-    let advIdMMWCHESSNB = "7306800699382251521";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdMMWCHESSNB);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdMMWCHESSNB);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdMMWCHESSNB);
+    let advIdNutriBeyond = "7457040121955729425";
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdNutriBeyond);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdNutriBeyond);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdNutriBeyond);
     
     console.log("[NB] All data on: ", brand);
     console.log(basicAdsData);
@@ -120,5 +140,5 @@ export async function fetchAndProcessOrdersNB() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brandTT, advIdMMWCHESSNB);
+    await fetchPGMVMaxBreakdown(brandTT, advIdNutriBeyond);
 }

@@ -66,12 +66,32 @@ async function saveTokensToSecret(tokens) {
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
-        await secretClient.addSecretVersion({
+        const [newVersion] = await secretClient.addSecretVersion({
             parent: parent,
             payload: {
                 data: payload,
             }
         });
+
+        console.log("Saved Shopee tokens to Secret Manager");
+
+        // Destroying previous token version
+        const [versions] = await secretClient.listSecretVersions({
+            parent: parent
+        });
+
+        for (const version of versions) {
+            if (version.name !== newVersion.name && version.state !== 'DESTROYED') {
+                try {
+                    await secretClient.destroySecretVersion({
+                        name: version.name
+                    });
+                    console.log(`Destroyed old token version: ${version.name}`);
+                } catch (destroyError) {
+                    console.error(`Failed to destroy version ${version.name}:`, destroyError);
+                }
+            }
+        }
         console.log("[EVOKE] Successfully saved tokens to EVOKE Secret Manager: ", parent);
     } catch (e) {
         console.error("[EVOKE] Error saving tokens to Secret Manager: ", e);
@@ -106,10 +126,10 @@ export async function fetchAndProcessOrdersEVOKE() {
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
 
-    let advIdEvokeDrJouSwiss = "7374337917889953808"
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvokeDrJouSwiss);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvokeDrJouSwiss);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvokeDrJouSwiss);
+    let advIdEvoke = "7374337917889953808"
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvoke);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvoke);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvoke);
     
     console.log("[EVOKE] All data on: ", brand);
     console.log(basicAdsData);
@@ -119,6 +139,6 @@ export async function fetchAndProcessOrdersEVOKE() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdEvokeDrJouSwiss);
+    await fetchPGMVMaxBreakdown(brand, advIdEvoke);
 }
 

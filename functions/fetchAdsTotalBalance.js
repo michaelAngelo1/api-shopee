@@ -27,12 +27,14 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         access_token: accessToken,
         shop_id: shop_id,
         sign,
-        start_date: yesterdayString,
+        start_date: "01-11-2025",
         end_date: yesterdayString
     });
 
     const fullUrl = `${HOST}${PATH}?${params.toString()}`;
     console.log(`Hitting Ads Total Balance for ${brand}: `, fullUrl);
+
+    let totalExpense = [];
 
     try {
         const response = await axios.get(fullUrl, {
@@ -42,8 +44,16 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         });
 
         if(response && response.data.response) {
-            console.log(`${brand} Ads Total Balance: ${response.data.response[0].expense} on ${response.data.response[0].date}`);
-            await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
+            // console.log(`${brand} Ads Total Balance: ${response.data.response[0].expense} on ${response.data.response[0].date}`);
+
+            let responseList = response.data.response;
+            responseList.forEach(r => {
+                if(r.expense > 0) {
+                    totalExpense.push(r);
+                }
+            })
+            return totalExpense;
+            // await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
         }
     } catch (e) {
         console.log(`Error fetching total balance for ${brand}: ${e}`);

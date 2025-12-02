@@ -66,30 +66,32 @@ async function saveTokensToSecret(tokens) {
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
-        await secretClient.addSecretVersion({
+        const [newVersion] = await secretClient.addSecretVersion({
             parent: parent,
             payload: {
                 data: payload,
             }
         });
 
-        // const [allVersions] = await secretClient.listSecretVersions({
-        //     parent: parent,
-        // });
+        console.log("Saved Shopee tokens to Secret Manager");
 
-        // // Disable all past versions
-        // for (const version of allVersions) {
-        //     if (version.name !== newVersion.name && version.state === 'ENABLED') {
-        //         try {
-        //             await secretClient.disableSecretVersion({
-        //                 name: version.name,
-        //             });
-        //             console.log(`Successfully disabled old version: ${version.name}`);
-        //         } catch (disableError) {
-        //             console.error(`Error disabling version ${version.name}:`, disableError);
-        //         }
-        //     }
-        // }
+        // Destroying previous token version
+        const [versions] = await secretClient.listSecretVersions({
+            parent: parent
+        });
+
+        for (const version of versions) {
+            if (version.name !== newVersion.name && version.state !== 'DESTROYED') {
+                try {
+                    await secretClient.destroySecretVersion({
+                        name: version.name
+                    });
+                    console.log(`Destroyed old token version: ${version.name}`);
+                } catch (destroyError) {
+                    console.error(`Failed to destroy version ${version.name}:`, destroyError);
+                }
+            }
+        }
         console.log("[CHESS] Successfully saved tokens to CHESS Secret Manager: ", parent);
     } catch (e) {
         console.error("[CHESS] Error saving tokens to Secret Manager: ", e);
@@ -124,13 +126,13 @@ export async function fetchAndProcessOrdersCHESS() {
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
 
-    let advIdMMWCHESSNB = "7306800699382251521";
+    let advIdChess = "7374315302508642321";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMMWCHESSNB);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdChess);
 
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMMWCHESSNB);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdChess);
 
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMMWCHESSNB);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdChess);
 
     console.log("[CHESS] All data on: ", brand);
     console.log(basicAdsData);
@@ -140,5 +142,5 @@ export async function fetchAndProcessOrdersCHESS() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdMMWCHESSNB);
+    await fetchPGMVMaxBreakdown(brand, advIdChess);
 }

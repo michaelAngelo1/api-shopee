@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { formatToDDMMYYYY } from './fetchGMVMaxSpending.js';
 import { BigQuery } from '@google-cloud/bigquery';
+import { backfillEndDate, backfillStartDate } from './fetchTiktokBasicAds.js';
 const bigquery = new BigQuery();
 
 function sleep(ms) {
@@ -45,7 +46,7 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
     }
 
     let success = false;
-    let retries = 3;
+    let retries = 10;
     try {   
 
         while(!success && retries > 0) {
@@ -53,10 +54,10 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
             const params = {
                 advertiser_id: advertiser_id,
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
-                start_date: yesterdayStr,
-                end_date: yesterdayStr,
+                start_date: backfillStartDate,
+                end_date: backfillEndDate,
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
-                metrics: JSON.stringify(["cost", "orders", "net_cost"]),
+                metrics: JSON.stringify(["cost", "orders", "net_cost", "gross_revenue"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["PRODUCT"] }),
                 page: 1,
                 page_size: 1000
@@ -82,6 +83,7 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
                         let costElement = {
                             "date": c.dimensions.stat_time_day,
                             "pgmax_cost": parseInt(c.metrics.cost),
+                            "pgmax_gmv": parseInt(c.metrics.gross_revenue)
                         }
                         processedCostList.push(costElement);
                     }
@@ -90,14 +92,14 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
                 if(processedCostList) {
                     console.log(`[PRODUCT] ${brandName} PROCESSEDCOSTLIST EXISTS`);
                     // await mergeProductGMVMax(brand, processedCostList);
-
                     return processedCostList;
                 }
             } else {
                 retries -= 1;
                 console.log(`[PRODUCT] ${brandName} does not exist. Retries left: ${retries}`);
                 console.log("[PRODUCT] Failed response: ", response?.data);
-                if(retries > 0) await sleep(sleepValue);
+                if(retries > 0) await sleep(sleepValue)
+                else return [];
             }
         }
     } catch (e) {

@@ -15,6 +15,7 @@ import { fetchProductGMVMax } from './functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from './functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from './functions/fetchPGMVMaxBreakdown.js';
+import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -79,7 +80,7 @@ async function saveTokensToSecret(tokens) {
     secretClient = new SecretManagerServiceClient();
 
     try {
-        await secretClient.addSecretVersion({
+        const [newVersion] = await secretClient.addSecretVersion({
             parent: parent,
             payload: {
                 data: payload,
@@ -87,6 +88,24 @@ async function saveTokensToSecret(tokens) {
         });
 
         console.log("Saved Shopee tokens to Secret Manager");
+
+        // Destroying previous token version
+        const [versions] = await secretClient.listSecretVersions({
+            parent: parent
+        });
+
+        for (const version of versions) {
+            if (version.name !== newVersion.name && version.state !== 'DESTROYED') {
+                try {
+                    await secretClient.destroySecretVersion({
+                        name: version.name
+                    });
+                    console.log(`Destroyed old token version: ${version.name}`);
+                } catch (destroyError) {
+                    console.error(`Failed to destroy version ${version.name}:`, destroyError);
+                }
+            }
+        }
     } catch (e) {
         console.log("Error saving tokens to Secret Manager: ", e);
     }
@@ -177,7 +196,9 @@ export async function fetchAndProcessOrders() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+
+    // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
     let advIdEG = "6899326735087566850";
     const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);

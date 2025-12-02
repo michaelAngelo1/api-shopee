@@ -66,12 +66,32 @@ async function saveTokensToSecret(tokens) {
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
-        await secretClient.addSecretVersion({
+        const [newVersion] = await secretClient.addSecretVersion({
             parent: parent,
             payload: {
                 data: payload,
             }
         });
+
+        console.log("Saved Shopee tokens to Secret Manager");
+
+        // Destroying previous token version
+        const [versions] = await secretClient.listSecretVersions({
+            parent: parent
+        });
+
+        for (const version of versions) {
+            if (version.name !== newVersion.name && version.state !== 'DESTROYED') {
+                try {
+                    await secretClient.destroySecretVersion({
+                        name: version.name
+                    });
+                    console.log(`Destroyed old token version: ${version.name}`);
+                } catch (destroyError) {
+                    console.error(`Failed to destroy version ${version.name}:`, destroyError);
+                }
+            }
+        }
         console.log("[GB] Successfully saved tokens to GB Secret Manager: ", parent);
     } catch (e) {
         console.error("[GB] Error saving tokens to Secret Manager: ", e);
@@ -107,10 +127,10 @@ export async function fetchAndProcessOrdersGB() {
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID);
     
-    let advIdGbellePastnineIvyLilyNaruko = "7329483707528691714";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbellePastnineIvyLilyNaruko);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    let advIdGbelle = "7329483707528691714";
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbelle);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbelle);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbelle);
     
     console.log("[GBELLE] All data on: ", brand);
     console.log(basicAdsData);
@@ -120,5 +140,5 @@ export async function fetchAndProcessOrdersGB() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brandTT, advIdGbellePastnineIvyLilyNaruko);
+    await fetchPGMVMaxBreakdown(brandTT, advIdGbelle);
 }

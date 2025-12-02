@@ -1,4 +1,5 @@
 import { BigQuery } from '@google-cloud/bigquery';
+import { backfillEndDate, backfillStartDate } from './fetchTiktokBasicAds.js';
 const bigquery = new BigQuery();
 
 let tableNameMap = {
@@ -36,15 +37,17 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
 
         let dataTiktokAds = [];
         
-        let endDate = new Date(yesterdayStr);
-        let currentDate = new Date(yesterdayStr);
+        let endDate = new Date(backfillEndDate);
+        let currentDate = new Date(backfillStartDate);
 
         while(currentDate <= endDate) {
             let tiktokAds = {
                 "date": currentDate.toISOString().substring(0, 10),
                 "basic_cost": 0,
                 "pgmax_cost": 0,
-                "lgmax_cost": 0
+                "lgmax_cost": 0,
+                "pgmax_gmv": 0,
+                "lgmax_gmv": 0,
             }
             dataTiktokAds.push(tiktokAds);
             currentDate.setDate(currentDate.getDate() + 1);
@@ -63,6 +66,7 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
             const match = pgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
             if(match) {
                 d.pgmax_cost = match.pgmax_cost;
+                d.pgmax_gmv = match.pgmax_gmv;
             }
         });
 
@@ -71,6 +75,7 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
             const match = lgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
             if(match) {
                 d.lgmax_cost = match.lgmax_cost;
+                d.lgmax_gmv = match.lgmax_gmv;
             }
         });
 
@@ -105,7 +110,10 @@ async function mergeTiktokAdsData(data, tableName, brand) {
                     date: d.date,
                     basic_cost: d.basic_cost, 
                     pgmax_cost: d.pgmax_cost,
-                    lgmax_cost: d.lgmax_cost
+                    lgmax_cost: d.lgmax_cost,
+                    pgmax_gmv: d.pgmax_gmv,
+                    lgmax_gmv: d.lgmax_gmv,
+                    process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
                 });
         }
         console.log(`Successfully processed ${data.length} row(s) for ${tableName}`);

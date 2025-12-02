@@ -7,22 +7,26 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000) {
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+const yyyy = yesterday.getFullYear();
+const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+const dd = String(yesterday.getDate()).padStart(2, '0');
+const yesterdayStr = `${yyyy}-${mm}-${dd}`;
 
+export let backfillStartDate = yesterdayStr;
+export let backfillEndDate = yesterdayStr;
+
+// export let backfillStartDate = yesterdayStr;
+// export let backfillEndDate = yesterdayStr;
+
+export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000) {
+    
     // CHANGE 1: Must await sleep
     await sleep(sleepValue);
 
     let multiBrandAcc = [
-        "mamaway",
-        "chess",
-        "nutribeyond",
-        "evoke",
-        "drjou",
-        "swissvita",
-        "gbelle",
-        "pastnine",
-        "ivylily",
-        "naruko"
+        "nananana",
     ];
 
     const access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
@@ -39,7 +43,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
     
     // CHANGE 2: Retry Variables
     let success = false;
-    let retries = 3;
+    let retries = 10;
 
     while(!success && retries > 0) {
         try {
@@ -79,8 +83,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                     data_level: "AUCTION_CAMPAIGN",
                     dimensions: JSON.stringify(["campaign_id", "stat_time_day"]),
                     metrics: JSON.stringify(["spend", "impressions", "reach"]),
-                    start_date: yesterdayStr,
-                    end_date: yesterdayStr,
+                    start_date: backfillStartDate,
+                    end_date: backfillEndDate,
                     page: 1,
                     page_size: 200
                 };
@@ -118,8 +122,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                     data_level: "AUCTION_ADVERTISER",
                     dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                     metrics: JSON.stringify(["spend", "impressions", "reach"]),
-                    start_date: yesterdayStr,
-                    end_date: yesterdayStr,
+                    start_date: backfillStartDate,
+                    end_date: backfillEndDate,
                     page: 1,
                     page_size: 200
                 }
