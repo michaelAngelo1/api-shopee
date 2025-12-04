@@ -162,8 +162,8 @@ export async function fetchPGMVMaxBreakdown(brand, advertiser_id) {
                             filtering: JSON.stringify({
                                 campaign_ids: [c.campaign_id],
                             }),
-                            start_date: backfillStartDate,
-                            end_date: backfillEndDate,
+                            start_date: yesterdayStr,
+                            end_date: yesterdayStr,
                             page: 1,
                             page_size: 1000
                         }
@@ -184,8 +184,10 @@ export async function fetchPGMVMaxBreakdown(brand, advertiser_id) {
 
                             success = true;
                             
-                            // console.log(`🔥 [PRODUCT-BREAKDOWN] product-level metrics response on ${brand}: `);
-                            // console.log(response.data.data.list);
+                            if(brand == "SHRD") {
+                                console.log(`🔥 [PRODUCT-BREAKDOWN] product-level metrics response on ${brand} and Campaign Name: ${c.campaign_name} and ID: ${c.campaign_id}`);
+                                console.log(response.data.data.list);
+                            }
                             let productLevelList = response.data.data.list;
                             productLevelList.forEach(p => {
                                 if(p.metrics.cost !== "0") {

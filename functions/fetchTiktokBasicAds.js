@@ -26,7 +26,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
     await sleep(sleepValue);
 
     let multiBrandAcc = [
-        "nananana",
+        "nananana", 
     ];
 
     const access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
@@ -122,8 +122,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                     data_level: "AUCTION_ADVERTISER",
                     dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                     metrics: JSON.stringify(["spend", "impressions", "reach"]),
-                    start_date: backfillStartDate,
-                    end_date: backfillEndDate,
+                    start_date: yesterdayStr,
+                    end_date: yesterdayStr,
                     page: 1,
                     page_size: 200
                 }

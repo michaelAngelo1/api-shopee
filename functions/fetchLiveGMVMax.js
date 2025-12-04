@@ -55,8 +55,8 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
             const params = {
                 advertiser_id: advertiser_id,
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
-                start_date: backfillStartDate,
-                end_date: backfillEndDate,
+                start_date: yesterdayStr,
+                end_date: yesterdayStr,
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["cost", "orders", "net_cost", "gross_revenue"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["LIVE"] }),

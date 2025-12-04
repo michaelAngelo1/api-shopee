@@ -27,7 +27,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         access_token: accessToken,
         shop_id: shop_id,
         sign,
-        start_date: "01-11-2025",
+        start_date: yesterdayString,
         end_date: yesterdayString
     });
 
@@ -52,8 +52,8 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
                     totalExpense.push(r);
                 }
             })
-            return totalExpense;
-            // await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
+            // return totalExpense;
+            await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
         }
     } catch (e) {
         console.log(`Error fetching total balance for ${brand}: ${e}`);
