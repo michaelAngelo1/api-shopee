@@ -37,8 +37,8 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
 
         let dataTiktokAds = [];
         
-        let endDate = new Date(yesterdayStr);
         let currentDate = new Date(yesterdayStr);
+        let endDate = new Date(yesterdayStr);
 
         while(currentDate <= endDate) {
             let tiktokAds = {

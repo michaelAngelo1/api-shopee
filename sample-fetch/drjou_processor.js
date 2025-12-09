@@ -129,9 +129,12 @@ export async function fetchAndProcessOrdersDRJOU() {
 
     let advIdDrJou = "7431385339190820880"
     
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdDrJou);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdDrJou);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdDrJou);
+    // For backfilling
+    let advIdEvoke = "7374337917889953808"
+    
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdEvoke);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdEvoke);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdEvoke);
     
     console.log("[DRJOU] All data on: ", brand);
     console.log(basicAdsData);
@@ -141,5 +144,6 @@ export async function fetchAndProcessOrdersDRJOU() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brandTT, advIdDrJou);
+    // For backfilling
+    await fetchPGMVMaxBreakdown(brandTT, advIdEvoke);
 }

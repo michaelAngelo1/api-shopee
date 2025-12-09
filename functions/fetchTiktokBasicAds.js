@@ -25,8 +25,18 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
     // CHANGE 1: Must await sleep
     await sleep(sleepValue);
 
+    // TEST: Get data from 2025-08-01. Should check: chess, nutribeyond, drjou, swissvita, pastnine, ivylily, naruko.
     let multiBrandAcc = [
-        "nananana", 
+        "mamaway",
+        "chess",
+        "nutribeyond",
+        "evoke",
+        "drjou",
+        "swissvita",
+        "gbelle",
+        "pastnine",
+        "ivylily",
+        "naruko"
     ];
 
     const access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
@@ -49,6 +59,11 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
         try {
             if(multiBrandAcc.includes(brandName)) {
 
+                console.log(`🔥 MULTIBRAND ACC ${brandName}`)
+
+                let troubles = ["chess", "nutribeyond", "pastnine", "ivylily", "naruko", "drjou", "swissvita"];
+                if(troubles.includes(brandName)) console.warn(`TROUBLES ${brandName} RUNNING. Check below.`);
+                
                 // 1. Get campaigns by advertiser_id
                 const cbyAurl = "https://business-api.tiktok.com/open_api/v1.3/campaign/get/"
 
@@ -83,8 +98,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                     data_level: "AUCTION_CAMPAIGN",
                     dimensions: JSON.stringify(["campaign_id", "stat_time_day"]),
                     metrics: JSON.stringify(["spend", "impressions", "reach"]),
-                    start_date: backfillStartDate,
-                    end_date: backfillEndDate,
+                    start_date: yesterdayStr,
+                    end_date: yesterdayStr,
                     page: 1,
                     page_size: 200
                 };
@@ -100,6 +115,8 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                 }
 
                 console.log(`[BASIC - GROUPED] response on ${brandName}`);
+                console.log(response2?.data?.data?.list);
+
                 resData2 = resData2.concat(response2.data.data.list);
 
                 if(resData1.length > 0 && resData2.length > 0) {

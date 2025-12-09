@@ -3,6 +3,10 @@ import crypto from 'crypto';
 import { BigQuery } from '@google-cloud/bigquery';
 const bigquery = new BigQuery();
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function fetchAdsTotalBalance(brand, partner_id, partner_key, accessToken, shop_id) {
     console.log("Fetch Ads Total Balance of brand: ", brand);
     
@@ -36,31 +40,44 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
 
     let totalExpense = [];
 
-    try {
-        const response = await axios.get(fullUrl, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+    let retries = 3;
+    let success = false;
 
-        if(response && response.data.response) {
-            // console.log(`${brand} Ads Total Balance: ${response.data.response[0].expense} on ${response.data.response[0].date}`);
-
-            let responseList = response.data.response;
-            responseList.forEach(r => {
-                if(r.expense > 0) {
-                    totalExpense.push(r);
+    while(!success && retries > 0) {
+        try {
+            const response = await axios.get(fullUrl, {
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            })
-            // return totalExpense;
-            await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
+            });
+    
+            if(response && response.data.response) {
+                // console.log(`${brand} Ads Total Balance: ${response.data.response[0].expense} on ${response.data.response[0].date}`);
+                
+                success = true;
+
+                let responseList = response.data.response;
+                responseList.forEach(r => {
+                    if(r.expense > 0) {
+                        totalExpense.push(r);
+                    }
+                })
+                // return totalExpense;
+                // await submitData(brand, response.data.response[0].expense, response.data.response[0].date);
+                await submitData(brand, totalExpense);
+            } else {
+                console.log("[SHOPEE] response ads does not exist: ", brand);
+                
+                retries -= 1;
+                if(retries > 0) await sleep(5000);
+            }
+        } catch (e) {
+            console.log(`Error fetching total balance for ${brand}: ${e}`);
         }
-    } catch (e) {
-        console.log(`Error fetching total balance for ${brand}: ${e}`);
     }
 }
 
-async function submitData(brand, expense, date) {
+async function submitData(brand, expenses) {
     let tableName = ""
     
     if(brand == "Eileen Grace") {
@@ -99,31 +116,39 @@ async function submitData(brand, expense, date) {
  
     const datasetId = 'shopee_api';
 
+    console.log(`[SHOPEE] Ads Total Balance on ${brand}`);
+
+    
     try {
-        const query = `
-            SELECT Tanggal_Dibuat
-            FROM \`${datasetId}.${tableName}\`
-            WHERE Tanggal_Dibuat = @date
-            LIMIT 1
-        `;
-        const options = {
-            query,
-            params: { date }
-        }
-        const [rows] = await bigquery.query(options);
 
-        if(rows.length > 0) {
-            console.log("Row already exists");
-            return;
+        for(const expense of expenses) {
+            const query = `
+                SELECT Tanggal_Dibuat
+                FROM \`${datasetId}.${tableName}\`
+                WHERE Tanggal_Dibuat = @date
+            `;
+            const options = {
+                query,
+                params: { 
+                    date: expense.date 
+                }
+            }
+            const [rows] = await bigquery.query(options);
+    
+            if(rows.length > 0) {
+                console.log("Row already exists");
+                continue;
+            }
+    
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert({
+                    Tanggal_Dibuat: expense.date,
+                    Spending: expense.expense,
+                });
         }
 
-        await bigquery
-            .dataset(datasetId)
-            .table(tableName)
-            .insert({
-                Tanggal_Dibuat: date,
-                Spending: expense,
-            });
         console.log(`Successfully written ads spending to ${brand} table.`)
     } catch (e) {
         console.error(`Error inserting ads spending on ${brand}: ${e}`);

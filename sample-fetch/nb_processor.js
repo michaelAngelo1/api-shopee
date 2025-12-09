@@ -128,9 +128,12 @@ export async function fetchAndProcessOrdersNB() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
 
     let advIdNutriBeyond = "7457040121955729425";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdNutriBeyond);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdNutriBeyond);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdNutriBeyond);
+    // For backfilling
+    let advIdMamaway = "7306800699382251521";
+
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdMamaway);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdMamaway);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdMamaway);
     
     console.log("[NB] All data on: ", brand);
     console.log(basicAdsData);
@@ -140,5 +143,6 @@ export async function fetchAndProcessOrdersNB() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brandTT, advIdNutriBeyond);
+    // For backfilling
+    await fetchPGMVMaxBreakdown(brandTT, advIdMamaway);
 }
