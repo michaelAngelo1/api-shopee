@@ -11,8 +11,8 @@ import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = parseInt(process.env.NB_PARTNER_ID);
-export const PARTNER_KEY = process.env.NB_PARTNER_KEY;
+export const PARTNER_ID = parseInt(process.env.PN_PARTNER_ID);
+export const PARTNER_KEY = process.env.PN_PARTNER_KEY;
 export const SHOP_ID = parseInt(process.env.NB_SHOP_ID);
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 export const HOST = "https://partner.shopeemobile.com";
@@ -131,9 +131,11 @@ export async function fetchAndProcessOrdersNB() {
     // For backfilling
     let advIdMamaway = "7306800699382251521";
 
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdMamaway);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdMamaway);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdMamaway);
+    let advertiserId = advIdNutriBeyond;
+
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
     
     console.log("[NB] All data on: ", brand);
     console.log(basicAdsData);
@@ -144,5 +146,5 @@ export async function fetchAndProcessOrdersNB() {
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
     // For backfilling
-    await fetchPGMVMaxBreakdown(brandTT, advIdMamaway);
+    await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }

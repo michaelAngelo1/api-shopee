@@ -133,9 +133,9 @@ export async function fetchAndProcessOrdersIL() {
     let advIdGbelle = "7329483707528691714";
     
     let advIdIvyLily = "7462652500143996929";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbelle);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbelle);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbelle);
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdIvyLily);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdIvyLily);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdIvyLily);
     
     console.log("[IVYLILY] All data on: ", brand);
     console.log(basicAdsData);
@@ -144,9 +144,9 @@ export async function fetchAndProcessOrdersIL() {
     console.log("\n");
 
     let advIdNaruko = "7392579089489608720"
-    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdGbelle, 19000);
-    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdGbelle, 20000);
-    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdGbelle, 21000);
+    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdNaruko, 19000);
+    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdNaruko, 20000);
+    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdNaruko, 21000);
     
     console.log("[NARUKO] All data on: ", brandNaruko);
     console.log(basicAdsDataNaruko);
@@ -159,6 +159,6 @@ export async function fetchAndProcessOrdersIL() {
     await handleTiktokAdsData(basicAdsDataNaruko, pgmvMaxDataNaruko, lgmvMaxDataNaruko, brandNaruko);
 
     // For backfilling
-    await fetchPGMVMaxBreakdown(brandTT, advIdGbelle);
-    await fetchPGMVMaxBreakdown(brandNaruko, advIdGbelle);
+    await fetchPGMVMaxBreakdown(brandTT, advIdIvyLily);
+    await fetchPGMVMaxBreakdown(brandNaruko, advIdNaruko);
 }

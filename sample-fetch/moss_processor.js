@@ -128,9 +128,12 @@ export async function fetchAndProcessOrdersMOSS() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
 
     let advIdMoss = "7553574194160746513";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMoss);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMoss);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMoss);
+    let advIdMirae = "7306798768821387265";
+    let advertiserId = advIdMoss;
+
+    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
     
     console.log("[MOSS] All data on: ", brand);
 
@@ -141,5 +144,5 @@ export async function fetchAndProcessOrdersMOSS() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdMoss);
+    await fetchPGMVMaxBreakdown(brand, advertiserId);
 }

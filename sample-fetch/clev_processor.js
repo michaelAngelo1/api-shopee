@@ -238,10 +238,15 @@ export async function fetchAndProcessOrdersCLEV() {
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
 
     let advIdClev = "7553576714043965448";
+    
+    // For backfill
+    let advIdMirae = "7306798768821387265";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdClev);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdClev);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdClev);
+    let advertiserId = advIdClev;
+
+    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
     
     console.log("[CLEV] All data on: ", brand);
     console.log(basicAdsData);
@@ -251,5 +256,5 @@ export async function fetchAndProcessOrdersCLEV() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdClev);
+    await fetchPGMVMaxBreakdown(brand, advertiserId);
 }

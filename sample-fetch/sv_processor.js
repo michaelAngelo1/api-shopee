@@ -130,10 +130,12 @@ export async function fetchAndProcessOrdersSV() {
     let advIdEvoke = "7374337917889953808"
 
     let advIdSwissvita = "7431385715176554497"
-    
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvoke);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvoke);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvoke);
+
+    let advertiserId = advIdSwissvita;
+
+    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
     
     console.log("[SWISSVITA] All data on: ", brand);
     console.log(basicAdsData);
@@ -143,5 +145,5 @@ export async function fetchAndProcessOrdersSV() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdEvoke);
+    await fetchPGMVMaxBreakdown(brand, advertiserId);
 }

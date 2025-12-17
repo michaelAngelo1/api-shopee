@@ -176,9 +176,6 @@ export async function fetchAdsProductLevel(brand, partner_id, partner_key, acces
         totalExpenseMerged.push(obj);
     });
 
-    // --- ALGORITHM START: Calculate Actual Iklan Toko Expense ---
-
-    // 1. Map total product expenses per date
     let productExpenseMap = {};
     campaignPerformanceList.forEach(item => {
         if (!productExpenseMap[item.date]) {
@@ -187,25 +184,18 @@ export async function fetchAdsProductLevel(brand, partner_id, partner_key, acces
         productExpenseMap[item.date] += item.expense;
     });
 
-    // 2. Subtract product expenses from total expense to get actual Iklan Toko
     let newTotalExpenseMerged = [];
     totalExpenseMerged.forEach(t => {
-        // Get the sum of product expenses for this date (default to 0 if none exist)
         const totalProductExpenseOnDate = productExpenseMap[t.date] || 0;
-        
-        // Calculate actual Iklan Toko expense
         const actualIklanTokoExpense = t.expense - totalProductExpenseOnDate;
 
         let obj = {
             date: t.date,
             prod_name: "Iklan Toko",
-            // Ensure we don't return negative values just in case of data discrepancies
             expense: actualIklanTokoExpense > 0 ? actualIklanTokoExpense : 0, 
         }
         newTotalExpenseMerged.push(obj);
     });
-
-    // --- ALGORITHM END ---
 
     let dataToMerge = campaignPerformanceList.concat(newTotalExpenseMerged);
 

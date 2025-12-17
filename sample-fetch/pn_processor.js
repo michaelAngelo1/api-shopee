@@ -131,9 +131,12 @@ export async function fetchAndProcessOrdersPN() {
     
     // For backfilling
     let advIdGbelle = "7329483707528691714";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdGbelle);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdGbelle);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdGbelle);
+
+    let advertiserId = advIdPastnine;
+
+    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
     
     console.log("[PASTNINE] All data on: ", brand);
     console.log(basicAdsData);
@@ -144,5 +147,5 @@ export async function fetchAndProcessOrdersPN() {
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
     // For backfilling
-    await fetchPGMVMaxBreakdown(brand, advIdGbelle);
+    await fetchPGMVMaxBreakdown(brand, advertiserId);
 }

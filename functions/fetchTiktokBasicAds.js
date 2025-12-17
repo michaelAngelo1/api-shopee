@@ -14,8 +14,9 @@ const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
 const dd = String(yesterday.getDate()).padStart(2, '0');
 const yesterdayStr = `${yyyy}-${mm}-${dd}`;
 
-export let backfillStartDate = yesterdayStr;
-export let backfillEndDate = yesterdayStr;
+// For backfill only. Not for production.
+export let backfillStartDate = "2025-09-01";
+export let backfillEndDate = "2025-09-26";
 
 // export let backfillStartDate = yesterdayStr;
 // export let backfillEndDate = yesterdayStr;
@@ -25,19 +26,25 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
     // CHANGE 1: Must await sleep
     await sleep(sleepValue);
 
-    // TEST: Get data from 2025-08-01. Should check: chess, nutribeyond, drjou, swissvita, pastnine, ivylily, naruko.
+    // For backfill only. Yes, including the parent brand. The single-brand function fetches all data on the basis of advertiser_id. Not store_id
+    // Thus removing this for backfill would make the data explode to ruins. 
+    // let multiBrandAcc = [
+    //     "mamaway",
+    //     "chess",
+    //     "nutribeyond",
+    //     "evoke",
+    //     "drjou",
+    //     "swissvita",
+    //     "gbelle",
+    //     "pastnine",
+    //     "ivylily",
+    //     "naruko"
+    // ];
+
+    // For production. No question asked. For production.
     let multiBrandAcc = [
-        "mamaway",
-        "chess",
-        "nutribeyond",
-        "evoke",
-        "drjou",
-        "swissvita",
-        "gbelle",
-        "pastnine",
-        "ivylily",
-        "naruko"
-    ];
+        "nananan",
+    ]
 
     const access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
     let brandName = brand.toLowerCase().replace(/\s/g, "");
@@ -120,7 +127,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                 resData2 = resData2.concat(response2.data.data.list);
 
                 if(resData1.length > 0 && resData2.length > 0) {
-                    let filteredSpending = processData(brandName, tableName, resData1, resData2);
+                    let filteredSpending = processData(brandName, resData1, resData2);
                     console.log(`${brand} filteredSpending`);
                     return filteredSpending; // Success
                 } else {
@@ -141,7 +148,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                     metrics: JSON.stringify(["spend", "impressions", "reach"]),
                     start_date: yesterdayStr,
                     end_date: yesterdayStr,
-                    page: 1,
+                    page: 1,    
                     page_size: 200
                 }
 
@@ -200,7 +207,7 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
     }
 }
 
-function processData(brandName, tableName, resData1, resData2) {
+function processData(brandName, resData1, resData2) {
     console.log("Processing data: ", brandName);
 
     // 1. Define the mapping logic from normalized brandName to Campaign Prefix

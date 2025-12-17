@@ -77,6 +77,10 @@ let storeIdAcc = {
     "naruko": {
         store_id: "7496241553706617176",
         table_name: "naruko_pgmax"
+    },
+    "rocketindoshop": {
+        store_id: "7495827950440450460",
+        table_name: "rocketindo_shop_pgmax"
     }
 }    
 

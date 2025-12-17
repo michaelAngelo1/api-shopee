@@ -19,7 +19,8 @@ let tableNameMap = {
     "Polynia": "polynia_tiktok_ads",
     "SHRD": "shrd_tiktok_ads",
     "Swissvita": "swissvita_tiktok_ads",
-    "Eileen Grace": "eileen_grace_tiktok_ads"
+    "Eileen Grace": "eileen_grace_tiktok_ads",
+    "Rocketindo Shop": "rocketindo_shop_tiktok_ads"
 }
 
 export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand) {

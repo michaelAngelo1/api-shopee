@@ -131,11 +131,13 @@ export async function fetchAndProcessOrdersCHESS() {
     // For backfilling
     let advIdMamaway = "7306800699382251521";
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMamaway);
+    let advertiserId = advIdChess;
 
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMamaway);
+    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
 
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMamaway);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
 
     console.log("[CHESS] All data on: ", brand);
     console.log(basicAdsData);
@@ -146,5 +148,5 @@ export async function fetchAndProcessOrdersCHESS() {
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
     // For backfilling
-    await fetchPGMVMaxBreakdown(brand, advIdMamaway);
+    await fetchPGMVMaxBreakdown(brand, advertiserId);
 }
