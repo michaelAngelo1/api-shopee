@@ -81,6 +81,18 @@ let storeIdAcc = {
     "rocketindoshop": {
         store_id: "7495827950440450460",
         table_name: "rocketindo_shop_pgmax"
+    },
+    "relove": {
+        store_id: "7494271470068139382",
+        table_name: "relove_pgmax"
+    },
+    "joeyroo": {
+        store_id: "7494266461991830655",
+        table_name: "joey_roo_pgmax"
+    },
+    "enchante": {
+        store_id: "7494271538671289804",
+        table_name: "enchante_pgmax"
     }
 }    
 

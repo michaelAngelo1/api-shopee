@@ -43,7 +43,10 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
         "pastnine": "7495997119882693518",
         "ivylily": "7496045415576275429",
         "naruko": "7496241553706617176",
-        "rocketindoshop": "7495827950440450460"
+        "rocketindoshop": "7495827950440450460",
+        "relove": "7494271470068139382",
+        "joeyroo": "7494266461991830655",
+        "enchante": "7494271538671289804"
     }
 
     let success = false;

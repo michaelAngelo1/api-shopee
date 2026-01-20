@@ -16,6 +16,7 @@ import { fetchLiveGMVMax } from './functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from './functions/fetchPGMVMaxBreakdown.js';
 import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
+import { fetchAffiliateData } from './functions/amsProcessor.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -200,7 +201,8 @@ export async function fetchAndProcessOrders() {
 
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
-    // await fetchAffiliateSpending(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+
+    await fetchAffiliateData(brand, SHOP_ID, 1000);
 
     let advIdEG = "6899326735087566850";
     const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
@@ -228,4 +230,49 @@ export async function fetchAndProcessOrders() {
     await handleTiktokAdsData(basicAdsDataRshop, pgmvMaxDataRshop, lgmvMaxDataRshop, brandRshop);
 
     await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
+
+    // Relove, JR, Enchante
+    await handleRelove();
+    await handleJR();
+    await handleEnchante();
+}
+
+async function handleRelove() {
+    let advId = "7374006579160612865"
+    let brand = "Relove"
+
+    const basicAds = await fetchTiktokBasicAds(brand, advId, 56000);
+    const pgmvMax = await fetchProductGMVMax(brand, advId, 58000);
+    const lgmvMax = await fetchLiveGMVMax(brand, advId, 60000);
+
+    await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
+
+    await fetchPGMVMaxBreakdown(brand, advId);
+}
+
+async function handleJR() {
+    let advId = "7431433066935091201"
+    let brand = "Joey & Roo"
+    let brandTT = "Joey Roo"
+
+    const basicAds = await fetchTiktokBasicAds(brandTT, advId, 62000);
+    const pgmvMax = await fetchProductGMVMax(brandTT, advId, 64000);
+    const lgmvMax = await fetchLiveGMVMax(brandTT, advId, 66000);
+
+    await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
+
+    await fetchPGMVMaxBreakdown(brandTT, advId);
+}
+
+async function handleEnchante() {
+    let advId = "7579206207240765448"
+    let brand = "Enchante"
+
+    const basicAds = await fetchTiktokBasicAds(brand, advId, 68000);
+    const pgmvMax = await fetchProductGMVMax(brand, advId, 70000);
+    const lgmvMax = await fetchLiveGMVMax(brand, advId, 72000);
+
+    await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
+
+    await fetchPGMVMaxBreakdown(brand, advId);
 }

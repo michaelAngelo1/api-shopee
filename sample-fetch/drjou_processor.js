@@ -8,6 +8,7 @@ import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
+import { fetchAffiliateData } from '../functions/amsProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -126,6 +127,8 @@ export async function fetchAndProcessOrdersDRJOU() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
+
+    await fetchAffiliateData(brand, SHOP_ID, 6000);
 
     let advIdDrJou = "7431385339190820880"
     

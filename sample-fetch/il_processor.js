@@ -8,6 +8,7 @@ import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
+import { fetchAffiliateData } from '../functions/amsProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -128,6 +129,8 @@ export async function fetchAndProcessOrdersIL() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
+
+    await fetchAffiliateData(brand, SHOP_ID, 9000);
     
     // For backfilling
     let advIdGbelle = "7329483707528691714";

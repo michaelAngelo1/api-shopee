@@ -14,6 +14,7 @@ import { fetchProductGMVMax } from "../functions/fetchProductGMVMax.js";
 import { fetchLiveGMVMax } from "../functions/fetchLiveGMVMax.js";
 import { handleTiktokAdsData } from "../functions/handleTiktokAdsData.js";
 import { fetchPGMVMaxBreakdown } from "../functions/fetchPGMVMaxBreakdown.js";
+import { fetchAffiliateData } from '../functions/amsProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -238,6 +239,9 @@ export async function fetchAndProcessOrdersSHRD() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID);
+
+    await fetchAffiliateData(brand, SHOP_ID, 2000);
+
     let adsIdSHRD = "7377330420947632145";
     const basicAdsData = await fetchTiktokBasicAds(brandTT, adsIdSHRD);
     const pgmvMaxData = await fetchProductGMVMax(brandTT, adsIdSHRD);

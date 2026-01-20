@@ -88,7 +88,7 @@ curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/report/inte
 # GET STORE LIST BY ADVERTISER ID
 curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/gmv_max/store/list/' \
 --header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
---data-urlencode 'advertiser_id=7581835025746771976'
+--data-urlencode 'advertiser_id=7579206207240765448'
 
 # Get GMV Max cost by advertiser_id & store_id
 curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/gmv_max/report/get/' \
@@ -127,3 +127,10 @@ curl -g -G "https://business-api.tiktok.com/open_api/v1.3/gmv_max/report/get/" \
   -d 'end_date=2025-11-07' \
   -d 'page=1' \
   -d 'page_size=1000'
+
+
+## BC something something
+curl --location --get 'https://business-api.tiktok.com/open_api/v1.3/bc/asset/get/' \
+--header 'Access-Token: 93d9e78ba3938f3fd77aac5a97de8b76f74e3c89' \
+--data-urlencode 'bc_id=7251865807498559489' \
+--data-urlencode 'asset_type=TIKTOK_SHOP'
