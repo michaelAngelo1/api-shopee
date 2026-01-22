@@ -82,21 +82,117 @@ app.get('/staging-sync', async (req, res) => {
             backoff: { type: 'exponential', delay: 60000 }
         };
 
+        await orderQueueEV.add('fetch-orders-evoke', {}, { 
+            ...baseOptions, 
+            jobId: `evoke-daily-sync-${timestamp}`,
+            delay: 0 
+        });
+
+        // await orderQueueDRJOU.add('fetch-orders-drjou', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `drjou-daily-sync-${timestamp}`,
+        //     delay: 180000 
+        // });
+
+        // await orderQueueSV.add('fetch-orders-sv', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `sv-daily-sync-${timestamp}`,
+        //     delay: 360000 
+        // });
+
+        
         let stagger = 30000; 
         const interval = 45000; 
 
-        // Example: Add jobs to queues (Uncomment your needed logic here)
-        
-        // Eileen Grace
-        await orderQueue.add('fetch-daily-orders', {}, { 
-            ...baseOptions, 
-            jobId: `daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // await orderQueue.add('fetch-daily-orders', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // ... Add the rest of your scheduling logic here ...
-        // (I am keeping this brief to fit, paste your full scheduling logic from index.js here)
+        // await orderQueueMD.add('fetch-orders-md', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `md-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueSHRD.add('fetch-orders-shrd', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `shrd-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueCLEV.add('fetch-orders-clev', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `clev-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueMOSS.add('fetch-orders-moss', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `moss-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueGB.add('fetch-orders-gb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `gb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueIL.add('fetch-orders-il', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `il-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueMMW.add('fetch-orders-mmw', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `mmw-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueCHESS.add('fetch-orders-chess', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `chess-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueuePN.add('fetch-orders-pn', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `pn-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueNB.add('fetch-orders-nb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `nb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueueMIRAE.add('fetch-orders-mirae', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `mirae-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
+
+        // await orderQueuePOLY.add('fetch-orders-poly', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `poly-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
 
         console.log("Daily sync job enqueued.");
         res.status(200).send("Successfully enqueued daily sync job");
