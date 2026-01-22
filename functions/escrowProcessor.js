@@ -15,8 +15,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         .update(baseString)
         .digest('hex');
 
-    const releaseTimeStart = Math.floor(new Date("2025-12-01") / 1000);
-    const releaseTimeEnd = Math.floor(new Date("2025-12-31") / 1000);
+    const releaseTimeStart = Math.floor(new Date("2026-01-01") / 1000);
+    const releaseTimeEnd = Math.floor(new Date("2026-01-03") / 1000);
     
     console.log("Release time start: ", releaseTimeStart);
     console.log("Release time end: ", releaseTimeEnd);
@@ -46,9 +46,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         let danaDilepas = []
         while(response.data.response.more) {
             let moreItems = response.data.response;
-            // console.log("MORE ITEMS: ");
-            // console.log(moreItems);
-            danaDilepas.push(moreItems);
+            await mergeDanaDilepas(moreItems, brand);
         }
     } catch (e) {
         console.log("[SHOPEE-WITHDRAWAL] ERROR on fetching Dana Dilepas on brand: ", brand);
@@ -57,4 +55,9 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 
     console.log("All Dana Dilepas on brand: ", brand);
     console.log("Count: ", danaDilepas.length);
+}
+
+async function mergeDanaDilepas(data, brand) {
+    console.log("Dana Dilepas on brand: ", brand)
+    console.log(data);
 }
