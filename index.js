@@ -254,95 +254,38 @@ app.get('/admin/resume-queue', async (req, res) => {
 
 app.get('/admin/stop-all-jobs', async (req, res) => {
     try {
-        // 1. Pause the queue. This stops workers from picking up NEW jobs.
-        await orderQueue.pause();
-        await orderQueueMD.pause();
-        await orderQueueSHRD.pause();
-        await orderQueueCLEV.pause();
-        await orderQueueDRJOU.pause();
-        await orderQueueMOSS.pause();
-        await orderQueueGB.pause();
-        await orderQueueIL.pause();
-        await orderQueueEV.pause();
-        await orderQueueMMW.pause();
-        await orderQueueCHESS.pause();
-        await orderQueueSV.pause();
-        await orderQueuePN.pause();
-        await orderQueueNB.pause();
-        await orderQueueMIRAE.pause();
-        await orderQueuePOLY.pause();
-        
-        console.log("ADMIN: all queues have been paused.");
+        const queues = [
+            orderQueue, orderQueueMD, orderQueueSHRD, orderQueueCLEV, 
+            orderQueueDRJOU, orderQueueMOSS, orderQueueGB, orderQueueIL, 
+            orderQueueEV, orderQueueMMW, orderQueueCHESS, orderQueueSV, 
+            orderQueuePN, orderQueueNB, orderQueueMIRAE, orderQueuePOLY
+        ];
 
-        // 2. Clean all jobs in these states.
-        // This clears all retries and jobs waiting to run.
-        await orderQueue.clean(0, 'wait'); 
-        await orderQueue.clean(0, 'delayed'); 
-        await orderQueue.clean(0, 'failed'); 
+        console.log("ADMIN: Pausing all queues...");
+        await Promise.all(queues.map(q => q.pause()));
 
-        await orderQueueMD.clean(0, 'wait'); 
-        await orderQueueMD.clean(0, 'delayed'); 
-        await orderQueueMD.clean(0, 'failed');
+        console.log("ADMIN: Nuke sequence initiated...");
 
-        await orderQueueSHRD.clean(0, 'wait'); 
-        await orderQueueSHRD.clean(0, 'delayed'); 
-        await orderQueueSHRD.clean(0, 'failed');
+        // Loop through every queue
+        for (const q of queues) {
+            // 1. Drain "Waiting" and "Delayed" (This is the built-in fast wipe)
+            await q.drain(); 
+            await q.drain(true);
 
-        await orderQueueCLEV.clean(0, 'wait'); 
-        await orderQueueCLEV.clean(0, 'delayed'); 
-        await orderQueueCLEV.clean(0, 'failed');
+            // 2. Forcefully remove "Active" (Zombie) jobs that are stuck running
+            // We fetch ALL jobs in these states and delete them manually
+            const zombieJobs = await q.getJobs(['active', 'wait', 'delayed', 'failed']);
+            for (const job of zombieJobs) {
+                await job.remove().catch(err => console.error(`Failed to remove job ${job.id}: ${err.message}`));
+            }
+            
+            // 3. Clean history (Completed/Failed)
+            await q.clean(0, 1000, 'failed');
+            await q.clean(0, 1000, 'completed');
+        }
 
-        await orderQueueDRJOU.clean(0, 'wait'); 
-        await orderQueueDRJOU.clean(0, 'delayed'); 
-        await orderQueueDRJOU.clean(0, 'failed');
-
-        await orderQueueMOSS.clean(0, 'wait'); 
-        await orderQueueMOSS.clean(0, 'delayed'); 
-        await orderQueueMOSS.clean(0, 'failed');
-
-        await orderQueueGB.clean(0, 'wait'); 
-        await orderQueueGB.clean(0, 'delayed'); 
-        await orderQueueGB.clean(0, 'failed');
-
-        await orderQueueIL.clean(0, 'wait'); 
-        await orderQueueIL.clean(0, 'delayed'); 
-        await orderQueueIL.clean(0, 'failed');
-
-        await orderQueueEV.clean(0, 'wait'); 
-        await orderQueueEV.clean(0, 'delayed'); 
-        await orderQueueEV.clean(0, 'failed');
-
-        await orderQueueMMW.clean(0, 'wait'); 
-        await orderQueueMMW.clean(0, 'delayed'); 
-        await orderQueueMMW.clean(0, 'failed');
-
-        await orderQueueCHESS.clean(0, 'wait'); 
-        await orderQueueCHESS.clean(0, 'delayed'); 
-        await orderQueueCHESS.clean(0, 'failed');
-
-        await orderQueueSV.clean(0, 'wait'); 
-        await orderQueueSV.clean(0, 'delayed'); 
-        await orderQueueSV.clean(0, 'failed');
-
-        await orderQueuePN.clean(0, 'wait'); 
-        await orderQueuePN.clean(0, 'delayed'); 
-        await orderQueuePN.clean(0, 'failed');
-
-        await orderQueueNB.clean(0, 'wait'); 
-        await orderQueueNB.clean(0, 'delayed'); 
-        await orderQueueNB.clean(0, 'failed');
-
-        await orderQueueMIRAE.clean(0, 'wait'); 
-        await orderQueueMIRAE.clean(0, 'delayed'); 
-        await orderQueueMIRAE.clean(0, 'failed');
-
-        await orderQueuePOLY.clean(0, 'wait'); 
-        await orderQueuePOLY.clean(0, 'delayed'); 
-        await orderQueuePOLY.clean(0, 'failed');
-
-        console.log("ADMIN: CLEARED all waiting, delayed, and failed jobs.");
-
-        res.status(200).send("Queue PAUSED and all waiting/delayed/failed jobs have been CLEARED.");
+        console.log("ADMIN: All queues have been NUKED. Zero jobs remain.");
+        res.status(200).send("Queue PAUSED and ALL jobs (Active/Wait/Delayed/Failed) have been REMOVED.");
 
     } catch (e) {
         console.error("ADMIN: Error stopping all jobs:", e);
