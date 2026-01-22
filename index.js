@@ -52,33 +52,33 @@ app.get('/staging-sync', async (req, res) => {
         // These MUST NOT run together. We force a 3-minute gap.
 
         // 1. Evoke: Starts Immediately
-        await orderQueueEV.add('fetch-orders-evoke', {}, { 
-            ...baseOptions, 
-            jobId: `evoke-daily-sync-${timestamp}`,
-            delay: 0 
-        });
+        // await orderQueueEV.add('fetch-orders-evoke', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `evoke-daily-sync-${timestamp}`,
+        //     delay: 0 
+        // });
 
         // 2. Dr. Jou: Starts +3 minutes later
-        await orderQueueDRJOU.add('fetch-orders-drjou', {}, { 
-            ...baseOptions, 
-            jobId: `drjou-daily-sync-${timestamp}`,
-            delay: 180000 
-        });
+        // await orderQueueDRJOU.add('fetch-orders-drjou', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `drjou-daily-sync-${timestamp}`,
+        //     delay: 180000 
+        // });
 
-        // 3. Swissvita: Starts +6 minutes later
-        await orderQueueSV.add('fetch-orders-sv', {}, { 
-            ...baseOptions, 
-            jobId: `sv-daily-sync-${timestamp}`,
-            delay: 360000 
-        });
+        // // 3. Swissvita: Starts +6 minutes later
+        // await orderQueueSV.add('fetch-orders-sv', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `sv-daily-sync-${timestamp}`,
+        //     delay: 360000 
+        // });
 
-        // --- GROUP 2: Independent Brands ---
-        // Stagger these by 45 seconds so they don't hit the API all at once.
+        // // --- GROUP 2: Independent Brands ---
+        // // Stagger these by 45 seconds so they don't hit the API all at once.
         
         let stagger = 30000; // Start the first one 30 seconds in
         const interval = 45000; // Add 45 seconds for each subsequent brand
 
-        // Eileen Grace
+        // // Eileen Grace
         await orderQueue.add('fetch-daily-orders', {}, { 
             ...baseOptions, 
             jobId: `daily-sync-${timestamp}`, 
@@ -86,100 +86,100 @@ app.get('/staging-sync', async (req, res) => {
         });
         stagger += interval;
 
-        // Miss Daisy
-        await orderQueueMD.add('fetch-orders-md', {}, { 
-            ...baseOptions, 
-            jobId: `md-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Miss Daisy
+        // await orderQueueMD.add('fetch-orders-md', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `md-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // SH-RD
-        await orderQueueSHRD.add('fetch-orders-shrd', {}, { 
-            ...baseOptions, 
-            jobId: `shrd-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // SH-RD
+        // await orderQueueSHRD.add('fetch-orders-shrd', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `shrd-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Cleviant
-        await orderQueueCLEV.add('fetch-orders-clev', {}, { 
-            ...baseOptions, 
-            jobId: `clev-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Cleviant
+        // await orderQueueCLEV.add('fetch-orders-clev', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `clev-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Mosseru
-        await orderQueueMOSS.add('fetch-orders-moss', {}, { 
-            ...baseOptions, 
-            jobId: `moss-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Mosseru
+        // await orderQueueMOSS.add('fetch-orders-moss', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `moss-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // G-Belle
-        await orderQueueGB.add('fetch-orders-gb', {}, { 
-            ...baseOptions, 
-            jobId: `gb-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // G-Belle
+        // await orderQueueGB.add('fetch-orders-gb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `gb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Ivy & Lily
-        await orderQueueIL.add('fetch-orders-il', {}, { 
-            ...baseOptions, 
-            jobId: `il-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Ivy & Lily
+        // await orderQueueIL.add('fetch-orders-il', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `il-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Mamaway
-        await orderQueueMMW.add('fetch-orders-mmw', {}, { 
-            ...baseOptions, 
-            jobId: `mmw-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Mamaway
+        // await orderQueueMMW.add('fetch-orders-mmw', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `mmw-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Chess
-        await orderQueueCHESS.add('fetch-orders-chess', {}, { 
-            ...baseOptions, 
-            jobId: `chess-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Chess
+        // await orderQueueCHESS.add('fetch-orders-chess', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `chess-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Past Nine
-        await orderQueuePN.add('fetch-orders-pn', {}, { 
-            ...baseOptions, 
-            jobId: `pn-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Past Nine
+        // await orderQueuePN.add('fetch-orders-pn', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `pn-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Nutri Beyond
-        await orderQueueNB.add('fetch-orders-nb', {}, { 
-            ...baseOptions, 
-            jobId: `nb-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Nutri Beyond
+        // await orderQueueNB.add('fetch-orders-nb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `nb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Mirae
-        await orderQueueMIRAE.add('fetch-orders-mirae', {}, { 
-            ...baseOptions, 
-            jobId: `mirae-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Mirae
+        // await orderQueueMIRAE.add('fetch-orders-mirae', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `mirae-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Polynia
-        await orderQueuePOLY.add('fetch-orders-poly', {}, { 
-            ...baseOptions, 
-            jobId: `poly-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
+        // // Polynia
+        // await orderQueuePOLY.add('fetch-orders-poly', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `poly-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
 
         console.log("Daily sync job enqueued by Cloud Scheduler with Staggered Delays");
         res.status(200).send("Successfully enqueued daily sync job");
