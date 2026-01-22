@@ -1,6 +1,7 @@
 import express from 'express';
 import { Queue, Worker } from 'bullmq';
 import 'dotenv/config';
+import Redis from 'ioredis'; 
 
 // Import Processors
 import { fetchAndProcessOrdersMD } from './sample-fetch/md_processor.js';
@@ -337,6 +338,25 @@ app.get('/admin/stop-all-jobs', async (req, res) => {
     } catch (e) {
         console.error("ADMIN: Error stopping all jobs:", e);
         res.status(500).send("Error stopping all jobs");
+    }
+});
+
+app.get('/admin/flush-redis', async (req, res) => {
+    try {
+        console.log("ADMIN: Connecting to Redis for manual flush...");
+        const connection = new Redis(process.env.REDIS_URL);
+        
+        // Send the FLUSHDB command directly
+        await connection.flushdb();
+        
+        // Close this temporary connection
+        await connection.quit();
+
+        console.log("ADMIN: Redis FLUSHDB executed. All keys deleted.");
+        res.status(200).send("REDIS FLUSHED. The database is empty. You may now Start Fresh.");
+    } catch (e) {
+        console.error("ADMIN: Error flushing Redis:", e);
+        res.status(500).send("Error flushing Redis: " + e.message);
     }
 });
 

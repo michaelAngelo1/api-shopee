@@ -1,7 +1,6 @@
 import express from 'express';
 import { Queue } from 'bullmq';
 import 'dotenv/config';
-import Redis from 'ioredis'; 
 
 const app = express();
 // const port = 3000;
