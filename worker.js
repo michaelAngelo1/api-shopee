@@ -308,17 +308,31 @@ app.get('/admin/stop-all-jobs', async (req, res) => {
             orderQueuePN, orderQueueNB, orderQueueMIRAE, orderQueuePOLY
         ];
 
-        // 1. Pause all
+        console.log("ADMIN: Pausing all queues...");
         await Promise.all(queues.map(q => q.pause()));
-        console.log("ADMIN: all queues have been paused.");
 
-        // 2. Clean all jobs (wait, delayed, failed)
-        await Promise.all(queues.map(q => q.clean(0, 'wait')));
-        await Promise.all(queues.map(q => q.clean(0, 'delayed')));
-        await Promise.all(queues.map(q => q.clean(0, 'failed')));
+        console.log("ADMIN: Nuke sequence initiated...");
 
-        console.log("ADMIN: CLEARED all waiting, delayed, and failed jobs.");
-        res.status(200).send("Queue PAUSED and all waiting/delayed/failed jobs have been CLEARED.");
+        // Loop through every queue
+        for (const q of queues) {
+            // 1. Drain "Waiting" and "Delayed" (This is the built-in fast wipe)
+            await q.drain(); 
+            await q.drain(true);
+
+            // 2. Forcefully remove "Active" (Zombie) jobs that are stuck running
+            // We fetch ALL jobs in these states and delete them manually
+            const zombieJobs = await q.getJobs(['active', 'wait', 'delayed', 'failed']);
+            for (const job of zombieJobs) {
+                await job.remove().catch(err => console.error(`Failed to remove job ${job.id}: ${err.message}`));
+            }
+            
+            // 3. Clean history (Completed/Failed)
+            await q.clean(0, 1000, 'failed');
+            await q.clean(0, 1000, 'completed');
+        }
+
+        console.log("ADMIN: All queues have been NUKED. Zero jobs remain.");
+        res.status(200).send("Queue PAUSED and ALL jobs (Active/Wait/Delayed/Failed) have been REMOVED.");
 
     } catch (e) {
         console.error("ADMIN: Error stopping all jobs:", e);
