@@ -13,6 +13,8 @@ const redisConnection = {
     }
 }
 
+console.log("DEBUG: Current REDIS_URL is:", process.env.REDIS_URL);
+
 const orderQueue = new Queue("order-processing", redisConnection);
 const orderQueueMD = new Queue("fetch-orders-md", redisConnection);
 const orderQueueSHRD = new Queue("fetch-orders-shrd", redisConnection);
