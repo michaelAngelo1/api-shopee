@@ -41,7 +41,6 @@ console.log("DEBUG: Current REDIS_URL is configured.");
 console.log("System Starting: Initializing Queues and Workers...");
 
 // --- 2. INITIALIZE QUEUES (PRODUCERS) ---
-// These are used by the Express Routes to ADD jobs
 const orderQueue = new Queue("order-processing", redisConnection);
 const orderQueueMD = new Queue("fetch-orders-md", redisConnection);
 const orderQueueSHRD = new Queue("fetch-orders-shrd", redisConnection);
@@ -67,12 +66,12 @@ app.get('/', (req, res) => {
     res.status(200).send("Service is healthy (API + Workers Running)");
 });
 
-// Cloud Scheduler Endpoint
+// Cloud Scheduler Endpoint - FULLY POPULATED
 app.get('/staging-sync', async (req, res) => {
     // Security check for Cloud Scheduler
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
         // console.warn("Unauthorized attempt to trigger daily sync"); 
-        // Uncomment above if strict, but sometimes helpful to allow manual test via browser if needed
+        // return res.status(403).send('Forbidden');
     }
 
     try {
@@ -82,119 +81,136 @@ app.get('/staging-sync', async (req, res) => {
             backoff: { type: 'exponential', delay: 60000 }
         };
 
+        // --- GROUP 1: Shared Account Risk ---
+        // 1. Evoke: Starts Immediately
         await orderQueueEV.add('fetch-orders-evoke', {}, { 
             ...baseOptions, 
             jobId: `evoke-daily-sync-${timestamp}`,
             delay: 0 
         });
 
-        // await orderQueueDRJOU.add('fetch-orders-drjou', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `drjou-daily-sync-${timestamp}`,
-        //     delay: 180000 
-        // });
+        // 2. Dr. Jou: Starts +3 minutes later
+        await orderQueueDRJOU.add('fetch-orders-drjou', {}, { 
+            ...baseOptions, 
+            jobId: `drjou-daily-sync-${timestamp}`,
+            delay: 180000 
+        });
 
-        // await orderQueueSV.add('fetch-orders-sv', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `sv-daily-sync-${timestamp}`,
-        //     delay: 360000 
-        // });
+        // 3. Swissvita: Starts +6 minutes later
+        await orderQueueSV.add('fetch-orders-sv', {}, { 
+            ...baseOptions, 
+            jobId: `sv-daily-sync-${timestamp}`,
+            delay: 360000 
+        });
 
-        
+        // --- GROUP 2: Independent Brands ---
         let stagger = 30000; 
         const interval = 45000; 
 
-        // await orderQueue.add('fetch-daily-orders', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Eileen Grace
+        await orderQueue.add('fetch-daily-orders', {}, { 
+            ...baseOptions, 
+            jobId: `daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueMD.add('fetch-orders-md', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `md-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Miss Daisy
+        await orderQueueMD.add('fetch-orders-md', {}, { 
+            ...baseOptions, 
+            jobId: `md-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueSHRD.add('fetch-orders-shrd', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `shrd-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // SH-RD
+        await orderQueueSHRD.add('fetch-orders-shrd', {}, { 
+            ...baseOptions, 
+            jobId: `shrd-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueCLEV.add('fetch-orders-clev', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `clev-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Cleviant
+        await orderQueueCLEV.add('fetch-orders-clev', {}, { 
+            ...baseOptions, 
+            jobId: `clev-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueMOSS.add('fetch-orders-moss', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `moss-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Mosseru
+        await orderQueueMOSS.add('fetch-orders-moss', {}, { 
+            ...baseOptions, 
+            jobId: `moss-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueGB.add('fetch-orders-gb', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `gb-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // G-Belle
+        await orderQueueGB.add('fetch-orders-gb', {}, { 
+            ...baseOptions, 
+            jobId: `gb-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueIL.add('fetch-orders-il', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `il-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Ivy & Lily
+        await orderQueueIL.add('fetch-orders-il', {}, { 
+            ...baseOptions, 
+            jobId: `il-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueMMW.add('fetch-orders-mmw', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `mmw-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Mamaway
+        await orderQueueMMW.add('fetch-orders-mmw', {}, { 
+            ...baseOptions, 
+            jobId: `mmw-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueCHESS.add('fetch-orders-chess', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `chess-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Chess
+        await orderQueueCHESS.add('fetch-orders-chess', {}, { 
+            ...baseOptions, 
+            jobId: `chess-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueuePN.add('fetch-orders-pn', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `pn-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Past Nine
+        await orderQueuePN.add('fetch-orders-pn', {}, { 
+            ...baseOptions, 
+            jobId: `pn-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueNB.add('fetch-orders-nb', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `nb-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Nutri Beyond
+        await orderQueueNB.add('fetch-orders-nb', {}, { 
+            ...baseOptions, 
+            jobId: `nb-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueueMIRAE.add('fetch-orders-mirae', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `mirae-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Mirae
+        await orderQueueMIRAE.add('fetch-orders-mirae', {}, { 
+            ...baseOptions, 
+            jobId: `mirae-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // await orderQueuePOLY.add('fetch-orders-poly', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `poly-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
+        // Polynia
+        await orderQueuePOLY.add('fetch-orders-poly', {}, { 
+            ...baseOptions, 
+            jobId: `poly-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
 
-        console.log("Daily sync job enqueued.");
+        console.log("Daily sync job enqueued by Cloud Scheduler with Staggered Delays");
         res.status(200).send("Successfully enqueued daily sync job");
     } catch (e) {
         console.error("Failed to enqueue daily job: ", e);
@@ -202,7 +218,22 @@ app.get('/staging-sync', async (req, res) => {
     }
 });
 
-// Admin Endpoints
+// Manual Fetch Endpoint
+app.get("/orders", async (req, res) => {
+    try {
+        await orderQueue.add('manual-fetch', {}).catch(err => {
+            throw new Error("Failed to enqueue job: " + err.message);
+        });
+        console.log("Manual fetch enqueued.");
+        res.json({
+            message: "Job to fetch and process orders has been enqueued." 
+        });
+    } catch (e) {
+        res.status(500).json({ error: "Failed to enqueue job", details: e.message });
+    }
+});
+
+// Admin: Pause All
 app.get('/admin/pause-queue', async (req, res) => {
     try {
         await Promise.all([
@@ -221,6 +252,7 @@ app.get('/admin/pause-queue', async (req, res) => {
     }
 });
 
+// Admin: Resume All
 app.get('/admin/resume-queue', async (req, res) => {
     try {
         await Promise.all([
@@ -239,10 +271,64 @@ app.get('/admin/resume-queue', async (req, res) => {
     }
 });
 
-// --- 4. INITIALIZE WORKERS (CONSUMERS) ---
-// These process the jobs added by the queues above
+// Admin: Remove Job
+app.get('/admin/remove-job', async (req, res) => {
+    const { jobId } = req.query; 
 
-// Helper to create workers to save space, or define individually as before
+    if (!jobId) {
+        return res.status(400).send("Missing 'jobId' query parameter.");
+    }
+
+    try {
+        // Attempt to find the job in the main queue (original logic)
+        // If you need to search ALL queues, you would need to loop through them,
+        // but keeping original logic for now to prevent breaking changes.
+        const job = await orderQueue.getJob(jobId);
+        if (job) {
+            await job.remove();
+            console.log(`ADMIN: Successfully removed job ${jobId}.`);
+            res.status(200).send(`Successfully removed job ${jobId}.`);
+        } else {
+            console.log(`ADMIN: Job ${jobId} not found in main queue.`);
+            res.status(404).send(`Job ${jobId} not found in main queue.`);
+        }
+    } catch (e) {
+        console.error(`ADMIN: Error removing job ${jobId}:`, e);
+        res.status(500).send(`Error removing job ${jobId}`);
+    }
+});
+
+// Admin: Stop & Clean All
+app.get('/admin/stop-all-jobs', async (req, res) => {
+    try {
+        const queues = [
+            orderQueue, orderQueueMD, orderQueueSHRD, orderQueueCLEV, 
+            orderQueueDRJOU, orderQueueMOSS, orderQueueGB, orderQueueIL, 
+            orderQueueEV, orderQueueMMW, orderQueueCHESS, orderQueueSV, 
+            orderQueuePN, orderQueueNB, orderQueueMIRAE, orderQueuePOLY
+        ];
+
+        // 1. Pause all
+        await Promise.all(queues.map(q => q.pause()));
+        console.log("ADMIN: all queues have been paused.");
+
+        // 2. Clean all jobs (wait, delayed, failed)
+        await Promise.all(queues.map(q => q.clean(0, 'wait')));
+        await Promise.all(queues.map(q => q.clean(0, 'delayed')));
+        await Promise.all(queues.map(q => q.clean(0, 'failed')));
+
+        console.log("ADMIN: CLEARED all waiting, delayed, and failed jobs.");
+        res.status(200).send("Queue PAUSED and all waiting/delayed/failed jobs have been CLEARED.");
+
+    } catch (e) {
+        console.error("ADMIN: Error stopping all jobs:", e);
+        res.status(500).send("Error stopping all jobs");
+    }
+});
+
+
+// --- 4. INITIALIZE WORKERS (CONSUMERS) ---
+
 const createWorker = (queueName, processor, name) => {
     const worker = new Worker(queueName, processor, workerOptions);
     worker.on('active', (job) => console.log(`[${name}] ACTIVE: Job ${job.id}.`));
@@ -252,7 +338,8 @@ const createWorker = (queueName, processor, name) => {
     return worker;
 };
 
-// Processors
+// --- Worker Definitions ---
+
 const orderProcessor = async (job) => {
     if (job.name === 'fetch-daily-orders' || job.name === 'manual-fetch') return fetchAndProcessOrders();
     throw new Error(`Unknown job name: ${job.name}`);
@@ -265,21 +352,75 @@ const mdOrderProcessor = async (job) => {
 };
 const mdWorker = createWorker("fetch-orders-md", mdOrderProcessor, "MD");
 
-// ... Instantiate the rest of your workers similarly ...
-const shrdWorker = createWorker("fetch-orders-shrd", async (job) => job.name === 'fetch-orders-shrd' ? fetchAndProcessOrdersSHRD() : null, "SHRD");
-const clevWorker = createWorker("fetch-orders-clev", async (job) => job.name === 'fetch-orders-clev' ? fetchAndProcessOrdersCLEV() : null, "CLEV");
-const drjouWorker = createWorker("fetch-orders-drjou", async (job) => job.name === 'fetch-orders-drjou' ? fetchAndProcessOrdersDRJOU() : null, "DRJOU");
-const mossWorker = createWorker("fetch-orders-moss", async (job) => job.name === 'fetch-orders-moss' ? fetchAndProcessOrdersMOSS() : null, "MOSS");
-const gbWorker = createWorker("fetch-orders-gb", async (job) => job.name === 'fetch-orders-gb' ? fetchAndProcessOrdersGB() : null, "GB");
-const ilWorker = createWorker("fetch-orders-il", async (job) => job.name === 'fetch-orders-il' ? fetchAndProcessOrdersIL() : null, "IL");
-const evWorker = createWorker("fetch-orders-evoke", async (job) => job.name === 'fetch-orders-evoke' ? fetchAndProcessOrdersEVOKE() : null, "EVOKE");
-const mmwWorker = createWorker("fetch-orders-mmw", async (job) => job.name === 'fetch-orders-mmw' ? fetchAndProcessOrdersMMW() : null, "MMW");
-const chessWorker = createWorker("fetch-orders-chess", async (job) => job.name === 'fetch-orders-chess' ? fetchAndProcessOrdersCHESS() : null, "CHESS");
-const svWorker = createWorker("fetch-orders-sv", async (job) => job.name === 'fetch-orders-sv' ? fetchAndProcessOrdersSV() : null, "SV");
-const pnWorker = createWorker("fetch-orders-pn", async (job) => job.name === 'fetch-orders-pn' ? fetchAndProcessOrdersPN() : null, "PN");
-const nbWorker = createWorker("fetch-orders-nb", async (job) => job.name === 'fetch-orders-nb' ? fetchAndProcessOrdersNB() : null, "NB");
-const miraeWorker = createWorker("fetch-orders-mirae", async (job) => job.name === 'fetch-orders-mirae' ? fetchAndProcessOrdersMIRAE() : null, "MIRAE");
-const polyWorker = createWorker("fetch-orders-poly", async (job) => job.name === 'fetch-orders-poly' ? fetchAndProcessOrdersPOLY() : null, "POLY");
+const shrdWorker = createWorker("fetch-orders-shrd", async (job) => {
+    if (job.name === 'fetch-orders-shrd') return fetchAndProcessOrdersSHRD();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "SHRD");
+
+const clevWorker = createWorker("fetch-orders-clev", async (job) => {
+    if (job.name === 'fetch-orders-clev') return fetchAndProcessOrdersCLEV();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "CLEV");
+
+const drjouWorker = createWorker("fetch-orders-drjou", async (job) => {
+    if (job.name === 'fetch-orders-drjou') return fetchAndProcessOrdersDRJOU();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "DRJOU");
+
+const mossWorker = createWorker("fetch-orders-moss", async (job) => {
+    if (job.name === 'fetch-orders-moss') return fetchAndProcessOrdersMOSS();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "MOSS");
+
+const gbWorker = createWorker("fetch-orders-gb", async (job) => {
+    if (job.name === 'fetch-orders-gb') return fetchAndProcessOrdersGB();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "GB");
+
+const ilWorker = createWorker("fetch-orders-il", async (job) => {
+    if (job.name === 'fetch-orders-il') return fetchAndProcessOrdersIL();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "IL");
+
+const evWorker = createWorker("fetch-orders-evoke", async (job) => {
+    if (job.name === 'fetch-orders-evoke') return fetchAndProcessOrdersEVOKE();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "EVOKE");
+
+const mmwWorker = createWorker("fetch-orders-mmw", async (job) => {
+    if (job.name === 'fetch-orders-mmw') return fetchAndProcessOrdersMMW();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "MMW");
+
+const chessWorker = createWorker("fetch-orders-chess", async (job) => {
+    if (job.name === 'fetch-orders-chess') return fetchAndProcessOrdersCHESS();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "CHESS");
+
+const svWorker = createWorker("fetch-orders-sv", async (job) => {
+    if (job.name === 'fetch-orders-sv') return fetchAndProcessOrdersSV();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "SV");
+
+const pnWorker = createWorker("fetch-orders-pn", async (job) => {
+    if (job.name === 'fetch-orders-pn') return fetchAndProcessOrdersPN();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "PN");
+
+const nbWorker = createWorker("fetch-orders-nb", async (job) => {
+    if (job.name === 'fetch-orders-nb') return fetchAndProcessOrdersNB();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "NB");
+
+const miraeWorker = createWorker("fetch-orders-mirae", async (job) => {
+    if (job.name === 'fetch-orders-mirae') return fetchAndProcessOrdersMIRAE();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "MIRAE");
+
+const polyWorker = createWorker("fetch-orders-poly", async (job) => {
+    if (job.name === 'fetch-orders-poly') return fetchAndProcessOrdersPOLY();
+    throw new Error(`Unknown job name: ${job.name}`);
+}, "POLY");
 
 
 // --- 5. START SERVER & SHUTDOWN LOGIC ---
