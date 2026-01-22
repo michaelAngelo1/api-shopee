@@ -201,13 +201,21 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
         console.log(`Performance Update Time for ${brand} is ${updateTime}`);
     }
     // Fetch affiliate data per shop_id
+
+    // const startDateUpdateTime = new Date(updateTime);
+    const startDateUpdateTime = new Date("2026-01-17");
+    const startY = startDateUpdateTime.getFullYear();
+    const startM = String(startDateUpdateTime.getMonth() + 1).padStart(2, '0');
+    const startD = String(startDateUpdateTime.getDate()).padStart(2, '0');
+    const startStr = `${startY}${startM}${startD}`;
+    const startForData = `${startY}-${startM}-${startD}`;
     
     let success = false;
     let retries = 5;
     let data;
     
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterday = new Date("2026-01-02");
+    yesterday.setDate(yesterday.getDate());
     const yyyy = yesterday.getFullYear();
     const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
     const dd = String(yesterday.getDate()).padStart(2, '0');
@@ -222,13 +230,14 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
     
     while(!success && retries > 0) {
         try {
+            
             let path = "/api/v2/ams/get_shop_performance";
             
             const timestamp = Math.floor(Date.now() / 1000);
             const baseString = `${PARTNER_ID}${path}${timestamp}${AMS_ACCESS_TOKEN}${shop_id}`;
             const sign = crypto.createHmac('sha256', PARTNER_KEY)
-            .update(baseString)
-            .digest('hex');
+                .update(baseString)
+                .digest('hex');
             
 
             const params = new URLSearchParams({
@@ -238,8 +247,8 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
                 shop_id: shop_id,
                 sign,
                 period_type: 'Day',
-                start_date: yesterdayStr,
-                end_date: todayStr,
+                start_date: startStr,
+                end_date: startStr,
                 order_type: 'ConfirmedOrder',
                 channel: 'AllChannel',
             });
@@ -279,7 +288,7 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
     console.log('Data before mergeData\n');
     console.log(data);
 
-    await mergeData(data, brand, yesterdayForData);
+    await mergeData(data, brand, startForData);
 }
 
 const brandTables = {
@@ -330,7 +339,7 @@ async function mergeData(data, brand, data_date) {
         const [rows] = await bigquery.query(options);
 
         if(rows.length > 0) {
-            console.log("Row already exists");
+            console.log("[AMS] Row already exists");
             return;
         }
 

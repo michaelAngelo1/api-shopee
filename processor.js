@@ -17,12 +17,13 @@ import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from './functions/fetchPGMVMaxBreakdown.js';
 import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
 import { fetchAffiliateData } from './functions/amsProcessor.js';
+import { fetchDanaDilepas } from './functions/escrowProcessor.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
 
 const port = 3000
-let secretClient;
+const secretClient = new SecretManagerServiceClient();
 
 export const HOST = "https://partner.shopeemobile.com";
 const PATH = "/api/v2/order/get_order_list";
@@ -78,7 +79,6 @@ async function refreshToken() {
 async function saveTokensToSecret(tokens) {
     const parent = 'projects/231801348950/secrets/shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
-    secretClient = new SecretManagerServiceClient();
 
     try {
         const [newVersion] = await secretClient.addSecretVersion({
@@ -113,7 +113,6 @@ async function saveTokensToSecret(tokens) {
 }
 
 async function loadTokensFromSecret() {
-    secretClient = new SecretManagerServiceClient();
     const secretName = 'projects/231801348950/secrets/shopee-tokens/versions/latest';
 
     try {
@@ -198,7 +197,7 @@ export async function fetchAndProcessOrders() {
     await refreshToken();
 
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-
+    // await fetchDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
 

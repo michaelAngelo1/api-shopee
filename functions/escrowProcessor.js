@@ -1,0 +1,60 @@
+import { BigQuery } from '@google-cloud/bigquery';
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import axios from 'axios';
+import crypto from 'crypto';
+
+export async function fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
+    console.log("Fetch Dana Dilepas of brand: ", brand);
+
+    const HOST = "https://partner.shopeemobile.com";
+    const PATH = "/api/v2/payment/get_escrow_list";
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
+    const sign = crypto.createHmac('sha256', partner_key)
+        .update(baseString)
+        .digest('hex');
+
+    const releaseTimeStart = Math.floor(new Date("2025-12-01") / 1000);
+    const releaseTimeEnd = Math.floor(new Date("2025-12-31") / 1000);
+    
+    console.log("Release time start: ", releaseTimeStart);
+    console.log("Release time end: ", releaseTimeEnd);
+
+    const params = new URLSearchParams({
+        partner_id: partner_id,
+        timestamp,
+        access_token: access_token,
+        shop_id: shop_id,
+        sign,
+        release_time_from: releaseTimeStart,
+        release_time_to: releaseTimeEnd
+    });
+
+    const fullUrl = `${HOST}${PATH}?${params.toString()}`;
+    console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl);
+
+    try {
+        const response = await axios.get(fullUrl, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+    
+        console.log("[SHOPEE-WITHDRAWAL] Raw response for brand: ", brand);
+        
+        let danaDilepas = []
+        while(response.data.response.more) {
+            let moreItems = response.data.response;
+            // console.log("MORE ITEMS: ");
+            // console.log(moreItems);
+            danaDilepas.push(moreItems);
+        }
+    } catch (e) {
+        console.log("[SHOPEE-WITHDRAWAL] ERROR on fetching Dana Dilepas on brand: ", brand);
+        console.log(e.response);
+    }
+
+    console.log("All Dana Dilepas on brand: ", brand);
+    console.log("Count: ", danaDilepas.length);
+}
