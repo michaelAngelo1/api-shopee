@@ -42,7 +42,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
                 release_time_from: releaseTimeStart,
                 release_time_to: releaseTimeEnd,
                 page_size: 100,
-                page_number: pageNumber,
+                page_no: pageNumber,
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
