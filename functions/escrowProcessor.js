@@ -32,7 +32,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         while(hasMore) {
 
             const releaseTimeStart = Math.floor(new Date("2026-01-01") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-01-03") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2026-01-21") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -46,7 +46,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl);
+            console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
 
             const response = await axios.get(fullUrl, {
                 headers: {
@@ -55,12 +55,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             });
 
             let escrowList = response.data.response.escrow_list;
-            
-            console.log("Escrow list first 3: ");
-            console.log(escrowList.slice(0, 3));
 
             count += escrowList.length;
-
             hasMore = response.data.response.more;
             pageNumber += 1;
         }
@@ -71,8 +67,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         console.log(e.response);
     }
 
-    console.log("All Dana Dilepas on brand: ", brand);
-    console.log("Count: ", danaDilepas.length);
+    // console.log("All Dana Dilepas on brand: ", brand);
+    // console.log("Count: ", danaDilepas.length);
 }
 
 async function mergeDanaDilepas(data, brand) {
