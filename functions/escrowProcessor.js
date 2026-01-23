@@ -3,6 +3,12 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios from 'axios';
 import crypto from 'crypto';
 
+/*** 
+TODO:
+1. Should hit two endpoints: get_escrow_list and get_escrow_detail per order_sn
+2. Transform the data with the required structure
+***/
+
 export async function fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
     console.log("Fetch Dana Dilepas of brand: ", brand);
 
@@ -44,10 +50,15 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         console.log("[SHOPEE-WITHDRAWAL] Raw response for brand: ", brand);
         
         let danaDilepas = []
+        let count = 0;
         while(response.data.response.more) {
-            let moreItems = response.data.response;
-            await mergeDanaDilepas(moreItems, brand);
+            let escrowList = response.data.response.escrow_list;
+            escrowList.forEach(c => {
+                count += 1;
+            })
         }
+
+        console.log("[SHOPEE-WITHDRAWAL] Data count: ", count);
     } catch (e) {
         console.log("[SHOPEE-WITHDRAWAL] ERROR on fetching Dana Dilepas on brand: ", brand);
         console.log(e.response);
@@ -59,5 +70,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 
 async function mergeDanaDilepas(data, brand) {
     console.log("Dana Dilepas on brand: ", brand)
-    console.log(data);
+
+    // Merge to BigQuery
+
+    // console.log(data);
 }
