@@ -116,12 +116,14 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             const sign = crypto.createHmac('sha256', partner_key)
                 .update(baseString)
                 .digest('hex');
+            
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
                 access_token: access_token,
                 shop_id: shop_id,
                 sign,
+                order_sn_list: data[i].join(",")
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
@@ -130,7 +132,9 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             console.log("Data[i]: ", data[i]);
 
             const response = await axios.get(fullUrl, {
-                "order_sn_list": data[i],
+                headers: {
+                    'Content-Type': 'application/json',
+                }
             });
 
             console.log("[SHOPEE-WITHDRAWAL] Raw response: ");
