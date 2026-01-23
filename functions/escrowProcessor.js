@@ -76,8 +76,24 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 async function mergeDanaDilepas(data, brand) {
     console.log("Dana Dilepas on brand: ", brand)
     console.log("All Order_Sns on Data before Transform: \n");
+    
+    let twentyBatchContainer = [];
+    let twentyBatch = [];
     data.forEach(d => {
-        console.log("Order_Sn: ", d.order_sn);
-        console.log("\n");
-    })
+        
+        twentyBatch.push(d.order_sn);
+
+        if(twentyBatch.length == 20) {
+            twentyBatchContainer.push(twentyBatch);
+            twentyBatch = [];
+        }
+    });
+
+    if (twentyBatch.length > 0) {
+        twentyBatchContainer.push(twentyBatch);
+    }
+
+    console.log("Twenty Batch Container first 3: \n");
+    console.log("Size: ", twentyBatchContainer.length);
+    console.log(twentyBatchContainer.slice(0, 3));
 }
