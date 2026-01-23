@@ -18,6 +18,11 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
     try {
     
         console.log("[SHOPEE-WITHDRAWAL] Raw response for brand: ", brand);
+        const timestamp = Math.floor(Date.now() / 1000);
+        const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
+        const sign = crypto.createHmac('sha256', partner_key)
+            .update(baseString)
+            .digest('hex');
         
         let danaDilepas = []
         let count = 0;
@@ -25,11 +30,6 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         let pageNumber = 1;
 
         while(hasMore) {
-            const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
-            const sign = crypto.createHmac('sha256', partner_key)
-                .update(baseString)
-                .digest('hex');
 
             const releaseTimeStart = Math.floor(new Date("2026-01-01") / 1000);
             const releaseTimeEnd = Math.floor(new Date("2026-01-03") / 1000);
@@ -53,7 +53,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             let escrowList = response.data.response.escrow_list;
             
             console.log("Escrow list first 3: ");
