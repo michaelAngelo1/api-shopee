@@ -11,7 +11,7 @@ TODO:
 export async function mainDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
     const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
     const twentyBatchContainer = await transformData(escrowContainer, brand);
-    await breakdownEscrow(twentyBatchContainer, brand);
+    await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
 }
 
 export async function fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
