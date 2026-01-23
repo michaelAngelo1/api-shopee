@@ -132,13 +132,14 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             console.log("[SHOPEE-WITHDRAWAL] Raw response: ");
+            console.log(response?.data?.response);
             let escrowDetailList = response.data.response;
 
-            escrowDetailList.forEach(e => {
-                console.log("Escrow order id: ", e.escrow_detail.order_sn);
-                console.log("Escrow buyer: ", e.escrow_detail.buyer_user_name);
-                console.log("\n");
-            });
+            // escrowDetailList.forEach(e => {
+            //     console.log("Escrow order id: ", e.escrow_detail.order_sn);
+            //     console.log("Escrow buyer: ", e.escrow_detail.buyer_user_name);
+            //     console.log("\n");
+            // });
 
             if(i == 4) {
                 break;
