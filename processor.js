@@ -196,44 +196,44 @@ export async function fetchAndProcessOrders() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    // await fetchDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await fetchDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
 
-    await fetchAffiliateData(brand, SHOP_ID, 1000);
+    // await fetchAffiliateData(brand, SHOP_ID, 1000);
 
-    let advIdEG = "6899326735087566850";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
+    // let advIdEG = "6899326735087566850";
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
     
-    console.log("[EG] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[EG] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdEG);
+    // await fetchPGMVMaxBreakdown(brand, advIdEG);
 
     // Rocketindo Shop
-    let advIdRshop = "7581835025746771976";
-    let brandRshop = "Rocketindo Shop"
+    // let advIdRshop = "7581835025746771976";
+    // let brandRshop = "Rocketindo Shop"
     
-    const basicAdsDataRshop = await fetchTiktokBasicAds(brandRshop, advIdRshop, 50000);
-    const pgmvMaxDataRshop = await fetchProductGMVMax(brandRshop, advIdRshop, 52000);
-    const lgmvMaxDataRshop = await fetchLiveGMVMax(brandRshop, advIdRshop, 54000);
+    // const basicAdsDataRshop = await fetchTiktokBasicAds(brandRshop, advIdRshop, 50000);
+    // const pgmvMaxDataRshop = await fetchProductGMVMax(brandRshop, advIdRshop, 52000);
+    // const lgmvMaxDataRshop = await fetchLiveGMVMax(brandRshop, advIdRshop, 54000);
 
-    await handleTiktokAdsData(basicAdsDataRshop, pgmvMaxDataRshop, lgmvMaxDataRshop, brandRshop);
+    // await handleTiktokAdsData(basicAdsDataRshop, pgmvMaxDataRshop, lgmvMaxDataRshop, brandRshop);
 
-    await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
+    // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Relove, JR, Enchante
-    await handleRelove();
-    await handleJR();
-    await handleEnchante();
+    // await handleRelove();
+    // await handleJR();
+    // await handleEnchante();
 }
 
 async function handleRelove() {
