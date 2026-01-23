@@ -119,16 +119,13 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                 access_token: access_token,
                 shop_id: shop_id,
                 sign,
-                order_sn_list: data[i],
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
             console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
 
             const response = await axios.get(fullUrl, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                "order_sn_list": data[i],
             });
 
             console.log("[SHOPEE-WITHDRAWAL] Raw response: ");
