@@ -202,8 +202,8 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
     }
     // Fetch affiliate data per shop_id
 
-    // const startDateUpdateTime = new Date(updateTime);
-    const startDateUpdateTime = new Date("2026-01-17");
+    const startDateUpdateTime = new Date(updateTime);
+    // const startDateUpdateTime = new Date("2026-01-17");
     const startY = startDateUpdateTime.getFullYear();
     const startM = String(startDateUpdateTime.getMonth() + 1).padStart(2, '0');
     const startD = String(startDateUpdateTime.getDate()).padStart(2, '0');
