@@ -119,7 +119,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                 access_token: access_token,
                 shop_id: shop_id,
                 sign,
-                order_sn_list: d[i],
+                order_sn_list: data[i],
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
