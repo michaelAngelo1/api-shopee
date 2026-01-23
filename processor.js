@@ -17,7 +17,7 @@ import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from './functions/fetchPGMVMaxBreakdown.js';
 import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
 import { fetchAffiliateData } from './functions/amsProcessor.js';
-import { fetchDanaDilepas } from './functions/escrowProcessor.js';
+import { mainDanaDilepas } from './functions/escrowProcessor.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -197,7 +197,7 @@ export async function fetchAndProcessOrders() {
     await refreshToken();
 
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await fetchDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
 
