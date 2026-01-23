@@ -123,7 +123,6 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                 access_token: access_token,
                 shop_id: shop_id,
                 sign,
-                order_sn_list: data[i].join(",")
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
@@ -131,21 +130,18 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
 
             console.log("Data[i]: ", data[i]);
 
-            const response = await axios.get(fullUrl, {
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+            const response = await axios.post(fullUrl, {
+                "order_sn_list": data[i]
             });
 
             console.log("[SHOPEE-WITHDRAWAL] Raw response: ");
-            console.log(response);
             let escrowDetailList = response.data.response;
 
-            // escrowDetailList.forEach(e => {
-            //     console.log("Escrow order id: ", e.escrow_detail.order_sn);
-            //     console.log("Escrow buyer: ", e.escrow_detail.buyer_user_name);
-            //     console.log("\n");
-            // });
+            escrowDetailList.forEach(e => {
+                console.log("Escrow order id: ", e.escrow_detail.order_sn);
+                console.log("Escrow buyer: ", e.escrow_detail.buyer_user_name);
+                console.log("\n");
+            });
 
             if(i == 4) {
                 break;
