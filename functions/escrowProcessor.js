@@ -52,9 +52,15 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         let danaDilepas = []
         let count = 0;
         while(response.data.response.more) {
+            console.log("Masuk more");
             let escrowList = response.data.response.escrow_list;
+            
+            console.log("Escrow list first 3: ");
+            console.log(escrowList.slice(0, 3));
+
             escrowList.forEach(c => {
                 count += 1;
+                print("Count: ", count);
             })
         }
 
