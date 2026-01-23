@@ -24,10 +24,10 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             .update(baseString)
             .digest('hex');
         
-        let danaDilepas = []
         let count = 0;
         let hasMore = true;
         let pageNumber = 1;
+        let escrowContainer = [];
 
         while(hasMore) {
 
@@ -55,6 +55,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             });
 
             let escrowList = response.data.response.escrow_list;
+            escrowContainer.push(...escrowList);
 
             count += escrowList.length;
             hasMore = response.data.response.more;
@@ -62,6 +63,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         }
 
         console.log("[SHOPEE-WITHDRAWAL] Data count: ", count);
+        await mergeDanaDilepas(escrowContainer, brand)
     } catch (e) {
         console.log("[SHOPEE-WITHDRAWAL] ERROR on fetching Dana Dilepas on brand: ", brand);
         console.log(e.response);
@@ -73,8 +75,9 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 
 async function mergeDanaDilepas(data, brand) {
     console.log("Dana Dilepas on brand: ", brand)
-
-    // Merge to BigQuery
-
-    // console.log(data);
+    console.log("All Order_Sns on Data before Transform: \n");
+    data.forEach(d => {
+        console.log("Order_Sn: ", d.order_sn);
+        console.log("\n");
+    })
 }
