@@ -11,7 +11,10 @@ TODO:
 export async function mainDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
     const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
     const twentyBatchContainer = await transformData(escrowContainer, brand);
-    await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
+
+    if(twentyBatchContainer && twentyBatchContainer.length > 0) {
+        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
+    }
 }
 
 export async function fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
@@ -124,12 +127,14 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
             console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
 
+            console.log("Data[i]: ", data[i]);
+
             const response = await axios.get(fullUrl, {
                 "order_sn_list": data[i],
             });
 
             console.log("[SHOPEE-WITHDRAWAL] Raw response: ");
-            console.log(response?.data?.response);
+            console.log(response);
             let escrowDetailList = response.data.response;
 
             // escrowDetailList.forEach(e => {
