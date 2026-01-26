@@ -13,6 +13,7 @@ async function fetchWalletTransaction(brand, partner_id, partner_key, access_tok
             .update(baseString)
             .digest('hex');
         
+        let count = 0;
         let hasMore = true;
         let pageNumber = 0;
         let transactionContainer = [];
