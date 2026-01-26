@@ -40,7 +40,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         while(hasMore) {
 
             const releaseTimeStart = Math.floor(new Date("2026-01-01") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-01-21") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2026-01-24") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -139,11 +139,20 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
 
             escrowDetailList.forEach(e => {
                 console.log("Escrow order id: ", e.escrow_detail.order_sn);
-                console.log("Escrow buyer: ", e.escrow_detail.buyer_user_name);
+                console.log("Order original price: ", e.escrow_detail.order_income.order_original_price);
+                console.log("Order seller discount: ", e.escrow_detail.order_income.order_seller_discount);
+                console.log("Shopee discount: ", e.escrow_detail.order_income.shopee_discount);
+                console.log("Voucher from seller: ", e.escrow_detail.order_income.voucher_from_seller);
+                console.log("Order AMS commission fee: ", e.escrow_detail.order_income.order_ams_commission_fee);
+                console.log("Commission fee: ", e.escrow_detail.order_income.commission_fee);
+                console.log("Service fee: ", e.escrow_detail.order_income.service_fee);
+                console.log("Seller order processing fee: ", e.escrow_detail.order_income.seller_order_processing_fee);
+                console.log("Service fee: ", e.escrow_detail.order_income.service_fee);
+                console.log("Escrow amount: ", e.escrow_detail.order_income.service_fee);
                 console.log("\n");
             });
 
-            if(i == 4) {
+            if(i == 2) {
                 break;
             }
         }
