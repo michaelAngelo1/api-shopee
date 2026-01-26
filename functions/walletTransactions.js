@@ -56,10 +56,29 @@ async function fetchWalletTransaction(brand, partner_id, partner_key, access_tok
     }
 }
 
+async function transformData(data) {
+    let transformed = [];
+    data.forEach(d => {
+        let obj = {
+            'order_sn': d.order_sn,
+            'description': d.description,
+            'amount': d.amount,
+            'money_flow': d.money_flow
+        }
+        transformed.push(obj);
+    });
+    return transformed;
+}
+
+async function mergeData(data, brand) {
+    return;
+}
+
 export async function handleWalletTransactions(brand, partner_id, partner_key, access_token, shop_id) {
     const transactionContainer = await fetchWalletTransaction(brand, partner_id, partner_key, access_token, shop_id);
+    const transformed = await transformData(transactionContainer);
 
-    console.log("[WALLET-TRX] First 3 transaction container");
-    console.log(transactionContainer.slice(0, 3));
+    console.log("Transformed first 3: ");
+    console.log(transformed.slice(0, 3));
 }
 
