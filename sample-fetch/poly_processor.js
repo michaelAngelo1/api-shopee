@@ -9,6 +9,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -126,22 +127,23 @@ export async function fetchAndProcessOrdersPOLY() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 7400);
+    // await fetchAffiliateData(brand, SHOP_ID, 7400);
 
-    let advIdPoly = "7275178424493211650";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly);
+    // let advIdPoly = "7275178424493211650";
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly);
     
-    console.log("[POLYNIA] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[POLYNIA] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdPoly);
+    // await fetchPGMVMaxBreakdown(brand, advIdPoly);
 }

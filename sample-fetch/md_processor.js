@@ -15,6 +15,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -235,22 +236,23 @@ export async function fetchAndProcessOrdersMD() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 2500);
+    // await fetchAffiliateData(brand, SHOP_ID, 2500);
 
-    let advIdMD = "7271210972684451842";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMD);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMD);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMD);
+    // let advIdMD = "7271210972684451842";
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdMD);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdMD);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMD);
     
-    console.log("[MISSDAISY] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[MISSDAISY] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdMD);
+    // await fetchPGMVMaxBreakdown(brand, advIdMD);
 }

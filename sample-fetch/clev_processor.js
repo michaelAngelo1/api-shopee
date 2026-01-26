@@ -15,6 +15,7 @@ import { fetchLiveGMVMax } from "../functions/fetchLiveGMVMax.js";
 import { handleTiktokAdsData } from "../functions/handleTiktokAdsData.js";
 import { fetchPGMVMaxBreakdown } from "../functions/fetchPGMVMaxBreakdown.js";
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from "../functions/walletTransactions.js";
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -236,28 +237,29 @@ export async function fetchAndProcessOrdersCLEV() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 4000);
+    // await fetchAffiliateData(brand, SHOP_ID, 4000);
 
-    let advIdClev = "7553576714043965448";
+    // let advIdClev = "7553576714043965448";
     
-    // For backfill
-    let advIdMirae = "7306798768821387265";
+    // // For backfill
+    // let advIdMirae = "7306798768821387265";
 
-    let advertiserId = advIdClev;
+    // let advertiserId = advIdClev;
 
-    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
     
-    console.log("[CLEV] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[CLEV] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advertiserId);
+    // await fetchPGMVMaxBreakdown(brand, advertiserId);
 }

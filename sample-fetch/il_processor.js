@@ -9,6 +9,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -128,40 +129,42 @@ export async function fetchAndProcessOrdersIL() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 9000);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
+
+    // await fetchAffiliateData(brand, SHOP_ID, 9000);
     
-    // For backfilling
-    let advIdGbelle = "7329483707528691714";
+    // // For backfilling
+    // let advIdGbelle = "7329483707528691714";
     
-    let advIdIvyLily = "7462652500143996929";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdIvyLily);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdIvyLily);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdIvyLily);
+    // let advIdIvyLily = "7462652500143996929";
+    // const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdIvyLily);
+    // const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdIvyLily);
+    // const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdIvyLily);
     
-    console.log("[IVYLILY] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[IVYLILY] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    let advIdNaruko = "7392579089489608720"
-    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdNaruko, 19000);
-    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdNaruko, 20000);
-    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdNaruko, 21000);
+    // let advIdNaruko = "7392579089489608720"
+    // const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdNaruko, 19000);
+    // const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdNaruko, 20000);
+    // const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdNaruko, 21000);
     
-    console.log("[NARUKO] All data on: ", brandNaruko);
-    console.log(basicAdsDataNaruko);
-    console.log(pgmvMaxDataNaruko);
-    console.log(lgmvMaxDataNaruko);
-    console.log("\n");
+    // console.log("[NARUKO] All data on: ", brandNaruko);
+    // console.log(basicAdsDataNaruko);
+    // console.log(pgmvMaxDataNaruko);
+    // console.log(lgmvMaxDataNaruko);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await handleTiktokAdsData(basicAdsDataNaruko, pgmvMaxDataNaruko, lgmvMaxDataNaruko, brandNaruko);
+    // await handleTiktokAdsData(basicAdsDataNaruko, pgmvMaxDataNaruko, lgmvMaxDataNaruko, brandNaruko);
 
-    // For backfilling
-    await fetchPGMVMaxBreakdown(brandTT, advIdIvyLily);
-    await fetchPGMVMaxBreakdown(brandNaruko, advIdNaruko);
+    // // For backfilling
+    // await fetchPGMVMaxBreakdown(brandTT, advIdIvyLily);
+    // await fetchPGMVMaxBreakdown(brandNaruko, advIdNaruko);
 }

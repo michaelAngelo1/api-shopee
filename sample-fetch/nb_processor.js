@@ -9,6 +9,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -126,28 +127,29 @@ export async function fetchAndProcessOrdersNB() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID)
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 8500);
+    // await fetchAffiliateData(brand, SHOP_ID, 8500);
 
-    let advIdNutriBeyond = "7457040121955729425";
-    // For backfilling
-    let advIdMamaway = "7306800699382251521";
+    // let advIdNutriBeyond = "7457040121955729425";
+    // // For backfilling
+    // let advIdMamaway = "7306800699382251521";
 
-    let advertiserId = advIdNutriBeyond;
+    // let advertiserId = advIdNutriBeyond;
 
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
+    // const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
+    // const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
+    // const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
     
-    console.log("[NB] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[NB] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    // For backfilling
-    await fetchPGMVMaxBreakdown(brandTT, advertiserId);
+    // // For backfilling
+    // await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }

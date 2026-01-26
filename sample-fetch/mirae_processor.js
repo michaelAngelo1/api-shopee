@@ -9,6 +9,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -126,22 +127,23 @@ export async function fetchAndProcessOrdersMIRAE() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 6500);
+    // await fetchAffiliateData(brand, SHOP_ID, 6500);
 
-    let advIdMirae = "7306798768821387265";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMirae);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMirae);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMirae);
+    // let advIdMirae = "7306798768821387265";
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdMirae);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdMirae);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMirae);
     
-    console.log("[MIRAE] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[MIRAE] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdMirae);
+    // await fetchPGMVMaxBreakdown(brand, advIdMirae);
 }

@@ -9,6 +9,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -125,23 +126,24 @@ export async function fetchAndProcessOrdersEVOKE() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID)
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 5500);
+    // await fetchAffiliateData(brand, SHOP_ID, 5500);
 
-    let advIdEvoke = "7374337917889953808"
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvoke);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvoke);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvoke);
+    // let advIdEvoke = "7374337917889953808"
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdEvoke);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdEvoke);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEvoke);
     
-    console.log("[EVOKE] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[EVOKE] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdEvoke);
+    // await fetchPGMVMaxBreakdown(brand, advIdEvoke);
 }
 
