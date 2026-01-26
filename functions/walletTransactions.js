@@ -1,5 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
+import { BigQuery } from '@google-cloud/bigquery';
 
 async function fetchWalletTransaction(brand, partner_id, partner_key, access_token, shop_id) {    
     console.log("Fetch Wallet Transaction of brand: ", brand);
@@ -60,25 +61,53 @@ async function transformData(data) {
     let transformed = [];
     data.forEach(d => {
         let obj = {
+            'created_date': new Date(d.create_time).toISOString().replace('T', ' ').split('.')[0],
             'order_sn': d.order_sn,
             'description': d.description,
             'amount': d.amount,
-            'money_flow': d.money_flow
+            'money_flow': d.money_flow,
         }
         transformed.push(obj);
     });
     return transformed;
 }
 
+const brandTables = {
+    'Eileen Grace': "eileen_grace_wallet_trx",
+}
+
 async function mergeData(data, brand) {
-    return;
+    console.log("[WALLET-TRX] Start merging for brand: ", brand);
+    const tableName = brandTables[brand];
+    const bigquery = new BigQuery();
+    const datasetId = 'shopee_api';
+
+    try {
+        for(const d of data) {
+    
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert({
+                    created_date: d.created_date,
+                    order_sn: d.order_sn,
+                    description: d.description,
+                    amount: d.amount,
+                    money_flow: d.money_flow,
+                    process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
+                });
+        }
+        console.log("[WALLET-TRX] Merged to table: ", tableName);
+    } catch (e) {
+        console.log("[WALLET-TRX] Error merging wallet trx on brand: ", brand);
+        console.log(e);
+    }   
+
 }
 
 export async function handleWalletTransactions(brand, partner_id, partner_key, access_token, shop_id) {
     const transactionContainer = await fetchWalletTransaction(brand, partner_id, partner_key, access_token, shop_id);
     const transformed = await transformData(transactionContainer);
-
-    console.log("Transformed first 3: ");
-    console.log(transformed.slice(0, 3));
+    await mergeData(transformed, brand);
 }
 
