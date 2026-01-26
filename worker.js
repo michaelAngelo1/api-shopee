@@ -165,12 +165,12 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Mamaway
-        // await orderQueueMMW.add('staging-fetch-orders-mmw', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `mmw-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        await orderQueueMMW.add('staging-fetch-orders-mmw', {}, { 
+            ...baseOptions, 
+            jobId: `mmw-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
         // // Chess
         // await orderQueueCHESS.add('staging-fetch-orders-chess', {}, { 

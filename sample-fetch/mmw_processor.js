@@ -9,6 +9,7 @@ import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
+import { handleWalletTransactions } from '../functions/walletTransactions.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -125,22 +126,23 @@ export async function fetchAndProcessOrdersMMW() {
 
     await refreshToken();
 
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 1500);
+    // await fetchAffiliateData(brand, SHOP_ID, 1500);
     
-    let advIdMamaway = "7306800699382251521";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMamaway);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMamaway);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMamaway);
+    // let advIdMamaway = "7306800699382251521";
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdMamaway);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdMamaway);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMamaway);
     
-    console.log("[MMW] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[MMW] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdMamaway);
+    // await fetchPGMVMaxBreakdown(brand, advIdMamaway);
 }
