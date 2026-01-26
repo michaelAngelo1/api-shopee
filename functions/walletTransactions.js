@@ -20,8 +20,8 @@ async function fetchWalletTransaction(brand, partner_id, partner_key, access_tok
         let transactionContainer = [];
 
         while(hasMore) {
-            const createTimeFrom = Math.floor(new Date("2026-01-16") / 1000);
-            const createTimeTo = Math.floor(new Date("2026-01-25") / 1000);
+            const createTimeFrom = Math.floor(new Date("2026-01-01") / 1000);
+            const createTimeTo = Math.floor(new Date("2026-01-15") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -66,6 +66,8 @@ async function transformData(data) {
             'description': d.description,
             'amount': d.amount,
             'money_flow': d.money_flow,
+            'transaction_id': d.transaction_id,
+            'status': d.status,
         }
         transformed.push(obj);
     });
@@ -102,63 +104,76 @@ async function mergeData(data, brand) {
     const bigquery = new BigQuery();
     const datasetId = 'shopee_api';
 
-    try {
-        // 2. Prepare the list of dates to check in bulk
-        const incomingDates = data.map(d => d.created_date);
+    // If no data to merge, exit early to save API calls
+    if (!data || data.length === 0) {
+        console.log("[WALLET-TRX] No data to merge for", brand);
+        return;
+    }
 
-        // 3. Batch Query: Find all dates from this batch that ALREADY exist in BigQuery
-        // We select 'created_date' specifically to compare against your input
+    try {
+        // SQL: MERGE Statement (The "Upsert" Logic)
+        // We match rows based on 'transaction_id'.
         const query = `
-            SELECT created_date
-            FROM \`${datasetId}.${tableName}\`
-            WHERE created_date IN UNNEST(@dates)
+            MERGE \`${datasetId}.${tableName}\` T
+            USING UNNEST(@sourceData) S
+            ON T.transaction_id = S.transaction_id
+            
+            -- 1. If ID exists: Update the status and refresh the process timestamp
+            WHEN MATCHED THEN
+                UPDATE SET 
+                    status = S.status,
+                    process_dttm = CURRENT_DATETIME()
+            
+            -- 2. If ID is new: Insert the full record
+            WHEN NOT MATCHED THEN
+                INSERT (
+                    transaction_id, 
+                    created_date, 
+                    order_sn, 
+                    description, 
+                    amount, 
+                    money_flow, 
+                    status, 
+                    process_dttm
+                )
+                VALUES (
+                    S.transaction_id, 
+                    S.created_date, 
+                    S.order_sn, 
+                    S.description, 
+                    S.amount, 
+                    S.money_flow, 
+                    S.status, 
+                    CURRENT_DATETIME()
+                )
         `;
+
+        // Map data to ensure clean types for BigQuery
+        const sourceData = data.map(d => ({
+            transaction_id: String(d.transaction_id), // Ensure ID is a string
+            created_date: d.created_date,
+            order_sn: d.order_sn || null,
+            description: d.description,
+            amount: parseFloat(d.amount),
+            money_flow: d.money_flow,
+            status: d.status
+        }));
 
         const options = {
             query,
             params: {
-                dates: incomingDates
+                sourceData: sourceData
             }
         };
 
-        const [existingRows] = await bigquery.query(options);
+        // Run the query
+        await bigquery.query(options);
+        console.log(`[WALLET-TRX] Successfully merged (upserted) ${sourceData.length} rows for ${brand}`);
 
-        // 4. Create a Set for fast lookup of existing dates
-        // Note: Ensure BQ timestamp format matches your input format (e.g. both are Unix integers or ISO strings)
-        const existingDatesSet = new Set(existingRows.map(row => {
-            // BigQuery might return an object for timestamps, ensure we get the primitive value
-            return row.created_date.value ? row.created_date.value : row.created_date;
-        }));
-
-        // 5. Filter Data: Keep only records where created_date is NOT in the DB
-        const rowsToInsert = data
-            .filter(d => !existingDatesSet.has(d.created_date))
-            .map(d => ({
-                created_date: d.created_date,
-                order_sn: d.order_sn, // Can be null/empty as per your requirement
-                description: d.description,
-                amount: d.amount,
-                money_flow: d.money_flow,
-                // Create timestamp for when this record was processed
-                process_dttm: new Date().toISOString().replace('T', ' ').substring(0, 19)
-            }));
-
-        // 6. Batch Insert: Upload all new rows at once
-        if (rowsToInsert.length > 0) {
-            await bigquery
-                .dataset(datasetId)
-                .table(tableName)
-                .insert(rowsToInsert);
-                
-            console.log(`[WALLET-TRX] Merged ${rowsToInsert.length} new rows to ${tableName}`);
-        } else {
-            console.log("[WALLET-TRX] All data already exists. No new rows inserted.");
-        }
     } catch (e) {
         console.log("[WALLET-TRX] Error merging wallet trx on brand: ", brand);
         console.log(e);
     }   
-
 }
 
 export async function handleWalletTransactions(brand, partner_id, partner_key, access_token, shop_id) {
