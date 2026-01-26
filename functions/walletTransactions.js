@@ -61,7 +61,7 @@ async function transformData(data) {
     let transformed = [];
     data.forEach(d => {
         let obj = {
-            'created_date': new Date(d.create_time).toISOString().replace('T', ' ').split('.')[0],
+            'created_date': new Date(d.create_time * 1000).toISOString().replace('T', ' ').split('.')[0],
             'order_sn': d.order_sn,
             'description': d.description,
             'amount': d.amount,
@@ -83,19 +83,20 @@ async function mergeData(data, brand) {
     const datasetId = 'shopee_api';
 
     try {
+        console.log('[WALLET-TRX] Data before merge');
         for(const d of data) {
-    
-            await bigquery
-                .dataset(datasetId)
-                .table(tableName)
-                .insert({
-                    created_date: d.created_date,
-                    order_sn: d.order_sn,
-                    description: d.description,
-                    amount: d.amount,
-                    money_flow: d.money_flow,
-                    process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
-                });
+            console.log(d);
+            // await bigquery
+            //     .dataset(datasetId)
+            //     .table(tableName)
+            //     .insert({
+            //         created_date: d.created_date,
+            //         order_sn: d.order_sn,
+            //         description: d.description,
+            //         amount: d.amount,
+            //         money_flow: d.money_flow,
+            //         process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
+            //     });
         }
         console.log("[WALLET-TRX] Merged to table: ", tableName);
     } catch (e) {
