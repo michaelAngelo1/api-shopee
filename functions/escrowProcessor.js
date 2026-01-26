@@ -109,6 +109,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
     const PATH = "/api/v2/payment/get_escrow_detail_batch";
 
     try {
+        let escrowBreakdown = [];
         for(let i=0; i<data.length; i++) {
 
             const timestamp = Math.floor(Date.now() / 1000);
@@ -138,23 +139,22 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             let escrowDetailList = response.data.response;
 
             escrowDetailList.forEach(e => {
-                console.log("Escrow order id: ", e.escrow_detail.order_sn);
-                console.log("Order original price: ", e.escrow_detail.order_income.order_original_price);
-                console.log("Order seller discount: ", e.escrow_detail.order_income.order_seller_discount);
-                console.log("Shopee discount: ", e.escrow_detail.order_income.shopee_discount);
-                console.log("Voucher from seller: ", e.escrow_detail.order_income.voucher_from_seller);
-                console.log("Order AMS commission fee: ", e.escrow_detail.order_income.order_ams_commission_fee);
-                console.log("Commission fee: ", e.escrow_detail.order_income.commission_fee);
-                console.log("Service fee: ", e.escrow_detail.order_income.service_fee);
-                console.log("Seller order processing fee: ", e.escrow_detail.order_income.seller_order_processing_fee);
-                console.log("Service fee: ", e.escrow_detail.order_income.service_fee);
-                console.log("Escrow amount: ", e.escrow_detail.order_income.service_fee);
-                console.log("\n");
+                let obj = {
+                    "No_Pesanan": e.escrow_detail.order_sn,
+                    "Harga_Asli_Produk": e.escrow_detail.order_income.order_original_price,
+                    "Total_Diskon_Produk": e.escrow_detail.order_income.order_seller_discount,
+                    "Diskon_Produk_Dari_Shopee": e.escrow_detail.order_income.shopee_discount,
+                    "Diskon_Voucher_Ditanggung_Penjual": e.escrow_detail.order_income.voucher_from_seller,
+                    "Biaya_Komisi_AMS": e.escrow_detail.order_income.order_ams_commission_fee,
+                    "Biaya_Administrasi_with_PPN_11": e.escrow_detail.order_income.commission_fee,
+                    "Biaya_Layanan": e.escrow_detail.order_income.service_fee,
+                    "Biaya_Proses_Pesanan": e.escrow_detail.order_income.seller_order_processing_fee,
+                    "Total_Penghasilan": e.escrow_detail.order_income.escrow_amount
+                }
+                escrowBreakdown.push(obj);
             });
 
-            if(i == 2) {
-                break;
-            }
+            // escrowBreakdown to merge to BigQuery.
         }
     } catch (e) {
         console.error("[SHOPEE-WITHDRAWAL] Error getting ESCROW DETAIL BATCH: ", brand);
