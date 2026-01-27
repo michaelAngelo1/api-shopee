@@ -152,7 +152,7 @@ async function mergeData(data, brand) {
         const sourceData = data.map(d => ({
             transaction_id: String(d.transaction_id), // Ensure ID is a string
             created_date: d.created_date,
-            order_sn: d.order_sn || null,
+            order_sn: d.order_sn,
             description: d.description,
             amount: parseFloat(d.amount),
             money_flow: d.money_flow,
