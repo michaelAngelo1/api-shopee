@@ -199,7 +199,9 @@ export async function fetchAndProcessOrders() {
 
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    
+    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
 
@@ -232,48 +234,201 @@ export async function fetchAndProcessOrders() {
 
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
-    // Relove, JR, Enchante
+    // Naruko, Relove, JR, Enchante
+    await handleNaruko();
     // await handleRelove();
     // await handleJR();
     // await handleEnchante();
 }
 
+export const DR_JOU_PARTNER_ID = parseInt(process.env.DR_JOU_PARTNER_ID);
+export const DR_JOU_PARTNER_KEY = process.env.DR_JOU_PARTNER_KEY;
+const NEW_BRANDS_REFRESH_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
+let NEW_BRANDS_ACCESS_TOKEN, NEW_BRANDS_REFRESH_TOKEN;
+
+async function refreshTokenNewBrands(brand, shop_id) {
+    const path = "/api/v2/auth/access_token/get";
+    const timestamp = Math.floor(Date.now() / 1000);
+    const baseString = `${DR_JOU_PARTNER_ID}${path}${timestamp}`;
+    const sign = crypto.createHmac('sha256', DR_JOU_PARTNER_KEY)
+        .update(baseString)
+        .digest('hex');
+    
+    const fullUrl = `${NEW_BRANDS_REFRESH_URL}?partner_id=${DR_JOU_PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
+
+    const body = {
+        refresh_token: NEW_BRANDS_REFRESH_TOKEN,
+        partner_id: DR_JOU_PARTNER_ID,
+        shop_id: shop_id
+    }
+
+    console.log("Hitting Refresh Token endpoint New Brands: ", fullUrl);
+
+    const response = await axios.post(fullUrl, body, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+
+    const newAccessToken = response.data.access_token;
+    const newRefreshToken = response.data.refresh_token;
+
+    if(newAccessToken && newRefreshToken) {
+        NEW_BRANDS_ACCESS_TOKEN = newAccessToken;
+        NEW_BRANDS_REFRESH_TOKEN = newRefreshToken;
+
+        saveTokensToSecret(brand, {
+            accessToken: NEW_BRANDS_ACCESS_TOKEN,
+            refreshToken: NEW_BRANDS_REFRESH_TOKEN
+        });
+    } else {
+        console.log("[NEW-BRANDS] token refresh not found :(")
+        throw new Error("NEW BRANDS Tokens dont exist");
+    }
+}
+
+let brandSecret = {
+    "Naruko": "projects/231801348950/secrets/naruko-shopee-tokens",
+    "Relove": "projects/231801348950/secrets/relove-shopee-tokens",
+    "Joey & Roo": "projects/231801348950/secrets/joey-roo-shopee-tokens",
+    "Enchante": "projects/231801348950/secrets/enchante-shopee-tokens",
+}
+
+async function saveTokensNewBrands(brand, tokens) {
+    let parent = brandSecret[brand];
+    const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
+    try {
+        const [newVersion] = await secretClient.addSecretVersion({
+            parent: parent,
+            payload: {
+                data: payload,
+            }
+        });
+
+        console.log("[NEW-BRANDS] Saved Shopee tokens to Secret Manager");
+
+        // Destroying previous token version
+        const [versions] = await secretClient.listSecretVersions({
+            parent: parent
+        });
+
+        for (const version of versions) {
+            if (version.name !== newVersion.name && version.state !== 'DESTROYED') {
+                try {
+                    await secretClient.destroySecretVersion({
+                        name: version.name
+                    });
+                    console.log(`Destroyed old token version: ${version.name}`);
+                } catch (destroyError) {
+                    console.error(`Failed to destroy version ${version.name}:`, destroyError);
+                }
+            }
+        }
+        console.log("[NEW-BRANDS] Successfully saved tokens to New Brands Secret Manager: ", parent);
+    } catch (e) {
+        console.error("[NEW-BRANDS] Error saving tokens to Secret Manager: ", e);
+    }
+}
+
+
+async function loadTokensNewBrands(brand) {
+    let brandSecretName = {
+        "Naruko": "projects/231801348950/secrets/naruko-shopee-tokens/versions/latest",
+        "Relove": "projects/231801348950/secrets/relove-shopee-tokens/versions/latest",
+        "Joey & Roo": "projects/231801348950/secrets/joey-roo-shopee-tokens/versions/latest",
+        "Enchante": "projects/231801348950/secrets/enchante-shopee-tokens/versions/latest",
+    }
+    const secretName = brandSecretName[brand];
+    console.log("SECRET NAME: ", secretName);
+    try {
+        const [version] = await secretClient.accessSecretVersion({
+            name: secretName,
+        });
+        const data = version.payload.data.toString('UTF-8');
+        const tokens = JSON.parse(data);
+        console.log(brand, " Tokens loaded from Secret Manager: ", tokens);
+        return tokens;
+    } catch (e) {
+        console.error("[NEW-BRANDS] Error loading tokens from Secret Manager: ", e);
+    }
+}
+
+async function handleNaruko() {
+    let brand = "Naruko";
+    let shopId = "1638001566";
+
+    const loadedTokens = loadTokensNewBrands(brand);
+    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
+    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshTokenNewBrands(brand, shopId)
+
+    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+}
+
 async function handleRelove() {
-    let advId = "7374006579160612865"
-    let brand = "Relove"
+    let advId = "7374006579160612865";
+    let brand = "Relove";
+    let shopId = "1684312913";
 
-    const basicAds = await fetchTiktokBasicAds(brand, advId, 56000);
-    const pgmvMax = await fetchProductGMVMax(brand, advId, 58000);
-    const lgmvMax = await fetchLiveGMVMax(brand, advId, 60000);
+    // const basicAds = await fetchTiktokBasicAds(brand, advId, 56000);
+    // const pgmvMax = await fetchProductGMVMax(brand, advId, 58000);
+    // const lgmvMax = await fetchLiveGMVMax(brand, advId, 60000);
 
-    await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
+    // await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advId);
+    // await fetchPGMVMaxBreakdown(brand, advId);
+    
+    const loadedTokens = loadTokensNewBrands(brand);
+    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
+    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshTokenNewBrands(brand, shopId);
+
+    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
 async function handleJR() {
     let advId = "7431433066935091201"
     let brand = "Joey & Roo"
     let brandTT = "Joey Roo"
+    let shopId = "1682176843"
 
-    const basicAds = await fetchTiktokBasicAds(brandTT, advId, 62000);
-    const pgmvMax = await fetchProductGMVMax(brandTT, advId, 64000);
-    const lgmvMax = await fetchLiveGMVMax(brandTT, advId, 66000);
+    // const basicAds = await fetchTiktokBasicAds(brandTT, advId, 62000);
+    // const pgmvMax = await fetchProductGMVMax(brandTT, advId, 64000);
+    // const lgmvMax = await fetchLiveGMVMax(brandTT, advId, 66000);
 
-    await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
+    // await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
 
-    await fetchPGMVMaxBreakdown(brandTT, advId);
+    // await fetchPGMVMaxBreakdown(brandTT, advId);
+    const loadedTokens = loadTokensNewBrands(brand);
+    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
+    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshTokenNewBrands(brand, shopId);
+
+    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
 async function handleEnchante() {
     let advId = "7579206207240765448"
     let brand = "Enchante"
+    let shopId = "1684342027"
 
-    const basicAds = await fetchTiktokBasicAds(brand, advId, 68000);
-    const pgmvMax = await fetchProductGMVMax(brand, advId, 70000);
-    const lgmvMax = await fetchLiveGMVMax(brand, advId, 72000);
+    // const basicAds = await fetchTiktokBasicAds(brand, advId, 68000);
+    // const pgmvMax = await fetchProductGMVMax(brand, advId, 70000);
+    // const lgmvMax = await fetchLiveGMVMax(brand, advId, 72000);
 
-    await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
+    // await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advId);
+    // await fetchPGMVMaxBreakdown(brand, advId);
+    
+    const loadedTokens = loadTokensNewBrands(brand);
+    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
+    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshTokenNewBrands(brand, shopId);
+
+    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
+

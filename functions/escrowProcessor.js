@@ -3,20 +3,6 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios from 'axios';
 import crypto from 'crypto';
 
-/*** 
-TODO:
-1. Should hit two endpoints: get_escrow_list and get_escrow_detail per order_sn
-2. Transform the data with the required structure
-***/
-export async function mainDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
-    const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
-    const twentyBatchContainer = await transformData(escrowContainer, brand);
-
-    if(twentyBatchContainer && twentyBatchContainer.length > 0) {
-        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
-    }
-}
-
 export async function fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
     console.log("Fetch Dana Dilepas of brand: ", brand);
 
@@ -199,4 +185,18 @@ const brandTables = {
 //         console.error(e);
 //     }
 // }
+
+/*** 
+TODO:
+1. Should hit two endpoints: get_escrow_list and get_escrow_detail per order_sn
+2. Transform the data with the required structure
+***/
+export async function mainDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
+    const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
+    const twentyBatchContainer = await transformData(escrowContainer, brand);
+
+    if(twentyBatchContainer && twentyBatchContainer.length > 0) {
+        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
+    }
+}
 
