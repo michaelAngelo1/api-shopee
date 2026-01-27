@@ -191,11 +191,11 @@ export async function fetchAndProcessOrders() {
     console.log("[EG] Start fetching ads total balance. Calling the function.");
     let brand = "Eileen Grace";
 
-    const loadedTokens = await loadTokensFromSecret();
-    ACCESS_TOKEN = loadedTokens.accessToken;
-    REFRESH_TOKEN = loadedTokens.refreshToken;
+    // const loadedTokens = await loadTokensFromSecret();
+    // ACCESS_TOKEN = loadedTokens.accessToken;
+    // REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
