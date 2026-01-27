@@ -62,8 +62,6 @@ async function transformData(data) {
     data.forEach(d => {
         if(d.status !== "COMPLETED") {
             console.log("Non-completed data: ", d.status);
-        } else {
-            console.log("status is completed: ", d.status);
         }
         let obj = {
             'created_date': new Date(d.create_time * 1000).toISOString().replace('T', ' ').split('.')[0],
