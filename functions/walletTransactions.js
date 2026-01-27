@@ -109,6 +109,13 @@ async function mergeData(data, brand) {
         console.log("[WALLET-TRX] No data to merge for", brand);
         return;
     }
+    const uniqueMap = new Map();
+    data.forEach(item => {
+        // We use the transaction_id as the key. 
+        // If it already exists, this overwrites it with the latest version.
+        uniqueMap.set(String(item.transaction_id), item);
+    });
+    const uniqueData = Array.from(uniqueMap.values());
 
     try {
         // SQL: MERGE Statement (The "Upsert" Logic)
@@ -149,7 +156,7 @@ async function mergeData(data, brand) {
         `;
 
         // Map data to ensure clean types for BigQuery
-        const sourceData = data.map(d => ({
+        const sourceData = uniqueData.map(d => ({
             transaction_id: String(d.transaction_id), // Ensure ID is a string
             created_date: d.created_date,
             order_sn: d.order_sn,
