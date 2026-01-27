@@ -248,7 +248,7 @@ let NEW_BRANDS_ACCESS_TOKEN, NEW_BRANDS_REFRESH_TOKEN;
 
 async function refreshTokenNewBrands(brand, shop_id) {
     console.log("Refreshing token for brand: ", brand);
-    
+
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
     const baseString = `${DR_JOU_PARTNER_ID}${path}${timestamp}`;
@@ -359,7 +359,7 @@ async function handleNaruko() {
     let brand = "Naruko";
     let shopId = "1638001566";
 
-    const loadedTokens = loadTokensNewBrands(brand);
+    const loadedTokens = await loadTokensNewBrands(brand);
     NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
     NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
@@ -381,7 +381,7 @@ async function handleRelove() {
 
     // await fetchPGMVMaxBreakdown(brand, advId);
     
-    const loadedTokens = loadTokensNewBrands(brand);
+    const loadedTokens = await loadTokensNewBrands(brand);
     NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
     NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
@@ -403,7 +403,7 @@ async function handleJR() {
     // await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
 
     // await fetchPGMVMaxBreakdown(brandTT, advId);
-    const loadedTokens = loadTokensNewBrands(brand);
+    const loadedTokens = await loadTokensNewBrands(brand);
     NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
     NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
@@ -425,7 +425,7 @@ async function handleEnchante() {
 
     // await fetchPGMVMaxBreakdown(brand, advId);
     
-    const loadedTokens = loadTokensNewBrands(brand);
+    const loadedTokens = await loadTokensNewBrands(brand);
     NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
     NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
