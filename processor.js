@@ -247,6 +247,8 @@ const NEW_BRANDS_REFRESH_URL = "https://partner.shopeemobile.com/api/v2/auth/acc
 let NEW_BRANDS_ACCESS_TOKEN, NEW_BRANDS_REFRESH_TOKEN;
 
 async function refreshTokenNewBrands(brand, shop_id) {
+    console.log("Refreshing token for brand: ", brand);
+    
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
     const baseString = `${DR_JOU_PARTNER_ID}${path}${timestamp}`;
