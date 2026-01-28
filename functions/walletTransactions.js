@@ -20,12 +20,12 @@ async function fetchWalletTransaction(brand, partner_id, partner_key, access_tok
         let transactionContainer = [];
 
         while(hasMore) {
-            const createTimeFrom = Math.floor(new Date("2026-01-16") / 1000);
-            const createTimeTo = Math.floor(new Date("2026-01-27") / 1000);
+            const createTimeFrom = Math.floor(new Date("2026-01-14") / 1000);
+            const createTimeTo = Math.floor(new Date("2026-01-19") / 1000);
 
             console.log("Create time from: ", createTimeFrom);
             console.log("Create time to: ", createTimeTo);
-            
+
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -53,7 +53,7 @@ async function fetchWalletTransaction(brand, partner_id, partner_key, access_tok
             hasMore = response.data.response.more;
             pageNumber += 1;
         }
-        console.log("[WALLET-TRX] Data count: ", count);
+        console.log("[WALLET-TRX] Data row count: ", count);
         return transactionContainer;
     } catch (e) {
         console.log("[WALLET-TRX] Error on fetching wallet transaction of brand: ", brand);
