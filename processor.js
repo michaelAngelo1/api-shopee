@@ -71,7 +71,7 @@ async function refreshToken() {
 
         // saveTokensToFile({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
 
-        saveTokensToSecret({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
+        await saveTokensToSecret({ accessToken: ACCESS_TOKEN, refreshToken: REFRESH_TOKEN });
     } else {
         console.log("[EG] Tokens dont exist");
     }
@@ -279,7 +279,7 @@ async function refreshTokenNewBrands(brand, shop_id) {
         NEW_BRANDS_ACCESS_TOKEN = newAccessToken;
         NEW_BRANDS_REFRESH_TOKEN = newRefreshToken;
 
-        saveTokensNewBrands(brand, {
+        await saveTokensNewBrands(brand, {
             accessToken: NEW_BRANDS_ACCESS_TOKEN,
             refreshToken: NEW_BRANDS_REFRESH_TOKEN
         });
