@@ -266,26 +266,30 @@ async function refreshTokenNewBrands(brand, shop_id) {
 
     console.log("Hitting Refresh Token endpoint New Brands: ", fullUrl);
 
-    const response = await axios.post(fullUrl, body, {
-        headers: {
-            'Content-Type': 'application/json'
+    try {
+        const response = await axios.post(fullUrl, body, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+    
+        const newAccessToken = response.data.access_token;
+        const newRefreshToken = response.data.refresh_token;
+    
+        if(newAccessToken && newRefreshToken) {
+            NEW_BRANDS_ACCESS_TOKEN = newAccessToken;
+            NEW_BRANDS_REFRESH_TOKEN = newRefreshToken;
+    
+            await saveTokensNewBrands(brand, {
+                accessToken: NEW_BRANDS_ACCESS_TOKEN,
+                refreshToken: NEW_BRANDS_REFRESH_TOKEN
+            });
+        } else {
+            console.log("[NEW-BRANDS] token refresh not found :(")
+            throw new Error("NEW BRANDS Tokens dont exist");
         }
-    })
-
-    const newAccessToken = response.data.access_token;
-    const newRefreshToken = response.data.refresh_token;
-
-    if(newAccessToken && newRefreshToken) {
-        NEW_BRANDS_ACCESS_TOKEN = newAccessToken;
-        NEW_BRANDS_REFRESH_TOKEN = newRefreshToken;
-
-        await saveTokensNewBrands(brand, {
-            accessToken: NEW_BRANDS_ACCESS_TOKEN,
-            refreshToken: NEW_BRANDS_REFRESH_TOKEN
-        });
-    } else {
-        console.log("[NEW-BRANDS] token refresh not found :(")
-        throw new Error("NEW BRANDS Tokens dont exist");
+    } catch (e) {
+        console.log("[NEW-BRANDS] Error refreshing new brands token: ", e);
     }
 }
 
