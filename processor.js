@@ -236,9 +236,9 @@ export async function fetchAndProcessOrders() {
 
     // Naruko, Relove, JR, Enchante
     await handleNaruko();
-    // await handleRelove();
-    // await handleJR();
-    // await handleEnchante();
+    await handleRelove();
+    await handleJR();
+    await handleEnchante();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
