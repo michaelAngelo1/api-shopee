@@ -241,8 +241,8 @@ export async function fetchAndProcessOrders() {
     // await handleEnchante();
 }
 
-export const DR_JOU_PARTNER_ID = parseInt(process.env.DR_JOU_PARTNER_ID);
-export const DR_JOU_PARTNER_KEY = process.env.DR_JOU_PARTNER_KEY;
+export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
+export const DRJOU_PARTNER_KEY = process.env.DRJOU_PARTNER_KEY;
 const NEW_BRANDS_REFRESH_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 let NEW_BRANDS_ACCESS_TOKEN, NEW_BRANDS_REFRESH_TOKEN;
 
@@ -251,16 +251,16 @@ async function refreshTokenNewBrands(brand, shop_id) {
 
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
-    const baseString = `${DR_JOU_PARTNER_ID}${path}${timestamp}`;
-    const sign = crypto.createHmac('sha256', DR_JOU_PARTNER_KEY)
+    const baseString = `${DRJOU_PARTNER_ID}${path}${timestamp}`;
+    const sign = crypto.createHmac('sha256', DRJOU_PARTNER_KEY)
         .update(baseString)
         .digest('hex');
     
-    const fullUrl = `${NEW_BRANDS_REFRESH_URL}?partner_id=${DR_JOU_PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
+    const fullUrl = `${NEW_BRANDS_REFRESH_URL}?partner_id=${DRJOU_PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
         refresh_token: NEW_BRANDS_REFRESH_TOKEN,
-        partner_id: DR_JOU_PARTNER_ID,
+        partner_id: DRJOU_PARTNER_ID,
         shop_id: shop_id
     }
 
@@ -365,7 +365,7 @@ async function handleNaruko() {
 
     await refreshTokenNewBrands(brand, shopId)
 
-    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
 async function handleRelove() {
@@ -387,7 +387,7 @@ async function handleRelove() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
 async function handleJR() {
@@ -409,7 +409,7 @@ async function handleJR() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
 async function handleEnchante() {
@@ -431,6 +431,6 @@ async function handleEnchante() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    await handleWalletTransactions(brand, DR_JOU_PARTNER_ID, DR_JOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
