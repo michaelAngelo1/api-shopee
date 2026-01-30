@@ -375,7 +375,7 @@ async function handleNaruko() {
 async function handleRelove() {
     let advId = "7374006579160612865";
     let brand = "Relove";
-    let shopId = "1684312913";
+    let shopId = 1684312913;
 
     // const basicAds = await fetchTiktokBasicAds(brand, advId, 56000);
     // const pgmvMax = await fetchProductGMVMax(brand, advId, 58000);
@@ -398,7 +398,7 @@ async function handleJR() {
     let advId = "7431433066935091201"
     let brand = "Joey & Roo"
     let brandTT = "Joey Roo"
-    let shopId = "1682176843"
+    let shopId = 1682176843
 
     // const basicAds = await fetchTiktokBasicAds(brandTT, advId, 62000);
     // const pgmvMax = await fetchProductGMVMax(brandTT, advId, 64000);
@@ -419,7 +419,7 @@ async function handleJR() {
 async function handleEnchante() {
     let advId = "7579206207240765448"
     let brand = "Enchante"
-    let shopId = "1684342027"
+    let shopId = 1684342027
 
     // const basicAds = await fetchTiktokBasicAds(brand, advId, 68000);
     // const pgmvMax = await fetchProductGMVMax(brand, advId, 70000);
