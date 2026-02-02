@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 
-async function getShopCipher() {
+async function getShopCipher(brand) {
     try {
         const appKey = process.env.EG_TIKTOK_ACCESS_TOKEN;
         const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
