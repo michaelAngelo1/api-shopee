@@ -200,7 +200,7 @@ export async function fetchAndProcessOrders() {
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
-    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
