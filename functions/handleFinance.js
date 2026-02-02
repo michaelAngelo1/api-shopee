@@ -1,6 +1,13 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 
+// TODO:
+// 1. Bikin function getAccessToken from Secret Manager
+// 2. Bikin function refreshTokens, ambil refreshToken dari Secret Manager
+// 3. Expiration: access token 7 hari, refresh token lumayan lama.
+// *EG_TIKTOK_ACCESS_TOKEN remove dari env & secrets di staging-worker
+
+
 async function getShopCipher(brand) {
     try {
         const appKey = process.env.EG_TIKTOK_ACCESS_TOKEN;
