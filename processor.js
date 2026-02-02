@@ -192,18 +192,18 @@ export async function fetchAndProcessOrders() {
     console.log("[EG] Start fetching ads total balance. Calling the function.");
     let brand = "Eileen Grace";
 
-    const loadedTokens = await loadTokensFromSecret();
-    ACCESS_TOKEN = loadedTokens.accessToken;
-    REFRESH_TOKEN = loadedTokens.refreshToken;
+    // const loadedTokens = await loadTokensFromSecret();
+    // ACCESS_TOKEN = loadedTokens.accessToken;
+    // REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     // await handleFinance(brand);
 
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
     // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 
@@ -238,10 +238,10 @@ export async function fetchAndProcessOrders() {
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Naruko, Relove, JR, Enchante
-    await handleNaruko();
-    await handleRelove();
-    await handleJR();
-    await handleEnchante();
+    // await handleNaruko();
+    // await handleRelove();
+    // await handleJR();
+    // await handleEnchante();
     await handleRocketindoShop();
 }
 
@@ -445,6 +445,14 @@ async function handleEnchante() {
 }
 
 async function handleRocketindoShop() {
-    // same thing like new brands
-    console.log("Rocketindo Shop Wallet Trx");
+    let brand = "Rocketindo Shop";
+    let shopId = 375791385;
+
+    const loadedTokens = await loadTokensNewBrands(brand);
+    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
+    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshTokenNewBrands(brand, shopId)
+
+    await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
