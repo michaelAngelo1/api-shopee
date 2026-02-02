@@ -242,6 +242,7 @@ export async function fetchAndProcessOrders() {
     await handleRelove();
     await handleJR();
     await handleEnchante();
+    await handleRocketindoShop();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
@@ -301,6 +302,7 @@ let brandSecret = {
     "Relove": "projects/231801348950/secrets/relove-shopee-tokens",
     "Joey & Roo": "projects/231801348950/secrets/joey-roo-shopee-tokens",
     "Enchante": "projects/231801348950/secrets/enchante-shopee-tokens",
+    "Rocketindo Shop": "projects/231801348950/secrets/rocketindoshop-shopee-tokens",
 }
 
 async function saveTokensNewBrands(brand, tokens) {
@@ -346,6 +348,7 @@ async function loadTokensNewBrands(brand) {
         "Relove": "projects/231801348950/secrets/relove-shopee-tokens/versions/latest",
         "Joey & Roo": "projects/231801348950/secrets/joey-roo-shopee-tokens/versions/latest",
         "Enchante": "projects/231801348950/secrets/enchante-shopee-tokens/versions/latest",
+        "Rocketindo Shop": "projects/231801348950/secrets/rocketindoshop-shopee-tokens/versions/latest",
     }
     const secretName = brandSecretName[brand];
     console.log("SECRET NAME: ", secretName);
@@ -441,3 +444,7 @@ async function handleEnchante() {
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
+async function handleRocketindoShop() {
+    // same thing like new brands
+    console.log("Rocketindo Shop Wallet Trx");
+}
