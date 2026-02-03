@@ -8,6 +8,14 @@ import axios from 'axios';
 // 3. Expiration: access token 7 hari, refresh token lumayan lama.
 // *EG_TIKTOK_ACCESS_TOKEN remove dari env & secrets di staging-worker
 
+// curl -X GET "https://auth.tiktok-shops.com/api/v2/token/get?app_key=6ivpj08pq3t4s&app_secret=e9212b70ae318a3704c6ed8673b138ec6cb5723b&auth_code=ROW_tVrf5wAAAAD8IPyM8KSM-yD2plONL3kO-IMXvK3MG9MPLMMg9OGJq8dn4OPP6AZsagxf6CRaIVCvnt7TTe6m6YKF_Ki4fJm4a9wyqQ3j2mleooaCdDXXwbsHaq8NoQvZt8MmwO68DZdMN39CU_dx22kmTgMq4gqh&grant_type=authorized_code"
+
+/*
+{
+    "accessToken": "ROW_srIgowAAAAAoYfgyHQFZ7-j_QZLXj-NIE7tVpLQ_4mgfh2_6zs-7CJ4Q1BEsf77UI2n3YNPBFU20ry4-pHZMscMWnkELuazsobxSPhr4-OW1me6jDyICFDKKISlLPz_HnlykJj1_hrfyqhhmvsEYgJZ6mQzOP97lLtGdlGsfht8IP4N2VAm_oQ",
+    "refreshToken": "ROW_zKjNPwAAAAB3gdLG6OS-uLqmlp1aPMJFqq77Pi6EZ3aGXKS9_uMHfMgLKbKMfJq_oTY8zFyJ7BA"
+}
+*/
 
 async function getShopCipher(brand) {
     try {
@@ -39,7 +47,7 @@ async function getShopCipher(brand) {
         const response = await axios.get(completeUrl, {
             headers: headers
         });
-        console.log("[TIKTOK-FINANCE] Raw response: ", response?.data?.response);
+        console.log("[TIKTOK-FINANCE] Raw response: ", response);
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
