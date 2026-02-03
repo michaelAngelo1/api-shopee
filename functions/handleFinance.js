@@ -15,8 +15,8 @@ async function getShopCipher(brand) {
         const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
         
         const timestamp = Math.floor(Date.now() / 1000);
-        const queryParams = "/app_key" + appKey + "timestamp" + timestamp;
-        const path = "/authorization/202309/shops"
+        const queryParams = "app_key" + appKey + "timestamp" + timestamp;
+        const path = "/authorization/202309/shops" // If fail, append "/"
         const result = appSecret + path + queryParams + appSecret;
         const sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
 
