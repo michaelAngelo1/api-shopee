@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import crypto from 'crypto';
+import axios from 'axios';
 
 // TODO:
 // 1. Bikin function getAccessToken from Secret Manager
