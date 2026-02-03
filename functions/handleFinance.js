@@ -17,8 +17,8 @@ async function getShopCipher(brand) {
         const timestamp = Math.floor(Date.now() / 1000);
         const queryParams = "/app_key" + appKey + "timestamp" + timestamp;
         const path = "/authorization/202309/shops"
-        const result = appSecret + "/" + path + queryParams;
-        const sign = crypto.createHash('sha256').update(result).digest('hex');
+        const result = appSecret + path + queryParams + appSecret;
+        const sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
 
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?"
         const completeUrl = baseUrl + "app_key=" + appKey + "&" + "sign=" + sign + "&" + "timestamp=" + timestamp; 
