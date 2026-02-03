@@ -11,7 +11,7 @@ import axios from 'axios';
 
 async function getShopCipher(brand) {
     try {
-        const appKey = process.env.EG_TIKTOK_PARTNER_APP_KEY;
+        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
         const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
         
         const timestamp = Math.floor(Date.now() / 1000);
