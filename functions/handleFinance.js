@@ -55,7 +55,17 @@ async function getShopCipher(brand) {
         const response = await axios.get(completeUrl, {
             headers: headers
         });
-        console.log("[TIKTOK-FINANCE] Raw response: ", response.data.data);
+        // console.log("[TIKTOK-FINANCE] Raw response: ", response.data.data);
+
+        let authorizedShops = response.data.data.shops;
+        let shopCipher = "";
+        for(const shop of authorizedShops) {
+            if(shop.name === brand) {
+                shopCipher = shop.cipher;
+            }
+        }
+
+        return shopCipher;
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
@@ -64,6 +74,7 @@ async function getShopCipher(brand) {
 }
 
 export async function handleFinance(brand) {
-    await getShopCipher(brand);
+    const shopCipher = await getShopCipher(brand);
+    console.log("Shop cipher for brand: ", brand, ": ", shopCipher);
     // const shopCipher = await getShopCipher(brand);
 }
