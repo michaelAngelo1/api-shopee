@@ -17,6 +17,14 @@ import axios from 'axios';
 }
 */
 
+async function loadTokens() {
+
+}
+
+async function refreshTokens() {
+
+}
+
 async function getShopCipher(brand) {
     try {
         const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
@@ -47,7 +55,7 @@ async function getShopCipher(brand) {
         const response = await axios.get(completeUrl, {
             headers: headers
         });
-        console.log("[TIKTOK-FINANCE] Raw response: ", response);
+        console.log("[TIKTOK-FINANCE] Raw response: ", response.data.data);
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
