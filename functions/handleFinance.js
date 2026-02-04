@@ -82,7 +82,7 @@ async function refreshTokens(brand, refreshToken) {
     const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
     const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
 
-    const refreshUrl = "auth.tiktok-shops.com/api/v2/token/refresh";
+    const refreshUrl = "https://auth.tiktok-shops.com/api/v2/token/refresh";
     const queryParams = "?" + "app_key=" + appKey + "&" + "app_secret=" + appSecret + "&" + "refresh_token=" + refreshToken + "&" + "grant_type=refresh_token";
     const completeUrl = refreshUrl + queryParams;
 
