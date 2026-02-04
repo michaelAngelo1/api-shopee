@@ -204,7 +204,7 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken) {
         const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
         const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
         
-        const statementId = "3561142371216229619";
+        const statementId = "7599840168392115976";
         const path = `/finance/202501/statements/${statementId}/statement_transactions`;
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
         
@@ -337,6 +337,6 @@ export async function handleFinance(brand) {
     const shopCipher = await getShopCipher(brand, accessToken);
 
     await getWithdrawals(brand, shopCipher, accessToken);
-    // await getTransactionsByStatement(brand, shopCipher, accessToken);
+    await getTransactionsByStatement(brand, shopCipher, accessToken);
     await getStatements(brand, shopCipher, accessToken);
 }
