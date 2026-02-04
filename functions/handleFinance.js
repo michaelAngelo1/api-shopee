@@ -89,15 +89,10 @@ async function refreshTokens(refreshToken) {
     try {   
         const response = await axios.get(completeUrl);
 
-        console.log("[TIKTOK-SECRETS] Refresh raw response: ", response);
-
         let newAccessToken = response?.data?.data?.access_token;
         let newRefreshToken = response?.data?.data?.refresh_token;
 
-        console.log("new access token: ", newAccessToken);
-        console.log("new refresh token: ", newRefreshToken);
-
-        await saveTokens({
+        await saveTokens(brand, {
             accessToken: newAccessToken, 
             refreshToken: newRefreshToken
         });
