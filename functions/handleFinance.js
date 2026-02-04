@@ -86,6 +86,8 @@ async function refreshTokens(brand, refreshToken) {
     const queryParams = "?" + "app_key=" + appKey + "&" + "app_secret=" + appSecret + "&" + "refresh_token=" + refreshToken + "&" + "grant_type=refresh_token";
     const completeUrl = refreshUrl + queryParams;
 
+    console.log("[TIKTOK-SECRETS] DEBUG url: ", completeUrl);
+
     try {   
         const response = await axios.get(completeUrl);
 
