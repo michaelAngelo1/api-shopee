@@ -91,13 +91,16 @@ async function refreshTokens(refreshToken) {
 
         console.log("[TIKTOK-SECRETS] Refresh raw response: ", response);
 
-        // let newAccessToken = response.data.access_token;
-        // let newRefreshToken = response.data.refresh_token;
+        let newAccessToken = response?.data?.data?.access_token;
+        let newRefreshToken = response?.data?.data?.refresh_token;
 
-        // await saveTokens({
-        //     accessToken: newAccessToken, 
-        //     refreshToken: newRefreshToken
-        // });
+        console.log("new access token: ", newAccessToken);
+        console.log("new refresh token: ", newRefreshToken);
+
+        await saveTokens({
+            accessToken: newAccessToken, 
+            refreshToken: newRefreshToken
+        });
     } catch (e) {
         console.log("[TIKTOK-SECRETS] Error refreshing tokens: ", e);
     }
