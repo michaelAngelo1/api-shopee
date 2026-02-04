@@ -269,7 +269,7 @@ async function getStatements(brand, shopCipher, accessToken) {
         const path = "/finance/202309/statements";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
         const statementTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
-        const statementTimeTo = Math.floor(new Date("2026-02-01T00:00:00+07:00").getTime() / 1000);
+        const statementTimeTo = Math.floor(new Date("2026-02-02T00:00:00+07:00").getTime() / 1000);
         
         let keepFetching = true;
         let currPageToken = "";
