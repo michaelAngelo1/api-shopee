@@ -142,8 +142,8 @@ async function getWithdrawals(brand, shopCipher, accessToken) {
         
         const path = "/finance/202309/withdrawals";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
-        const createTimeFrom = Math.floor(new Date("2026-01-01") / 1000);
-        const createTimeTo = Math.floor(new Date("2026-01-31") / 1000);
+        const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
         
         let keepFetching = true;
         let currPageToken = "";
@@ -268,8 +268,8 @@ async function getStatements(brand, shopCipher, accessToken) {
         
         const path = "/finance/202309/statements";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
-        const statementTimeFrom = Math.floor(new Date("2026-01-01") / 1000);
-        const statementTimeTo = Math.floor(new Date("2026-01-31") / 1000);
+        const statementTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
+        const statementTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
         
         let keepFetching = true;
         let currPageToken = "";
