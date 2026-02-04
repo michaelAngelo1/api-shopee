@@ -3,20 +3,6 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
-// TODO:
-// 1. Bikin function getAccessToken from Secret Manager
-// 2. Bikin function refreshTokens, ambil refreshToken dari Secret Manager
-// 3. Expiration: access token 7 hari, refresh token lumayan lama.
-// *EG_TIKTOK_ACCESS_TOKEN remove dari env & secrets di staging-worker
-
-// curl -X GET "https://auth.tiktok-shops.com/api/v2/token/get?app_key=6ivpj08pq3t4s&app_secret=e9212b70ae318a3704c6ed8673b138ec6cb5723b&auth_code=ROW_tVrf5wAAAAD8IPyM8KSM-yD2plONL3kO-IMXvK3MG9MPLMMg9OGJq8dn4OPP6AZsagxf6CRaIVCvnt7TTe6m6YKF_Ki4fJm4a9wyqQ3j2mleooaCdDXXwbsHaq8NoQvZt8MmwO68DZdMN39CU_dx22kmTgMq4gqh&grant_type=authorized_code"
-
-/*
-{
-    "accessToken": "ROW_srIgowAAAAAoYfgyHQFZ7-j_QZLXj-NIE7tVpLQ_4mgfh2_6zs-7CJ4Q1BEsf77UI2n3YNPBFU20ry4-pHZMscMWnkELuazsobxSPhr4-OW1me6jDyICFDKKISlLPz_HnlykJj1_hrfyqhhmvsEYgJZ6mQzOP97lLtGdlGsfht8IP4N2VAm_oQ",
-    "refreshToken": "ROW_zKjNPwAAAAB3gdLG6OS-uLqmlp1aPMJFqq77Pi6EZ3aGXKS9_uMHfMgLKbKMfJq_oTY8zFyJ7BA"
-}
-*/
 
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens"
@@ -149,6 +135,70 @@ async function getShopCipher(brand, accessToken) {
     }
 }
 
+async function getWithdrawals(brand, shopCipher, accessToken) {
+    try {
+        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
+        const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+        
+        const path = "/finance/202309/withdrawals";
+        const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
+        const createTimeFrom = Math.floor(new Date("2026-01-01") / 1000);
+        const createTimeTo = Math.floor(new Date("2026-01-31") / 1000);
+        
+        let keepFetching = true;
+        let currPageToken = "";
+        
+        while(keepFetching) {
+            
+            const timestamp = Math.floor(Date.now() / 1000);
+            const queryParams = {   
+                app_key: appKey,
+                create_time_ge: createTimeFrom,
+                create_time_lt: createTimeTo,
+                types: ["WITHDRAW", "SETTLE", "TRANSFER", "REVERSE"].join(','),
+                page_size: 100,
+                timestamp: timestamp,
+                shop_cipher: shopCipher
+            };  
+            if(currPageToken) {
+                queryParams.page_token = currPageToken;
+            }
+            const sortedKeys = Object.keys(queryParams).sort();
+
+            let result = appSecret + path;
+            for(const key of sortedKeys) {
+                result += key + queryParams[key];
+            }
+            result += appSecret;
+
+            const sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
+            queryParams.sign = sign;
+            const querySearchParams = new URLSearchParams(queryParams);
+
+            const completeUrl = baseUrl + querySearchParams.toString();
+            const response = await axios.get(completeUrl, {
+                headers: {
+                    'content-type': 'application/json',
+                    'x-tts-access-token': accessToken,
+                }
+            });
+
+            console.log("[TIKTOK-FINANCE] Raw response: ", response.data.data);
+
+            const nextPageToken = response.data.data.next_page_token;
+
+            if(nextPageToken && nextPageToken.length > 0) {
+                currPageToken = nextPageToken;
+            } else {
+                keepFetching = false;
+            }
+        }
+    } catch (e) {
+        console.log("[TIKTOK-FINANCE] Error getting withdrawals on brand: ", brand);
+        console.log(e);
+    }
+}
+
 export async function handleFinance(brand) {
 
     const tokens = await loadTokens(brand);
@@ -158,6 +208,6 @@ export async function handleFinance(brand) {
     await refreshTokens(brand, refreshToken);
 
     const shopCipher = await getShopCipher(brand, accessToken);
-    console.log("Shop cipher for brand: ", brand, ": ", shopCipher);
-    // const shopCipher = await getShopCipher(brand);
+
+    await getWithdrawals(brand, shopCipher, accessToken);
 }
