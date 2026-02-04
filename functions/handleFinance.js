@@ -76,9 +76,7 @@ async function saveTokens(brand, tokens) {
 // Refresh token itself contains identity of the corresponding shop
 // Such is why it does not need shop_cipher or any other parameters. 
 
-async function refreshTokens(brand, refreshToken) {
-
-    const tokens = await loadTokens(brand);
+async function refreshTokens(refreshToken) {
     const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
     const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
 
@@ -91,13 +89,15 @@ async function refreshTokens(brand, refreshToken) {
     try {   
         const response = await axios.get(completeUrl);
 
-        let newAccessToken = response.data.data.access_token;
-        let newRefreshToken = response.data.data.refresh_token;
+        console.log("[TIKTOK-SECRETS] Refresh raw response: ", response);
 
-        await saveTokens({
-            accessToken: newAccessToken, 
-            refreshToken: newRefreshToken
-        });
+        // let newAccessToken = response.data.access_token;
+        // let newRefreshToken = response.data.refresh_token;
+
+        // await saveTokens({
+        //     accessToken: newAccessToken, 
+        //     refreshToken: newRefreshToken
+        // });
     } catch (e) {
         console.log("[TIKTOK-SECRETS] Error refreshing tokens: ", e);
     }
@@ -157,7 +157,7 @@ export async function handleFinance(brand) {
     let accessToken = tokens.accessToken;
     let refreshToken = tokens.refreshToken;
 
-    await refreshTokens(brand, refreshToken);
+    await refreshTokens(refreshToken);
 
     const shopCipher = await getShopCipher(brand, accessToken);
     console.log("Shop cipher for brand: ", brand, ": ", shopCipher);
