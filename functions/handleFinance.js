@@ -2,6 +2,7 @@ import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { ACCESS_TOKEN } from '../processor';
 const secretClient = new SecretManagerServiceClient();
 
 const tiktokSecrets = {
@@ -261,6 +262,71 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken) {
     }
 }
 
+async function getStatements(brand, shopCipher, accessToken) {
+    try {
+        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
+        const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+        
+        const path = "/finance/202309/statements";
+        const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
+        const statementTimeFrom = Math.floor(new Date("2026-01-01") / 1000);
+        const statementTimeTo = Math.floor(new Date("2026-01-31") / 1000);
+        
+        let keepFetching = true;
+        let currPageToken = "";
+        
+        while(keepFetching) {
+            
+            const timestamp = Math.floor(Date.now() / 1000);
+            const queryParams = {   
+                app_key: appKey,
+                statement_time_ge: statementTimeFrom,
+                statement_time_lt: statementTimeTo,
+                sort_field: "statement_time",
+                sort_order: "DESC",
+                page_size: 100,
+                timestamp: timestamp,
+                shop_cipher: shopCipher
+            };  
+            if(currPageToken) {
+                queryParams.page_token = currPageToken;
+            }
+            const sortedKeys = Object.keys(queryParams).sort();
+
+            let result = appSecret + path;
+            for(const key of sortedKeys) {
+                result += key + queryParams[key];
+            }
+            result += appSecret;
+
+            const sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
+            queryParams.sign = sign;
+            const querySearchParams = new URLSearchParams(queryParams);
+
+            const completeUrl = baseUrl + querySearchParams.toString();
+            const response = await axios.get(completeUrl, {
+                headers: {
+                    'content-type': 'application/json',
+                    'x-tts-access-token': accessToken,
+                }
+            });
+
+            console.log("[TIKTOK-FINANCE] Statements raw response: ", response.data.data);
+
+            const nextPageToken = response.data.data.next_page_token;
+
+            if(nextPageToken && nextPageToken.length > 0) {
+                currPageToken = nextPageToken;
+            } else {
+                keepFetching = false;
+            }
+        }
+    } catch (e) {
+        console.log("[TIKTOK-FINANCE] Error getting statements on brand: ", brand);
+        console.log(e);
+    }
+}
+
 export async function handleFinance(brand) {
 
     const tokens = await loadTokens(brand);
@@ -272,5 +338,6 @@ export async function handleFinance(brand) {
     const shopCipher = await getShopCipher(brand, accessToken);
 
     await getWithdrawals(brand, shopCipher, accessToken);
-    await getTransactionsByStatement(brand, shopCipher, accessToken);
+    // await getTransactionsByStatement(brand, shopCipher, accessToken);
+    await getStatements(brand, shopCipher, accessToken);
 }
