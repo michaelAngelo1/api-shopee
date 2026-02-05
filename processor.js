@@ -237,6 +237,7 @@ export async function fetchAndProcessOrders() {
     await handleRelove();
     await handleJR();
     await handleEnchante();
+    await handleRocketindoShop();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
@@ -432,6 +433,19 @@ async function handleEnchante() {
     NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshTokenNewBrands(brand, shopId);
+
+    await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+}
+
+async function handleRocketindoShop() {
+    let brand = "Rocketindo Shop";
+    let shopId = 375791385;
+
+    const loadedTokens = await loadTokensNewBrands(brand);
+    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
+    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
+
+    await refreshTokenNewBrands(brand, shopId)
 
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }

@@ -98,7 +98,7 @@ const brandTables = {
     "Relove": "relove_wallet_trx",
     "Joey & Roo": "joey_roo_wallet_trx",
     "Enchante": "enchante_wallet_trx",
-    "Rocketindo Shop": "pinkrocket_wallet_trx",
+    "Rocketindo Shop": "rocketindo_shop_wallet_trx",
 }
 
 async function mergeData(data, brand) {
