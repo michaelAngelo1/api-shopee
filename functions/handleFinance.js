@@ -9,6 +9,18 @@ const tiktokSecrets = {
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens"
 }
 
+// Should check for syntax error
+const brandSecrets = {
+    "Eileen Grace": {
+        appKey: "6ivpj08pq3t4s",
+        appSecret: "e9212b70ae318a3704c6ed8673b138ec6cb5723b"
+    },
+    "Mamaway": {
+        appKey: "6ivptjmfsvn3n",
+        appSecret: "18f944dd684ba5d6d0547ac5c3cf0529e48a907f"
+    }
+}
+
 async function loadTokens(brand) {
     const secretName = tiktokSecrets[brand] + "/versions/latest";
     try {
@@ -64,8 +76,8 @@ async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 async function refreshTokens(brand, refreshToken) {
-    const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
-    const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+    const appKey = brandSecrets[brand].appKey;
+    const appSecret = brandSecrets[brand].appSecret;
 
     const refreshUrl = "https://auth.tiktok-shops.com/api/v2/token/refresh";
     const queryParams = "?" + "app_key=" + appKey + "&" + "app_secret=" + appSecret + "&" + "refresh_token=" + refreshToken + "&" + "grant_type=refresh_token";
@@ -90,8 +102,8 @@ async function refreshTokens(brand, refreshToken) {
 
 async function getShopCipher(brand, accessToken) {
     try {
-        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
-        const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+        const appKey = brandSecrets[brand].appKey;
+        const appSecret = brandSecrets[brand].appSecret;
         
         const timestamp = Math.floor(Date.now() / 1000);
         const queryParams = "app_key" + appKey + "timestamp" + timestamp;
@@ -138,8 +150,8 @@ async function getShopCipher(brand, accessToken) {
 
 async function getWithdrawals(brand, shopCipher, accessToken) {
     try {
-        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
-        const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+        const appKey = brandSecrets[brand].appKey;
+        const appSecret = brandSecrets[brand].appSecret;
         
         const path = "/finance/202309/withdrawals";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -202,8 +214,8 @@ async function getWithdrawals(brand, shopCipher, accessToken) {
 
 async function getTransactionsByStatement(brand, shopCipher, accessToken) {
     try {
-        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
-        const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+        const appKey = brandSecrets[brand].appKey;
+        const appSecret = brandSecrets[brand].appSecret;
         
         const statementId = "7599840168392115976";
         const path = `/finance/202501/statements/${statementId}/statement_transactions`;
@@ -264,8 +276,8 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken) {
 
 async function getStatements(brand, shopCipher, accessToken) {
     try {
-        const appKey = process.env.TIKTOK_PARTNER_APP_KEY;
-        const appSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
+        const appKey = brandSecrets[brand].appKey;
+        const appSecret = brandSecrets[brand].appSecret;
         
         const path = "/finance/202309/statements";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
