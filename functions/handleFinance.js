@@ -12,12 +12,12 @@ const tiktokSecrets = {
 // Should check for syntax error
 const brandSecrets = {
     "Eileen Grace": {
-        appKey: "6ivpj08pq3t4s",
-        appSecret: "e9212b70ae318a3704c6ed8673b138ec6cb5723b"
+        appKey: process.env.TIKTOK_PARTNER_APP_KEY,
+        appSecret: process.env.TIKTOK_PARTNER_APP_SECRET
     },
     "Mamaway": {
-        appKey: "6ivptjmfsvn3n",
-        appSecret: "18f944dd684ba5d6d0547ac5c3cf0529e48a907f"
+        appKey: process.env.MAMAWAY_APP_KEY,
+        appSecret: process.env.MAMAWAY_APP_SECRET
     }
 }
 
@@ -122,7 +122,7 @@ async function getShopCipher(brand, accessToken) {
             'x-tts-access-token': accessToken,
         }
         const params = {
-            app_key: process.env.TIKTOK_PARTNER_APP_KEY,
+            app_key: appKey,
             sign: sign,
             timestamp: timestamp
         }
