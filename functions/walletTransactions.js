@@ -20,8 +20,8 @@ async function fetchWalletTransaction(brand, partner_id, partner_key, access_tok
         let transactionContainer = [];
 
         while(hasMore) {
-            const createTimeFrom = Math.floor(new Date("2026-01-15") / 1000);
-            const createTimeTo = Math.floor(new Date("2026-01-29") / 1000);
+            const createTimeFrom = Math.floor(new Date("2026-01-29") / 1000);
+            const createTimeTo = Math.floor(new Date("2026-02-04") / 1000);
             // const createTimeTo = Math.floor(new Date().setDate(new Date().getDate() - 1) / 1000);
             // const createTimeFrom = Math.floor(new Date().setDate(new Date().getDate() - 7) / 1000);
 
