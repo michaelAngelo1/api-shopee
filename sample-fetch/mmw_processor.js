@@ -10,6 +10,7 @@ import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
+import { handleFinance } from '../functions/handleFinance.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -126,7 +127,8 @@ export async function fetchAndProcessOrdersMMW() {
 
     await refreshToken();
 
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
+    await handleFinance(brand);
+    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
 
     // await fetchAffiliateData(brand, SHOP_ID, 1500);

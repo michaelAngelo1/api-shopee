@@ -5,7 +5,8 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
 
 const tiktokSecrets = {
-    "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens"
+    "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
+    "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens"
 }
 
 async function loadTokens(brand) {
@@ -336,7 +337,7 @@ export async function handleFinance(brand) {
 
     const shopCipher = await getShopCipher(brand, accessToken);
 
-    await getWithdrawals(brand, shopCipher, accessToken);
-    await getTransactionsByStatement(brand, shopCipher, accessToken);
+    // await getWithdrawals(brand, shopCipher, accessToken);
+    // await getTransactionsByStatement(brand, shopCipher, accessToken);
     await getStatements(brand, shopCipher, accessToken);
 }
