@@ -116,21 +116,21 @@ app.get('/staging-sync', async (req, res) => {
         });
         stagger += interval;
 
-        // // Miss Daisy
-        // await orderQueueMD.add('staging-fetch-orders-md', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `md-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // Miss Daisy
+        await orderQueueMD.add('staging-fetch-orders-md', {}, { 
+            ...baseOptions, 
+            jobId: `md-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
-        // // SH-RD
-        // await orderQueueSHRD.add('staging-fetch-orders-shrd', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `shrd-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        // SH-RD
+        await orderQueueSHRD.add('staging-fetch-orders-shrd', {}, { 
+            ...baseOptions, 
+            jobId: `shrd-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
         // // Cleviant
         // await orderQueueCLEV.add('staging-fetch-orders-clev', {}, { 
