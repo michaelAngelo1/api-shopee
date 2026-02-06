@@ -26,7 +26,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         while(hasMore) {
 
             const releaseTimeStart = Math.floor(new Date("2026-01-01") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-01-24") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2026-01-07") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -121,9 +121,10 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                 "order_sn_list": data[i]
             });
 
-            console.log("[SHOPEE-WITHDRAWAL] Raw response: ");
             let escrowDetailList = response.data.response;
-
+            console.log("[SHOPEE-WITHDRAWAL] First raw escrow detail list: ");
+            console.log(escrowDetailList.slice(0, 2));
+            
             escrowDetailList.forEach(e => {
                 let obj = {
                     "No_Pesanan": e.escrow_detail.order_sn,
@@ -180,8 +181,12 @@ async function mergeData(data, brand) {
     const datasetId = 'shopee_api';
 
     try {
-        console.log("[SHOPEE-WITHDRAWAL] Data before merging. First three: ");
-        console.log(data.slice(0, 3));
+        console.log("[SHOPEE-WITHDRAWAL] Data before merging. First two: ");
+        console.log(data.slice(0, 2));
+
+        // TODO:
+        // 1. Query prevent duplicates. By No_Pesanan and Tanggal? Tanggal belum ada
+        // 2. Start merging to corresponding table
     } catch (e) {
         console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
         console.error(e);
