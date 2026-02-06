@@ -17,7 +17,7 @@ import { handleTiktokAdsData } from './functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from './functions/fetchPGMVMaxBreakdown.js';
 import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
 import { fetchAffiliateData } from './functions/amsProcessor.js';
-import { fetchDanaDilepas } from './functions/escrowProcessor.js';
+import { fetchDanaDilepas, mainDanaDilepas } from './functions/escrowProcessor.js';
 import { handleWalletTransactions } from './functions/walletTransactions.js';
 // import fs from 'fs';
 // import path from 'path';
@@ -197,6 +197,7 @@ export async function fetchAndProcessOrders() {
 
     await refreshToken();
 
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID)
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
@@ -368,6 +369,7 @@ async function handleNaruko() {
 
     await refreshTokenNewBrands(brand, shopId)
 
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -390,6 +392,7 @@ async function handleRelove() {
 
     await refreshTokenNewBrands(brand, shopId);
 
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -412,6 +415,7 @@ async function handleJR() {
 
     await refreshTokenNewBrands(brand, shopId);
 
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -434,6 +438,7 @@ async function handleEnchante() {
 
     await refreshTokenNewBrands(brand, shopId);
 
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -447,5 +452,6 @@ async function handleRocketindoShop() {
 
     await refreshTokenNewBrands(brand, shopId)
 
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
