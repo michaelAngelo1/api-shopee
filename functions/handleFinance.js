@@ -145,9 +145,10 @@ async function getShopCipher(brand, accessToken) {
         let authorizedShops = response.data.data.shops;
         let shopCipher = "";
         for(const shop of authorizedShops) {
+            console.log("Shop name: ", shop.name);
             if(shop.name === brand) {
                 shopCipher = shop.cipher;
-            }
+            } 
         }
 
         return shopCipher;
