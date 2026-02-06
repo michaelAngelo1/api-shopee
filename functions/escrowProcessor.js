@@ -136,7 +136,8 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                     "Biaya_Administrasi_with_PPN_11": e.escrow_detail.order_income.commission_fee,
                     "Biaya_Layanan": e.escrow_detail.order_income.service_fee,
                     "Biaya_Proses_Pesanan": e.escrow_detail.order_income.seller_order_processing_fee,
-                    "Total_Penghasilan": e.escrow_detail.order_income.escrow_amount
+                    "Total_Penghasilan": e.escrow_detail.order_income.escrow_amount,
+                    "process_dttm": new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
                 }
                 escrowBreakdown.push(obj);
             });
