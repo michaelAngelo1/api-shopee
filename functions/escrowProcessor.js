@@ -141,8 +141,8 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             // escrowBreakdown to merge to BigQuery.
-            await mergeData(escrowBreakdown, brand);
         }
+        await mergeData(escrowBreakdown, brand);
     } catch (e) {
         console.error("[SHOPEE-WITHDRAWAL] Error getting ESCROW DETAIL BATCH: ", brand);
         console.error(e);
