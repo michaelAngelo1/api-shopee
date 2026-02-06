@@ -122,9 +122,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             let escrowDetailList = response.data.response;
-            console.log("[SHOPEE-WITHDRAWAL] First raw escrow detail list: ");
-            console.log(escrowDetailList.slice(0, 2));
-
+            
             escrowDetailList.forEach(e => {
                 let obj = {
                     "No_Pesanan": e.escrow_detail.order_sn,
