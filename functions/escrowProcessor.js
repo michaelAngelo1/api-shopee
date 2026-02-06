@@ -124,7 +124,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             let escrowDetailList = response.data.response;
             console.log("[SHOPEE-WITHDRAWAL] First raw escrow detail list: ");
             console.log(escrowDetailList.slice(0, 2));
-            
+
             escrowDetailList.forEach(e => {
                 let obj = {
                     "No_Pesanan": e.escrow_detail.order_sn,
@@ -184,9 +184,31 @@ async function mergeData(data, brand) {
         console.log("[SHOPEE-WITHDRAWAL] Data before merging. First two: ");
         console.log(data.slice(0, 2));
 
-        // TODO:
-        // 1. Query prevent duplicates. By No_Pesanan and Tanggal? Tanggal belum ada
-        // 2. Start merging to corresponding table
+        const incomingOrderSNs = data.map(row => `'${row.No_Pesanan}'`).join(",");
+        const query = `
+            SELECT No_Pesanan 
+            FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
+            WHERE No_Pesanan IN (${incomingOrderSNs})
+        `;
+        const [existingRows] = await bigquery.query({ query });
+        
+        const existingIds = new Set(existingRows.map(row => row.No_Pesanan));
+        console.log(`[SHOPEE-WITHDRAWAL] Found ${existingIds.size} duplicates in BigQuery.`);
+
+        const recordsToInsert = data.filter(row => !existingIds.has(row.No_Pesanan));
+
+        if (recordsToInsert.length === 0) {
+            console.log("[SHOPEE-WITHDRAWAL] All data already exists. Skipping insert.");
+            return;
+        }
+
+        console.log(`[SHOPEE-WITHDRAWAL] Inserting ${recordsToInsert.length} new rows`);
+        await bigquery
+            .dataset(datasetId)
+            .table(tableName)
+            .insert(recordsToInsert);
+
+        console.log(`[SHOPEE-WITHDRAWAL] Successfully inserted rows for ${brand}.`);
     } catch (e) {
         console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
         console.error(e);
