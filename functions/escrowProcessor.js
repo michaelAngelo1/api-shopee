@@ -26,7 +26,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         while(hasMore) {
 
             const releaseTimeStart = Math.floor(new Date("2026-01-01") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-01-07") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2026-01-31") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -141,8 +141,6 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                 }
                 escrowBreakdown.push(obj);
             });
-
-            // escrowBreakdown to merge to BigQuery.
         }
         await mergeData(escrowBreakdown, brand);
     } catch (e) {
