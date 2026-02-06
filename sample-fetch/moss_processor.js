@@ -10,6 +10,7 @@ import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
+import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -127,7 +128,8 @@ export async function fetchAndProcessOrdersMOSS() {
 
     await refreshToken();
 
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
+    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
     
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
 
