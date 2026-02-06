@@ -126,7 +126,7 @@ export async function fetchAndProcessOrdersCHESS() {
 
     await refreshToken();
 
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
+    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
 
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
    

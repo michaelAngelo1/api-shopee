@@ -141,6 +141,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             // escrowBreakdown to merge to BigQuery.
+            await mergeData(escrowBreakdown, brand);
         }
     } catch (e) {
         console.error("[SHOPEE-WITHDRAWAL] Error getting ESCROW DETAIL BATCH: ", brand);
@@ -172,19 +173,20 @@ const brandTables = {
     "Rocketindo Shop": "pinkrocket_finance",
 }
 
-// async function mergeData(data, brand) {
-//     console.log("[SHOPEE-WITHDRAWAL] Start merging for brand: ", brand);
-//     const tableName = brandTables[brand];
-//     const bigquery = new BigQuery();
-//     const datasetId = 'shopee_api';
+async function mergeData(data, brand) {
+    console.log("[SHOPEE-WITHDRAWAL] Start merging for brand: ", brand);
+    const tableName = brandTables[brand];
+    const bigquery = new BigQuery();
+    const datasetId = 'shopee_api';
 
-//     try {
-
-//     } catch (e) {
-//         console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
-//         console.error(e);
-//     }
-// }
+    try {
+        console.log("[SHOPEE-WITHDRAWAL] Data before merging. First three: ");
+        console.log(data.slice(0, 3));
+    } catch (e) {
+        console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
+        console.error(e);
+    }
+}
 
 /*** 
 TODO:

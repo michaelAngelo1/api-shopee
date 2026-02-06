@@ -8,7 +8,9 @@ const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens",
     "SHRD": "projects/231801348950/secrets/shrd-tiktok-tokens",
-    "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens"
+    "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
+    "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
+    "Chess": ""
 }
 
 // Should check for syntax error
@@ -28,6 +30,10 @@ const brandSecrets = {
     "Miss Daisy": {
         appKey: process.env.MD_APP_KEY,
         appSecret: process.env.MD_APP_SECRET
+    }, 
+    "Polynia": {
+        appKey: process.env.POLY_APP_KEY,
+        appSecret: process.env.POLY_APP_SECRET
     }
 }
 

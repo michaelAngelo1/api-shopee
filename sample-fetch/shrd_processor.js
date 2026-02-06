@@ -240,7 +240,7 @@ export async function fetchAndProcessOrdersSHRD() {
 
     await refreshToken();
 
-    await handleFinance(brandTT);
+    // await handleFinance(brandTT);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID)
 
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, SHRD_ACCESS_TOKEN, SHOP_ID);

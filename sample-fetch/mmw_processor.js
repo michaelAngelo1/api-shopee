@@ -127,7 +127,7 @@ export async function fetchAndProcessOrdersMMW() {
 
     await refreshToken();
 
-    await handleFinance(brand);
+    // await handleFinance(brand);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
 

@@ -237,7 +237,7 @@ export async function fetchAndProcessOrdersMD() {
 
     await refreshToken();
 
-    await handleFinance(brand);
+    // await handleFinance(brand);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MD_ACCESS_TOKEN, SHOP_ID);
 
