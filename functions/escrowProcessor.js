@@ -90,7 +90,7 @@ async function transformData(data, brand) {
     return twentyBatchContainer;
 }
 
-async function breakdownEscrow(data, brand, partner_id, partner_key, access_token, shop_id) {
+async function breakdownEscrow(data, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap) {
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/payment/get_escrow_detail_batch";
 
