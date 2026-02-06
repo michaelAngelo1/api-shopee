@@ -25,8 +25,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 
         while(hasMore) {
 
-            const releaseTimeStart = Math.floor(new Date("2026-02-01") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-02-05") / 1000);
+            const releaseTimeStart = Math.floor(new Date("2026-12-01") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2026-12-31") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -124,8 +124,21 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             let escrowDetailList = response.data.response;
 
             escrowDetailList.forEach(e => {
+                const sn = e.escrow_detail.order_sn;
+                
+                // [NEW] Logic to get and format Tanggal_Dana_Dilepas
+                let tanggalDana = null;
+                if (releaseTimeMap.has(sn)) {
+                    const ts = releaseTimeMap.get(sn);
+                    // Convert Unix Seconds to Milliseconds + Add 7 Hours for WIB
+                    const dateObj = new Date((ts * 1000) + (7 * 60 * 60 * 1000));
+                    // Extract YYYY-MM-DD
+                    tanggalDana = dateObj.toISOString().split('T')[0];
+                }
+
                 let obj = {
-                    "No_Pesanan": e.escrow_detail.order_sn,
+                    "No_Pesanan": sn,
+                    "Tanggal_Dana_Dilepas": tanggalDana, 
                     "Harga_Asli_Produk": e.escrow_detail.order_income.order_original_price,
                     "Total_Diskon_Produk": e.escrow_detail.order_income.order_seller_discount,
                     "Diskon_Produk_Dari_Shopee": e.escrow_detail.order_income.shopee_discount,
@@ -219,10 +232,20 @@ TODO:
 ***/
 export async function mainDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
     const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
+    
+    // [NEW] Create a Map: OrderSN -> Release Time (seconds)
+    const releaseTimeMap = new Map();
+    if (escrowContainer) {
+        escrowContainer.forEach(item => {
+            releaseTimeMap.set(item.order_sn, item.escrow_release_time);
+        });
+    }
+
     const twentyBatchContainer = await transformData(escrowContainer, brand);
 
     if(twentyBatchContainer && twentyBatchContainer.length > 0) {
-        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
+        // [NEW] Pass the map to the breakdown function
+        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap);
     }
 }
 
