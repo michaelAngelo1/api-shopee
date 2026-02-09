@@ -241,7 +241,7 @@ export async function fetchAndProcessOrders() {
     await handleNaruko();
     await handleRelove();
     await handleJR();
-    await handleEnchante();
+    // await handleEnchante();
     await handleRocketindoShop();
 }
 
