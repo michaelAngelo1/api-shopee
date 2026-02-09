@@ -128,9 +128,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                 let tanggalDana = null;
                 if (releaseTimeMap.has(sn)) {
                     const ts = releaseTimeMap.get(sn);
-                    // Convert Unix Seconds to Milliseconds + Add 7 Hours for WIB
-                    const dateObj = new Date((ts * 1000) + (7 * 60 * 60 * 1000));
-                    // Extract YYYY-MM-DD
+                    const dateObj = new Date((ts * 1000));
                     tanggalDana = dateObj.toISOString().replace('T', ' ').split('.')[0];
                 }
 
