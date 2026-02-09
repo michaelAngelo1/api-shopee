@@ -24,7 +24,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         while(hasMore) {
 
             const releaseTimeStart = Math.floor(new Date("2025-12-01T00:00:00") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2025-12-31T23:59:59") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2025-12-03T23:59:59") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -54,7 +54,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             pageNumber += 1;
         }
 
-        console.log("[SHOPEE-WITHDRAWAL] Data count: ", count);
+        console.log("[SHOPEE-WITHDRAWAL] Data count: ", count, " on: ", brand);
         return escrowContainer;
     } catch (e) {
         console.log("[SHOPEE-WITHDRAWAL] ERROR on fetching Dana Dilepas on brand: ", brand);
@@ -131,7 +131,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                     // Convert Unix Seconds to Milliseconds + Add 7 Hours for WIB
                     const dateObj = new Date((ts * 1000) + (7 * 60 * 60 * 1000));
                     // Extract YYYY-MM-DD
-                    tanggalDana = dateObj.toISOString().split('T')[0];
+                    tanggalDana = dateObj.toISOString().replace('T', ' ').split('.')[0];
                 }
 
                 let obj = {
