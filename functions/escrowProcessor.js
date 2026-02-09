@@ -23,8 +23,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 
         while(hasMore) {
 
-            const releaseTimeStart = Math.floor(new Date("2026-01-01T00:00:00+07:00") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-01-31T23:59:59+07:00") / 1000);
+            const releaseTimeStart = Math.floor(new Date("2025-12-01T00:00:00+07:00") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2025-12-31T23:59:59+07:00") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -136,16 +136,48 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
 
                 let obj = {
                     "No_Pesanan": sn,
-                    "Tanggal_Dana_Dilepas": tanggalDana, 
+                    "No_Pengajuan": null, 
+                    "Username": e.escrow_detail.buyer_user_name,
+                    "Waktu_Pesanan_Dibuat": null, 
+                    "Metode_pembayaran_pembeli": e.escrow_detail.buyer_payment_info?.buyer_payment_method || null,
+                    "Tanggal_Dana_Dilepaskan": tanggalDana, 
                     "Harga_Asli_Produk": e.escrow_detail.order_income.order_original_price,
                     "Total_Diskon_Produk": e.escrow_detail.order_income.order_seller_discount,
-                    "Diskon_Produk_Dari_Shopee": e.escrow_detail.order_income.shopee_discount,
+                    "Jumlah_Pengembalian_Dana_ke_Pembeli": e.escrow_detail.order_income.refund_amount_to_buyer,
+                    "Diskon_Produk_dari_Shopee": e.escrow_detail.order_income.shopee_discount,
                     "Diskon_Voucher_Ditanggung_Penjual": e.escrow_detail.order_income.voucher_from_seller,
+                    "Cashback_Koin_yang_Ditanggung_Penjual": e.escrow_detail.order_income.seller_coin_cash_back,
+                    "Ongkir_Dibayar_Pembeli": e.escrow_detail.buyer_payment_info?.shipping_fee, 
+                    "Diskon_Ongkir_Ditanggung_Jasa_Kirim": e.escrow_detail.order_income.shipping_fee_discount_from_3pl,
+                    "Gratis_Ongkir_dari_Shopee": e.escrow_detail.order_income.shopee_shipping_rebate,
+                    "Ongkir_yang_Diteruskan_oleh_Shopee_ke_Jasa_Kirim": e.escrow_detail.order_income.actual_shipping_fee,
+                    "Ongkos_Kirim_Pengembalian_Barang": e.escrow_detail.order_income.reverse_shipping_fee,
+                    "Kembali_ke_Biaya_Pengiriman_Pengirim": e.escrow_detail.order_income.final_return_to_seller_shipping_fee,
                     "Biaya_Komisi_AMS": e.escrow_detail.order_income.order_ams_commission_fee,
                     "Biaya_Administrasi_with_PPN_11": e.escrow_detail.order_income.commission_fee,
                     "Biaya_Layanan": e.escrow_detail.order_income.service_fee,
                     "Biaya_Proses_Pesanan": e.escrow_detail.order_income.seller_order_processing_fee,
+                    "Biaya_Program_Hemat_Biaya_Kirim": e.escrow_detail.order_income.shipping_seller_protection_fee_amount,
+                    "Biaya_Transaksi": e.escrow_detail.order_income.seller_transaction_fee,
+                    "Biaya_Kampanye": e.escrow_detail.order_income.campaign_fee,
+                    "Bea_Masuk_PPN_PPh": e.escrow_detail.order_income.escrow_tax,
                     "Total_Penghasilan": e.escrow_detail.order_income.escrow_amount,
+                    "Kode_Voucher": e.escrow_detail.order_income.seller_voucher_code || null,
+                    "Kompensasi": e.escrow_detail.order_income.seller_lost_compensation,
+                    "Promo_Gratis_Ongkir_dari_Penjual": e.escrow_detail.order_income.seller_shipping_discount,
+                    "Jasa_Kirim": null, 
+                    "Nama_Kurir": null, 
+                    "Pengembalian_Dana_ke_Pembeli": e.escrow_detail.order_income.refund_amount_to_buyer,
+                    "Pro_rata_Koin_yang_Ditukarkan_untuk_Pengembalian_Barang": e.escrow_detail.order_income.prorated_coins_value_offset_return_items,
+                    "Pro_rata_Voucher_Shopee_untuk_Pengembalian_Barang": e.escrow_detail.order_income.prorated_shopee_voucher_offset_return_items,
+                    "Pro_rated_Bank_Payment_Channel_Promotion_for_return_refund_Items": e.escrow_detail.order_income.prorated_payment_channel_promo_bank_offset_return_items,
+                    "Pro_rated_Shopee_Payment_Channel_Promotion_for_return_refund_Items": e.escrow_detail.order_income.prorated_payment_channel_promo_shopee_offset_return_items,
+                    "Nama_Toko": null,
+                    "Cashback_Koin_dari_Penjual": e.escrow_detail.order_income.seller_coin_cash_back,
+                    "Voucher_disponsor_oleh_Penjual": e.escrow_detail.order_income.voucher_from_seller,
+                    "Voucher_co_fund_disponsor_oleh_Penjual": null, 
+                    "Cashback_Koin_disponsori_Penjual": e.escrow_detail.order_income.seller_coin_cash_back,
+                    "Cashback_Koin_Co_fund_disponsori_Penjual": null,
                     "process_dttm": new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
                 }
                 escrowBreakdown.push(obj);
