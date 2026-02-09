@@ -58,7 +58,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         return escrowContainer;
     } catch (e) {
         console.log("[SHOPEE-WITHDRAWAL] ERROR on fetching Dana Dilepas on brand: ", brand);
-        console.log(e.response);
+        console.log(e);
     }
 
     // console.log("All Dana Dilepas on brand: ", brand);
