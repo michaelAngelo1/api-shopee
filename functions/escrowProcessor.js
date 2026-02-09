@@ -10,8 +10,6 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
     const PATH = "/api/v2/payment/get_escrow_list";
 
     try {
-    
-        console.log("[SHOPEE-WITHDRAWAL] Raw response for brand: ", brand);
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
         const sign = crypto.createHmac('sha256', partner_key)
@@ -40,7 +38,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
+            // console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
 
             const response = await axios.get(fullUrl, {
                 headers: {
@@ -113,9 +111,9 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
+            // console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
 
-            console.log("Data[i]: ", data[i]);
+            // console.log("Data[i]: ", data[i]);
 
             const response = await axios.post(fullUrl, {
                 "order_sn_list": data[i]
