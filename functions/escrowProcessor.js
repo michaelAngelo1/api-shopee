@@ -38,7 +38,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            // console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
+            console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
 
             const response = await axios.get(fullUrl, {
                 headers: {
@@ -111,7 +111,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            // console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
+            console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
 
             // console.log("Data[i]: ", data[i]);
 
