@@ -274,11 +274,11 @@ export async function mainDanaDilepas(brand, partner_id, partner_key, access_tok
         });
     }
 
-    // const twentyBatchContainer = await transformData(escrowContainer, brand);
+    const twentyBatchContainer = await transformData(escrowContainer, brand);
 
-    // if(twentyBatchContainer && twentyBatchContainer.length > 0) {
-    //     // [NEW] Pass the map to the breakdown function
-    //     await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap);
-    // }
+    if(twentyBatchContainer && twentyBatchContainer.length > 0) {
+        // [NEW] Pass the map to the breakdown function
+        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap);
+    }
 }
 
