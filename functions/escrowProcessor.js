@@ -72,23 +72,28 @@ async function transformData(data, brand) {
     console.log("Dana Dilepas on brand: ", brand)
     console.log("All Order_Sns on Data before Transform: \n");
     
-    let twentyBatchContainer = [];
-    let twentyBatch = [];
-    data.forEach(d => {
-        
-        twentyBatch.push(d.order_sn);
-
-        if(twentyBatch.length == 20) {
+    try {
+        let twentyBatchContainer = [];
+        let twentyBatch = [];
+        data.forEach(d => {
+            
+            twentyBatch.push(d.order_sn);
+    
+            if(twentyBatch.length == 20) {
+                twentyBatchContainer.push(twentyBatch);
+                twentyBatch = [];
+            }
+        });
+    
+        if (twentyBatch.length > 0) {
             twentyBatchContainer.push(twentyBatch);
-            twentyBatch = [];
         }
-    });
-
-    if (twentyBatch.length > 0) {
-        twentyBatchContainer.push(twentyBatch);
+    
+        return twentyBatchContainer;
+    } catch (e) {
+        console.log("[SHOPEE-WITHDRAWAL] Error on transformData on brand: ", brand);
+        console.log(e);
     }
-
-    return twentyBatchContainer;
 }
 
 async function breakdownEscrow(data, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap) {
@@ -223,38 +228,47 @@ async function mergeData(data, brand) {
     const bigquery = new BigQuery();
     const datasetId = 'shopee_api';
 
-    try {
-        console.log("[SHOPEE-WITHDRAWAL] Data before merging. First two: ");
-        console.log(data.slice(0, 2));
+    let batch = 1000;
+    for(let i=0; i<data.length; i+=batch) {
+        const batchData = data.slice(i, i+batch);
+        try {
+            console.log("[SHOPEE-WITHDRAWAL] Data before merging. First two: ");
+            // console.log(data.slice(0, 2));
+    
+            const incomingOrderSNs = batchData.map(row => `'${row.No_Pesanan}'`).join(",");
 
-        const incomingOrderSNs = data.map(row => `'${row.No_Pesanan}'`).join(",");
-        const query = `
-            SELECT No_Pesanan 
-            FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
-            WHERE No_Pesanan IN (${incomingOrderSNs})
-        `;
-        const [existingRows] = await bigquery.query({ query });
-        
-        const existingIds = new Set(existingRows.map(row => row.No_Pesanan));
-        console.log(`[SHOPEE-WITHDRAWAL] Found ${existingIds.size} duplicates in BigQuery.`);
+            if(!incomingOrderSNs) {
+                continue;
+            }
 
-        const recordsToInsert = data.filter(row => !existingIds.has(row.No_Pesanan));
-
-        if (recordsToInsert.length === 0) {
-            console.log("[SHOPEE-WITHDRAWAL] All data already exists. Skipping insert.");
-            return;
+            const query = `
+                SELECT No_Pesanan 
+                FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
+                WHERE No_Pesanan IN (${incomingOrderSNs})
+            `;
+            const [existingRows] = await bigquery.query({ query });
+            
+            const existingIds = new Set(existingRows.map(row => row.No_Pesanan));
+            console.log(`[SHOPEE-WITHDRAWAL] Found ${existingIds.size} duplicates in BigQuery.`);
+    
+            const recordsToInsert = batchData.filter(row => !existingIds.has(row.No_Pesanan));
+    
+            if (recordsToInsert.length === 0) {
+                console.log("[SHOPEE-WITHDRAWAL] All data already exists. Skipping insert.");
+                continue;
+            }
+    
+            console.log(`[SHOPEE-WITHDRAWAL] Inserting ${recordsToInsert.length} new rows`);
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert(recordsToInsert);
+    
+            console.log(`[SHOPEE-WITHDRAWAL] Successfully inserted rows for ${brand}.`);
+        } catch (e) {
+            console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
+            console.error(e);
         }
-
-        console.log(`[SHOPEE-WITHDRAWAL] Inserting ${recordsToInsert.length} new rows`);
-        await bigquery
-            .dataset(datasetId)
-            .table(tableName)
-            .insert(recordsToInsert);
-
-        console.log(`[SHOPEE-WITHDRAWAL] Successfully inserted rows for ${brand}.`);
-    } catch (e) {
-        console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
-        console.error(e);
     }
 }
 
