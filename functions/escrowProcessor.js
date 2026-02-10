@@ -266,8 +266,20 @@ async function mergeData(data, brand) {
     
             console.log(`[SHOPEE-WITHDRAWAL] Successfully inserted rows for ${brand}.`);
         } catch (e) {
-            console.error("[SHOPEE-WITHDRAWAL] Error inserting FINANCE data on brand: ", brand);
-            console.error(e);
+            if (e.name === 'PartialFailureError') {
+                console.error("[SHOPEE-WITHDRAWAL] !!! INSERTION FAILED !!!");
+                console.error("---------------------------------------------------");
+                
+                // Log the first 3 errors to avoid flooding the logs
+                e.errors.slice(0, 3).forEach((err, index) => {
+                    console.error(`Error #${index + 1}:`);
+                    console.error("Reason:", JSON.stringify(err.errors, null, 2)); // Shows the specific column & issue
+                    console.error("Bad Row Data:", JSON.stringify(err.row, null, 2)); // Shows the data that failed
+                    console.error("---------------------------------------------------");
+                });
+            } else {
+                console.error("[SHOPEE-WITHDRAWAL] Unexpected Error:", e);
+            }
         }
     }
 }
