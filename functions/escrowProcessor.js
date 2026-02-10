@@ -141,7 +141,8 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                     // Extract YYYY-MM-DD
                     tanggalDana = dateObj.toISOString().replace('T', ' ').split('.')[0];
                 }
-
+                const voucherData = e.escrow_detail.order_income.seller_voucher_code;
+                
                 let obj = {
                     "No_Pesanan": sn,
                     "No_Pengajuan": null, 
@@ -170,7 +171,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                     "Biaya_Kampanye": e.escrow_detail.order_income.campaign_fee,
                     "Bea_Masuk_PPN_PPh": e.escrow_detail.order_income.escrow_tax,
                     "Total_Penghasilan": e.escrow_detail.order_income.escrow_amount,
-                    "Kode_Voucher": e.escrow_detail.order_income.seller_voucher_code || null,
+                    "Kode_Voucher": Array.isArray(voucherData) ? voucherData.join(", ") : null,
                     "Kompensasi": e.escrow_detail.order_income.seller_lost_compensation,
                     "Promo_Gratis_Ongkir_dari_Penjual": e.escrow_detail.order_income.seller_shipping_discount,
                     "Jasa_Kirim": null, 
