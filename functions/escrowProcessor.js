@@ -38,7 +38,7 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
+            // console.log(`Hitting Dana Dilepas for ${brand}: `, fullUrl, " - page: ", pageNumber);
 
             const response = await axios.get(fullUrl, {
                 headers: {
@@ -119,7 +119,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
             });
 
             const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
+            // console.log("Hitting withdrawal URL: ", fullUrl, "on batch: ", i);
 
             // console.log("Data[i]: ", data[i]);
 
@@ -142,7 +142,7 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                     tanggalDana = dateObj.toISOString().replace('T', ' ').split('.')[0];
                 }
                 const voucherData = e.escrow_detail.order_income.seller_voucher_code;
-                
+
                 let obj = {
                     "No_Pesanan": sn,
                     "No_Pengajuan": null, 
@@ -151,7 +151,8 @@ async function breakdownEscrow(data, brand, partner_id, partner_key, access_toke
                     "Metode_pembayaran_pembeli": e.escrow_detail.buyer_payment_info?.buyer_payment_method || null,
                     "Tanggal_Dana_Dilepaskan": tanggalDana, 
                     "Harga_Asli_Produk": e.escrow_detail.order_income.order_original_price,
-                    "Total_Diskon_Produk": e.escrow_detail.order_income.order_seller_discount,
+                    "Total_Diskon_Produk": e.escrow_detail.order_income.order_seller_discount + e.escrow_detail.order_income.shopee_discount,
+                    "Diskon_Produk_dari_Penjual": e.escrow_detail.order_income.order_seller_discount,
                     "Jumlah_Pengembalian_Dana_ke_Pembeli": e.escrow_detail.order_income.refund_amount_to_buyer,
                     "Diskon_Produk_dari_Shopee": e.escrow_detail.order_income.shopee_discount,
                     "Diskon_Voucher_Ditanggung_Penjual": e.escrow_detail.order_income.voucher_from_seller,
