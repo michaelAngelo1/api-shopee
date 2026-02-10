@@ -46,8 +46,12 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
                 }
             });
 
-            let escrowList = response.data.response.escrow_list;
-            escrowContainer.push(...escrowList);
+            // let escrowList = response.data.response.escrow_list;
+            let escrowList = response.data.response;
+
+            console.log("Escrow list raw response: ", escrowList);
+
+            // escrowContainer.push(...escrowList);
 
             count += escrowList.length;
             hasMore = response.data.response.more;
@@ -271,11 +275,11 @@ export async function mainDanaDilepas(brand, partner_id, partner_key, access_tok
         });
     }
 
-    const twentyBatchContainer = await transformData(escrowContainer, brand);
+    // const twentyBatchContainer = await transformData(escrowContainer, brand);
 
-    if(twentyBatchContainer && twentyBatchContainer.length > 0) {
-        // [NEW] Pass the map to the breakdown function
-        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap);
-    }
+    // if(twentyBatchContainer && twentyBatchContainer.length > 0) {
+    //     // [NEW] Pass the map to the breakdown function
+    //     await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id, releaseTimeMap);
+    // }
 }
 
