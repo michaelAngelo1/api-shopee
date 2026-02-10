@@ -46,12 +46,11 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
                 }
             });
 
-            // let escrowList = response.data.response.escrow_list;
-            let escrowList = response.data.response;
+            let escrowList = response.data.response.escrow_list;
 
-            console.log("Escrow list raw response: ", escrowList);
+            // console.log("Escrow list raw response: ", escrowList);
 
-            // escrowContainer.push(...escrowList);
+            escrowContainer.push(...escrowList);
 
             count += escrowList.length;
             hasMore = response.data.response.more;
