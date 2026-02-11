@@ -73,6 +73,11 @@ app.get('/mock', (req, res) => {
 });
 
 app.get('/mock/run', async (req, res) => {
+    const timestamp = new Date().toISOString();
+    const baseOptions = {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 60000 }
+    };
     await mockQueue.add('mock-run', {}, { 
         ...baseOptions, 
         jobId: `mock-run-${timestamp}`,
