@@ -15,6 +15,7 @@ import { fetchAffiliateData } from './functions/amsProcessor.js';
 import { mainDanaDilepas } from './functions/escrowProcessor.js';
 import { handleWalletTransactions } from './functions/walletTransactions.js';
 import { handleFinance } from './functions/handleFinance.js';
+import { mainRealtime } from './functions/handleRealtime.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -195,8 +196,9 @@ export async function fetchAndProcessOrders() {
 
     // await handleFinance(brand);
 
+    await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
@@ -233,11 +235,11 @@ export async function fetchAndProcessOrders() {
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Naruko, Relove, JR, Enchante
-    await handleNaruko();
-    await handleRelove();
-    await handleJR();
+    // await handleNaruko();
+    // await handleRelove();
+    // await handleJR();
     // await handleEnchante();
-    await handleRocketindoShop();
+    // await handleRocketindoShop();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
