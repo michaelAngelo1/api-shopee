@@ -13,8 +13,12 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     try {
         const now = new Date();
         const time_to = Math.floor(now.getTime() / 1000);
-        now.setHours(0, 0, 0, 0); 
-        const time_from = Math.floor(now.getTime() / 1000);
+
+        // Force Start Time to 00:00:00 Jakarta (UTC+7)
+        const offset = 7; 
+        const nowJakarta = new Date(now.getTime() + (offset * 60 * 60 * 1000));
+        nowJakarta.setUTCHours(0, 0, 0, 0);
+        const time_from = Math.floor((nowJakarta.getTime() - (offset * 60 * 60 * 1000)) / 1000);
 
         // Loop through each status one by one
         for (const status of statusesToFetch) {
