@@ -23,6 +23,7 @@ import { fetchAndProcessOrdersPOLY } from './workers/poly_processor.js';
 
 // --- 1. SETUP & CONFIGURATION ---
 const app = express();
+app.use(express.json());
 const port = process.env.PORT || 8080;
 
 const redisConnection = {
@@ -88,6 +89,16 @@ app.get('/mock/run', async (req, res) => {
 });
 
 app.post('/shopee/test', (req, res) => {
+
+    const payload = req.body;
+    
+    if(payload.code === 3) {
+        console.log("Order sn: ", payload.data.order_sn);
+        console.log("Order status: ", payload.data.status);
+        console.log("Update time: ", payload.data.update_time);
+        console.log("Shop id: ", payload.shop_id);
+    }
+
     res.status(200).json({
         message: "Shopee Test Push acknowledged"
     })
