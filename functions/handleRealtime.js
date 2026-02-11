@@ -14,11 +14,17 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
         const now = new Date();
         const time_to = Math.floor(now.getTime() / 1000);
 
-        // Force Start Time to 00:00:00 Jakarta (UTC+7)
-        const offset = 7; 
-        const nowJakarta = new Date(now.getTime() + (offset * 60 * 60 * 1000));
-        nowJakarta.setUTCHours(0, 0, 0, 0);
-        const time_from = Math.floor((nowJakarta.getTime() - (offset * 60 * 60 * 1000)) / 1000);
+        // --- ROBUST TIMEZONE FIX (MATH BASED) ---
+        // 1. Jakarta is UTC+7 (25200 seconds)
+        // 2. Add offset to current time to get "Jakarta Seconds"
+        const jakartaSeconds = nowSeconds + 25200;
+        // 3. Find how many seconds have passed today in Jakarta (Mod 86400)
+        const secondsPassedToday = jakartaSeconds % 86400;
+        // 4. Subtract those seconds from 'now' to get Jakarta Midnight in UTC
+        const time_from = nowSeconds - secondsPassedToday;
+
+        // DEBUG LOG: Verify this matches 00:00:00 WIB
+        console.log(`[DEBUG] Fetching Range (UTC): ${new Date(time_from * 1000).toISOString()} to ${new Date(time_to * 1000).toISOString()}`);
 
         // Loop through each status one by one
         for (const status of statusesToFetch) {
