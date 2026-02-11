@@ -93,11 +93,16 @@ app.post('/push/shopee/test', (req, res) => {
     const payload = req.body;
     
     if(payload.code === 3) {
-        console.log("Order sn: ", payload.data.ordersn);
-        console.log("Order status: ", payload.data.status);
-        console.log("Update time: ", payload.data.update_time);
-        console.log("Shop id: ", payload.shop_id);
+        // Only checks for unpaid orders
+        if(payload.data.status == "UNPAID") {
+            console.log("Order sn: ", payload.data.ordersn);
+            console.log("Order status: ", payload.data.status);
+            console.log("Update time: ", payload.data.update_time);
+            console.log("Shop id: ", payload.shop_id);
+        }
     }
+
+    // Make a request to get_order_detail
 
     res.status(200).json({
         message: "Shopee Test Push acknowledged"
