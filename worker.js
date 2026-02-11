@@ -73,16 +73,18 @@ app.get('/mock', (req, res) => {
 });
 
 app.get('/mock/run', async (req, res) => {
-    const timestamp = new Date().toISOString();
-    const baseOptions = {
-        attempts: 5,
-        backoff: { type: 'exponential', delay: 60000 }
-    };
-    await mockQueue.add('mock-run', {}, { 
-        ...baseOptions, 
-        jobId: `mock-run-${timestamp}`,
-        delay: 0 
-    });
+    const text = handleMockRun();
+    res.status(200).send(text);
+    // const timestamp = new Date().toISOString();
+    // const baseOptions = {
+    //     attempts: 5,
+    //     backoff: { type: 'exponential', delay: 60000 }
+    // };
+    // await mockQueue.add('mock-run', {}, { 
+    //     ...baseOptions, 
+    //     jobId: `mock-run-${timestamp}`,
+    //     delay: 0 
+    // });
 });
 
 // Cloud Scheduler Endpoint - FULLY POPULATED
@@ -391,7 +393,7 @@ const createWorker = (queueName, processor, name) => {
 };
 
 function handleMockRun() {
-    console.log("Mock function is running!");
+    return "Mock function is running!";
 }
 
 // --- Worker Definitions ---
