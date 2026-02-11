@@ -2,11 +2,6 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import axios from 'axios';
 import crypto from 'crypto';
 import { getEndOfPreviousMonthTimestampWIB, getEndOfYesterdayTimestampWIB, getStartOfMonthTimestampWIB, getStartOfPreviousMonthTimestampWIB } from '../processor.js';
-import { getOrderDetailCLEV } from '../api/cleviant/getOrderDetailCLEV.js';
-import { getEscrowDetailCLEV } from '../api/cleviant/getEscrowDetailCLEV.js';
-import { handleOrdersCLEV } from '../api/cleviant/handleOrdersCLEV.js';
-import { getReturnDetailCLEV, getReturnListCLEV } from '../api/cleviant/getReturnsCLEV.js';
-import { handleReturnsCLEV } from '../api/cleviant/handleReturnsCLEV.js';
 import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
 import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
 import { fetchTiktokBasicAds } from "../functions/fetchTiktokBasicAds.js";
@@ -123,108 +118,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.error("[CLEV] Error loading tokens from Secret Manager: ", e);
-    }
-}
-
-async function fetchReturnsByTimeframe(timeFrom, timeTo, accessToken) {
-    let intervals = [];
-    let start = timeFrom;
-    while(start < timeTo) {
-        let end = Math.min(start + 15 * 24 * 60 * 60 - 1, timeTo);
-        intervals.push({ from: start, to: end});
-        start = end + 1;
-    }
-
-    let allReturnList = [];
-    let allReturnDetails = [];
-    for(const interval of intervals) {
-        const newReturnList = await getReturnListCLEV(interval.from, interval.to, accessToken);
-        if(newReturnList && newReturnList.length > 0) {
-            allReturnList = allReturnList.concat(newReturnList);
-        } else {
-            console.log("CLEV: No returns found for interval: ", interval);
-        }
-    }
-    
-
-    if(allReturnList && allReturnList.length > 0) {
-        allReturnDetails = await getReturnDetailCLEV(allReturnList);
-        await handleReturnsCLEV(allReturnDetails);
-    } else {
-        console.log("CLEV: No return details to process.");
-    }
-}
-
-async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
-    // Divide the timeframe into 15-day intervals
-    let intervals = [];
-    let start = timeFrom;
-    while(start < timeTo) {
-        let end = Math.min(start + 15 * 24 * 60 * 60 - 1, timeTo);
-        intervals.push({ from: start, to: end});
-        start = end + 1;
-    }
-
-    for(const interval of intervals) {
-        console.log(`[CLEV] Interval: ${interval.from} to ${interval.to}`);
-        
-        let hasMore = true;
-        let cursor = "";
-        
-        while(hasMore) {
-
-            const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${PATH}${timestamp}${accessToken}${SHOP_ID}`;
-            const sign = crypto.createHmac('sha256', PARTNER_KEY)
-                .update(baseString)
-                .digest('hex');
-            
-            const params = new URLSearchParams({
-                partner_id: PARTNER_ID,
-                timestamp,
-                access_token: accessToken,
-                shop_id: SHOP_ID,
-                sign,
-                time_range_field: "create_time",
-                time_from: interval.from,
-                time_to: interval.to,
-                page_size: 100,
-            });
-
-            if(cursor) params.append('cursor', cursor);
-
-            const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log("Hitting Get Order List CLEV endpoint:", fullUrl);
-
-            try {
-                const response = await axios.get(fullUrl, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if(response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                    const onePageOfOrders = response.data.response.order_list;
-                    console.log("Fetched one-page of CLEV orders monthly");
-
-                    if(onePageOfOrders.length > 0) {
-                        
-                        const onePageWithDetail = await getOrderDetailCLEV(onePageOfOrders);
-                        const onePageWithEscrow = await getEscrowDetailCLEV(onePageOfOrders);
-
-                        await handleOrdersCLEV(onePageWithDetail, onePageWithEscrow);
-                    }
-
-                    hasMore = response.data.response.more;
-                    cursor = response.data.response.next_cursor || "";
-                } else {
-                    hasMore = false;
-                }
-            } catch (e) {
-                console.log("Error fetching CLEV orders: ", e);
-                hasMore = false;
-            }
-        }
     }
 }
 

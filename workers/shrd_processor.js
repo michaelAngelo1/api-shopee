@@ -2,11 +2,6 @@ import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { getEndOfPreviousMonthTimestampWIB, getEndOfYesterdayTimestampWIB, getStartOfMonthTimestampWIB, getStartOfPreviousMonthTimestampWIB } from '../processor.js';
 import axios from 'axios';
 import crypto from "crypto";
-import { getOrderDetailSHRD } from '../api/shrd/getOrderDetailSHRD.js';
-import { getEscrowDetailSHRD } from '../api/shrd/getEscrowDetailSHRD.js';
-import { handleOrdersSHRD } from '../api/shrd/handleOrdersSHRD.js';
-import { getReturnDetailSHRD, getReturnListSHRD } from '../api/shrd/getReturnsSHRD.js';
-import { handleReturnsSHRD } from '../api/shrd/handleReturnsSHRD.js';
 import { fetchAdsTotalBalance } from "../functions/fetchAdsTotalBalance.js";
 import { fetchGMVMaxSpending } from "../functions/fetchGMVMaxSpending.js";
 import { fetchTiktokBasicAds } from "../functions/fetchTiktokBasicAds.js";
@@ -125,108 +120,6 @@ async function loadTokensFromSecret() {
         return tokens;
     } catch (e) {
         console.log("[SHRD] Error loading tokens from Secret Manager: ", e);
-    }
-}
-
-async function fetchReturnsByTimeframe(timeFrom, timeTo, accessToken) {
-    let intervals = [];
-    let start = timeFrom;
-    while(start < timeTo) {
-        let end = Math.min(start + 15 * 24 * 60 * 60 - 1, timeTo);
-        intervals.push({ from: start, to: end});
-        start = end + 1;
-    }
-
-    let allReturnList = [];
-    let allReturnDetails = [];
-    for(const interval of intervals) {
-        const newReturnList = await getReturnListSHRD(interval.from, interval.to, accessToken);
-        if(newReturnList && newReturnList.length > 0) {
-            allReturnList = allReturnList.concat(newReturnList);
-        } else {
-            console.log("SHRD: No returns found for interval: ", interval);
-        }
-    }
-    
-
-    if(allReturnList && allReturnList.length > 0) {
-        allReturnDetails = await getReturnDetailSHRD(allReturnList);
-        await handleReturnsSHRD(allReturnDetails);
-    } else {
-        console.log("SHRD: No return details to process.");
-    }
-}
-
-async function fetchByTimeframe(timeFrom, timeTo, accessToken) {
-    // Divide the timeframe into 15-day intervals
-    let intervals = [];
-    let start = timeFrom;
-    while(start < timeTo) {
-        let end = Math.min(start + 15 * 24 * 60 * 60 - 1, timeTo);
-        intervals.push({ from: start, to: end});
-        start = end + 1;
-    }
-
-    for(const interval of intervals) {
-        console.log(`Interval: ${interval.from} to ${interval.to}`);
-        
-        let hasMore = true;
-        let cursor = "";
-        
-        while(hasMore) {
-
-            const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${PATH}${timestamp}${accessToken}${SHOP_ID}`;
-            const sign = crypto.createHmac('sha256', PARTNER_KEY)
-                .update(baseString)
-                .digest('hex');
-            
-            const params = new URLSearchParams({
-                partner_id: PARTNER_ID,
-                timestamp,
-                access_token: accessToken,
-                shop_id: SHOP_ID,
-                sign,
-                time_range_field: "create_time",
-                time_from: interval.from,
-                time_to: interval.to,
-                page_size: 100,
-            });
-
-            if(cursor) params.append('cursor', cursor);
-
-            const fullUrl = `${HOST}${PATH}?${params.toString()}`;
-            console.log("Hitting Get Order List SHRD endpoint:", fullUrl);
-
-            try {
-                const response = await axios.get(fullUrl, {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if(response.data && response.data.response && Array.isArray(response.data.response.order_list)) {
-                    const onePageOfOrders = response.data.response.order_list;
-                    console.log("Fetched one-page of SHRD orders monthly");
-
-                    if(onePageOfOrders.length > 0) {
-                        
-                        const onePageWithDetail = await getOrderDetailSHRD(onePageOfOrders);
-                        const onePageWithEscrow = await getEscrowDetailSHRD(onePageOfOrders);
-
-                        await handleOrdersSHRD(onePageWithDetail, onePageWithEscrow);
-                    }
-
-                    hasMore = response.data.response.more;
-                    cursor = response.data.response.next_cursor || "";
-                } else {
-                    hasMore = false;
-                }
-            } catch (e) {
-                console.log("Error fetching SHRD orders: ", e);
-                hasMore = false;
-            }
-        }
     }
 }
 
