@@ -4,22 +4,22 @@ import 'dotenv/config';
 import Redis from 'ioredis'; 
 
 // Import Processors
-import { fetchAndProcessOrdersMD } from './sample-fetch/md_processor.js';
+import { fetchAndProcessOrdersMD } from './workers/md_processor.js';
 import { fetchAndProcessOrders } from './processor.js';
-import { fetchAndProcessOrdersSHRD } from './sample-fetch/shrd_processor.js';
-import { fetchAndProcessOrdersCLEV } from './sample-fetch/clev_processor.js';
-import { fetchAndProcessOrdersDRJOU } from './sample-fetch/drjou_processor.js';
-import { fetchAndProcessOrdersMOSS } from './sample-fetch/moss_processor.js';
-import { fetchAndProcessOrdersGB } from './sample-fetch/gb_processor.js';
-import { fetchAndProcessOrdersIL } from './sample-fetch/il_processor.js';
-import { fetchAndProcessOrdersEVOKE } from './sample-fetch/evoke_processor.js';
-import { fetchAndProcessOrdersMMW } from './sample-fetch/mmw_processor.js';
-import { fetchAndProcessOrdersCHESS } from './sample-fetch/chess_processor.js';
-import { fetchAndProcessOrdersSV } from './sample-fetch/sv_processor.js';
-import { fetchAndProcessOrdersPN } from './sample-fetch/pn_processor.js';
-import { fetchAndProcessOrdersNB } from './sample-fetch/nb_processor.js';
-import { fetchAndProcessOrdersMIRAE } from './sample-fetch/mirae_processor.js';
-import { fetchAndProcessOrdersPOLY } from './sample-fetch/poly_processor.js';
+import { fetchAndProcessOrdersSHRD } from './workers/shrd_processor.js';
+import { fetchAndProcessOrdersCLEV } from './workers/clev_processor.js';
+import { fetchAndProcessOrdersDRJOU } from './workers/drjou_processor.js';
+import { fetchAndProcessOrdersMOSS } from './workers/moss_processor.js';
+import { fetchAndProcessOrdersGB } from './workers/gb_processor.js';
+import { fetchAndProcessOrdersIL } from './workers/il_processor.js';
+import { fetchAndProcessOrdersEVOKE } from './workers/evoke_processor.js';
+import { fetchAndProcessOrdersMMW } from './workers/mmw_processor.js';
+import { fetchAndProcessOrdersCHESS } from './workers/chess_processor.js';
+import { fetchAndProcessOrdersSV } from './workers/sv_processor.js';
+import { fetchAndProcessOrdersPN } from './workers/pn_processor.js';
+import { fetchAndProcessOrdersNB } from './workers/nb_processor.js';
+import { fetchAndProcessOrdersMIRAE } from './workers/mirae_processor.js';
+import { fetchAndProcessOrdersPOLY } from './workers/poly_processor.js';
 
 // --- 1. SETUP & CONFIGURATION ---
 const app = express();
@@ -42,6 +42,7 @@ console.log("DEBUG: Current REDIS_URL is configured.");
 console.log("System Starting: Initializing Queues and Workers...");
 
 // --- 2. INITIALIZE QUEUES (PRODUCERS) ---
+const mockQueue = new Queue('mock-run', redisConnection);
 const orderQueue = new Queue("staging-order-processing", redisConnection);
 const orderQueueMD = new Queue("staging-fetch-orders-md", redisConnection);
 const orderQueueSHRD = new Queue("staging-fetch-orders-shrd", redisConnection);
@@ -65,6 +66,18 @@ const orderQueuePOLY = new Queue("staging-fetch-orders-poly", redisConnection);
 // Health Check
 app.get('/', (req, res) => {
     res.status(200).send("Service is healthy (API + Workers Running)");
+});
+
+app.get('/mock', (req, res) => {
+    res.status(200).send("Mock test")
+});
+
+app.get('/mock/run', async (req, res) => {
+    await mockQueue.add('mock-run', {}, { 
+        ...baseOptions, 
+        jobId: `mock-run-${timestamp}`,
+        delay: 0 
+    });
 });
 
 // Cloud Scheduler Endpoint - FULLY POPULATED
@@ -372,7 +385,16 @@ const createWorker = (queueName, processor, name) => {
     return worker;
 };
 
+function handleMockRun() {
+    console.log("Mock function is running!");
+}
+
 // --- Worker Definitions ---
+const mockProcessor = async (job) => {
+    if(job.name === "mock-run") return handleMockRun();
+    throw new Error(`Unknown job name: ${job.name}`);
+};
+const mockWorker = createWorker("mock-run", mockProcessor, "MOCK");
 
 const orderProcessor = async (job) => {
     if (job.name === 'staging-fetch-daily-orders' || job.name === 'manual-fetch') return fetchAndProcessOrders();
