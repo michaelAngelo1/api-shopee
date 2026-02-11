@@ -87,6 +87,12 @@ app.get('/mock/run', async (req, res) => {
     // });
 });
 
+app.post('/shopee/test', (req, res) => {
+    res.status(200).json({
+        message: "Shopee Test Push acknowledged"
+    })
+});
+
 // Cloud Scheduler Endpoint - FULLY POPULATED
 app.get('/staging-sync', async (req, res) => {
     // Security check for Cloud Scheduler
