@@ -218,11 +218,13 @@ TODO:
 2. Transform the data with the required structure
 ***/
 export async function mainDanaDilepas(brand, partner_id, partner_key, access_token, shop_id) {
-    const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
-    const twentyBatchContainer = await transformData(escrowContainer, brand);
+    // const escrowContainer = await fetchDanaDilepas(brand, partner_id, partner_key, access_token, shop_id);
+    // const twentyBatchContainer = await transformData(escrowContainer, brand);
 
-    if(twentyBatchContainer && twentyBatchContainer.length > 0) {
-        await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
-    }
+    // if(twentyBatchContainer && twentyBatchContainer.length > 0) {
+    //     await breakdownEscrow(twentyBatchContainer, brand, partner_id, partner_key, access_token, shop_id);
+    // }
+
+    console.log("[SHOPEE-WITHDRAWAL] Uncomment when required for backfill.")
 }
 

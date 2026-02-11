@@ -2,7 +2,6 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
-import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
@@ -14,14 +13,14 @@ import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = parseInt(process.env.MD_PARTNER_ID);
-export const PARTNER_KEY = process.env.MD_PARTNER_KEY;
-export const SHOP_ID = parseInt(process.env.GB_SHOP_ID);
+export const PARTNER_ID = parseInt(process.env.PN_PARTNER_ID);
+export const PARTNER_KEY = process.env.PN_PARTNER_KEY;
+export const SHOP_ID = parseInt(process.env.PN_SHOP_ID);
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 export const HOST = "https://partner.shopeemobile.com";
 
-export let GB_ACCESS_TOKEN;
-let GB_REFRESH_TOKEN;
+export let PN_ACCESS_TOKEN;
+let PN_REFRESH_TOKEN;
 
 async function refreshToken() {
     const path = "/api/v2/auth/access_token/get";
@@ -34,12 +33,12 @@ async function refreshToken() {
     const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
-        refresh_token: GB_REFRESH_TOKEN,
+        refresh_token: PN_REFRESH_TOKEN,
         partner_id: PARTNER_ID,
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint GB: ", fullUrl);
+    console.log("Hitting Refresh Token endpoint PN: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -51,21 +50,21 @@ async function refreshToken() {
     const newRefreshToken = response.data.refresh_token;
 
     if(newAccessToken && newRefreshToken) {
-        GB_ACCESS_TOKEN = newAccessToken;
-        GB_REFRESH_TOKEN = newRefreshToken;
+        PN_ACCESS_TOKEN = newAccessToken;
+        PN_REFRESH_TOKEN = newRefreshToken;
 
         saveTokensToSecret({
-            accessToken: GB_ACCESS_TOKEN,
-            refreshToken: GB_REFRESH_TOKEN
+            accessToken: PN_ACCESS_TOKEN,
+            refreshToken: PN_REFRESH_TOKEN
         });
     } else {
-        console.log("[GBELLE] token refresh not found :(")
+        console.log("[PN] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
 
 async function saveTokensToSecret(tokens) {
-    const parent = 'projects/231801348950/secrets/gb-shopee-tokens';
+    const parent = 'projects/231801348950/secrets/pn-shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
@@ -95,14 +94,15 @@ async function saveTokensToSecret(tokens) {
                 }
             }
         }
-        console.log("[GB] Successfully saved tokens to GB Secret Manager: ", parent);
+
+        console.log("[PN] Successfully saved tokens to PN Secret Manager: ", parent);
     } catch (e) {
-        console.error("[GB] Error saving tokens to Secret Manager: ", e);
+        console.error("[PN] Error saving tokens to Secret Manager: ", e);
     }
 }
 
 async function loadTokensFromSecret() {
-    const secretName = 'projects/231801348950/secrets/gb-shopee-tokens/versions/latest';
+    const secretName = 'projects/231801348950/secrets/pn-shopee-tokens/versions/latest';
 
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -113,33 +113,38 @@ async function loadTokensFromSecret() {
         console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
-        console.error("[GB] Error loading tokens from Secret Manager: ", e);
+        console.error("[PN] Error loading tokens from Secret Manager: ", e);
     }
 }
 
-export async function fetchAndProcessOrdersGB() {
-    console.log("Starting fetch orders GB");
-    let brand = "G-Belle";
-    let brandTT = "GBelle";
+export async function fetchAndProcessOrdersPN() {
+    console.log("Starting fetch orders PN");
+    let brand = "Past Nine";
 
     const loadedTokens = await loadTokensFromSecret();
-    GB_ACCESS_TOKEN = loadedTokens.accessToken;
-    GB_REFRESH_TOKEN = loadedTokens.refreshToken;
+    PN_ACCESS_TOKEN = loadedTokens.accessToken;
+    PN_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
 
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID);
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID)
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID);
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, PN_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, PN_ACCESS_TOKEN, SHOP_ID);
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, PN_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 7500);
+    await fetchAffiliateData(brand, SHOP_ID, 8000);
+
+    let advIdPastnine = "7443655343483191313";
     
+    // For backfilling
     let advIdGbelle = "7329483707528691714";
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advIdGbelle);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advIdGbelle);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advIdGbelle);
+
+    let advertiserId = advIdPastnine;
+
+    const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);
     
-    console.log("[GBELLE] All data on: ", brand);
+    console.log("[PASTNINE] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
@@ -147,5 +152,6 @@ export async function fetchAndProcessOrdersGB() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brandTT, advIdGbelle);
+    // For backfilling
+    await fetchPGMVMaxBreakdown(brand, advertiserId);
 }

@@ -1,8 +1,3 @@
-import { getReturnDetail, getReturnList } from './api/eileen_grace/getReturns.js';
-import { getEscrowDetail } from './api/eileen_grace/getEscrowDetail.js';
-import { getOrderDetail } from './api/eileen_grace/getOrderDetail.js';
-import { handleReturns } from './api/eileen_grace/handleReturns.js';
-import { handleOrders } from './api/eileen_grace/handleOrders.js';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios from 'axios';
 import crypto from 'crypto';

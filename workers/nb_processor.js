@@ -2,7 +2,6 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
-import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
@@ -14,14 +13,14 @@ import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
-export const PARTNER_KEY = process.env.DRJOU_PARTNER_KEY;
-export const SHOP_ID = parseInt(process.env.MIRAE_SHOP_ID);
+export const PARTNER_ID = parseInt(process.env.PN_PARTNER_ID);
+export const PARTNER_KEY = process.env.PN_PARTNER_KEY;
+export const SHOP_ID = parseInt(process.env.NB_SHOP_ID);
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 export const HOST = "https://partner.shopeemobile.com";
 
-export let MIRAE_ACCESS_TOKEN;
-let MIRAE_REFRESH_TOKEN;
+export let NB_ACCESS_TOKEN;
+let NB_REFRESH_TOKEN;
 
 async function refreshToken() {
     const path = "/api/v2/auth/access_token/get";
@@ -34,12 +33,12 @@ async function refreshToken() {
     const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
-        refresh_token: MIRAE_REFRESH_TOKEN,
+        refresh_token: NB_REFRESH_TOKEN,
         partner_id: PARTNER_ID,
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint MIRAE: ", fullUrl);
+    console.log("Hitting Refresh Token endpoint NB: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -51,21 +50,21 @@ async function refreshToken() {
     const newRefreshToken = response.data.refresh_token;
 
     if(newAccessToken && newRefreshToken) {
-        MIRAE_ACCESS_TOKEN = newAccessToken;
-        MIRAE_REFRESH_TOKEN = newRefreshToken;
+        NB_ACCESS_TOKEN = newAccessToken;
+        NB_REFRESH_TOKEN = newRefreshToken;
 
         saveTokensToSecret({
-            accessToken: MIRAE_ACCESS_TOKEN,
-            refreshToken: MIRAE_REFRESH_TOKEN
+            accessToken: NB_ACCESS_TOKEN,
+            refreshToken: NB_REFRESH_TOKEN
         });
     } else {
-        console.log("[MIRAE] token refresh not found :(")
+        console.log("[NB] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
 
 async function saveTokensToSecret(tokens) {
-    const parent = 'projects/231801348950/secrets/mirae-shopee-tokens';
+    const parent = 'projects/231801348950/secrets/nb-shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
@@ -95,15 +94,14 @@ async function saveTokensToSecret(tokens) {
                 }
             }
         }
-
-        console.log("[MIRAE] Successfully saved tokens to MIRAE Secret Manager: ", parent);
+        console.log("[NB] Successfully saved tokens to NB Secret Manager: ", parent);
     } catch (e) {
-        console.error("[MIRAE] Error saving tokens to Secret Manager: ", e);
+        console.error("[NB] Error saving tokens to Secret Manager: ", e);
     }
 }
 
 async function loadTokensFromSecret() {
-    const secretName = 'projects/231801348950/secrets/mirae-shopee-tokens/versions/latest';
+    const secretName = 'projects/231801348950/secrets/nb-shopee-tokens/versions/latest';
 
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -114,32 +112,38 @@ async function loadTokensFromSecret() {
         console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
-        console.error("[MIRAE] Error loading tokens from Secret Manager: ", e);
+        console.error("[NB] Error loading tokens from Secret Manager: ", e);
     }
 }
 
-export async function fetchAndProcessOrdersMIRAE() {
-    console.log("Starting fetch orders MIRAE");
-    let brand = "Mirae";
+export async function fetchAndProcessOrdersNB() {
+    console.log("Starting fetch orders NB");
+    let brand = "Nutri & Beyond";
+    let brandTT = "Nutri Beyond";
 
     const loadedTokens = await loadTokensFromSecret();
-    MIRAE_ACCESS_TOKEN = loadedTokens.accessToken;
-    MIRAE_REFRESH_TOKEN = loadedTokens.refreshToken;
+    NB_ACCESS_TOKEN = loadedTokens.accessToken;
+    NB_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
 
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 6500);
+    await fetchAffiliateData(brand, SHOP_ID, 8500);
 
-    let advIdMirae = "7306798768821387265";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdMirae);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdMirae);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdMirae);
+    let advIdNutriBeyond = "7457040121955729425";
+    // For backfilling
+    let advIdMamaway = "7306800699382251521";
+
+    let advertiserId = advIdNutriBeyond;
+
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
     
-    console.log("[MIRAE] All data on: ", brand);
+    console.log("[NB] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
@@ -147,5 +151,6 @@ export async function fetchAndProcessOrdersMIRAE() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdMirae);
+    // For backfilling
+    await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }

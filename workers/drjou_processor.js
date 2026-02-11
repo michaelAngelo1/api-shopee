@@ -2,7 +2,6 @@ import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios, { all } from 'axios';
 import crypto from 'crypto';
 import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
-import { fetchGMVMaxSpending } from '../functions/fetchGMVMaxSpending.js';
 import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
 import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
@@ -14,14 +13,14 @@ import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
-export const PARTNER_ID = parseInt(process.env.POLY_PARTNER_ID);
-export const PARTNER_KEY = process.env.POLY_PARTNER_KEY;
-export const SHOP_ID = parseInt(process.env.POLY_SHOP_ID);
+export const PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
+export const PARTNER_KEY = process.env.DRJOU_PARTNER_KEY;
+export const SHOP_ID = parseInt(process.env.DRJOU_SHOP_ID);
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 export const HOST = "https://partner.shopeemobile.com";
 
-export let POLY_ACCESS_TOKEN;
-let POLY_REFRESH_TOKEN;
+export let DRJOU_ACCESS_TOKEN;
+let DRJOU_REFRESH_TOKEN;
 
 async function refreshToken() {
     const path = "/api/v2/auth/access_token/get";
@@ -34,12 +33,12 @@ async function refreshToken() {
     const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
-        refresh_token: POLY_REFRESH_TOKEN,
+        refresh_token: DRJOU_REFRESH_TOKEN,
         partner_id: PARTNER_ID,
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint POLY: ", fullUrl);
+    console.log("Hitting Refresh Token endpoint DRJOU: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -51,21 +50,21 @@ async function refreshToken() {
     const newRefreshToken = response.data.refresh_token;
 
     if(newAccessToken && newRefreshToken) {
-        POLY_ACCESS_TOKEN = newAccessToken;
-        POLY_REFRESH_TOKEN = newRefreshToken;
+        DRJOU_ACCESS_TOKEN = newAccessToken;
+        DRJOU_REFRESH_TOKEN = newRefreshToken;
 
         saveTokensToSecret({
-            accessToken: POLY_ACCESS_TOKEN,
-            refreshToken: POLY_REFRESH_TOKEN
+            accessToken: DRJOU_ACCESS_TOKEN,
+            refreshToken: DRJOU_REFRESH_TOKEN
         });
     } else {
-        console.log("[POLY] token refresh not found :(")
+        console.log("[DRJOU] token refresh not found :(")
         throw new Error("Tokens dont exist");
     }
 }
 
 async function saveTokensToSecret(tokens) {
-    const parent = 'projects/231801348950/secrets/poly-shopee-tokens';
+    const parent = 'projects/231801348950/secrets/drjou-shopee-tokens';
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'utf-8');
 
     try {
@@ -95,15 +94,14 @@ async function saveTokensToSecret(tokens) {
                 }
             }
         }
-
-        console.log("[POLY] Successfully saved tokens to POLY Secret Manager: ", parent);
+        console.log("[DRJOU] Successfully saved tokens to DRJOU Secret Manager: ", parent);
     } catch (e) {
-        console.error("[POLY] Error saving tokens to Secret Manager: ", e);
+        console.error("[DRJOU] Error saving tokens to Secret Manager: ", e);
     }
 }
 
 async function loadTokensFromSecret() {
-    const secretName = 'projects/231801348950/secrets/poly-shopee-tokens/versions/latest';
+    const secretName = 'projects/231801348950/secrets/drjou-shopee-tokens/versions/latest';
 
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -114,32 +112,39 @@ async function loadTokensFromSecret() {
         console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
-        console.error("[POLY] Error loading tokens from Secret Manager: ", e);
+        console.error("[DRJOU] Error loading tokens from Secret Manager: ", e);
     }
 }
 
-export async function fetchAndProcessOrdersPOLY() {
-    console.log("Starting fetch orders POLY");
-    let brand = "Polynia";
+export async function fetchAndProcessOrdersDRJOU() {
+    console.log("Starting fetch orders DRJOU");
+    let brand = "Dr.Jou";
+    let brandTT = "Dr Jou";
 
     const loadedTokens = await loadTokensFromSecret();
-    POLY_ACCESS_TOKEN = loadedTokens.accessToken;
-    POLY_REFRESH_TOKEN = loadedTokens.refreshToken;
+    DRJOU_ACCESS_TOKEN = loadedTokens.accessToken;
+    DRJOU_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
 
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
+    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID)
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 7400);
+    await fetchAffiliateData(brand, SHOP_ID, 6000);
 
-    let advIdPoly = "7275178424493211650";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdPoly);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdPoly);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdPoly);
+    let advIdDrJou = "7431385339190820880"
     
-    console.log("[POLYNIA] All data on: ", brand);
+    // For backfilling
+    let advIdEvoke = "7374337917889953808"
+
+    let advertiserId = advIdDrJou;
+
+    const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
+    const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
+    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
+    
+    console.log("[DRJOU] All data on: ", brand);
     console.log(basicAdsData);
     console.log(pgmvMaxData);
     console.log(lgmvMaxData);
@@ -147,5 +152,6 @@ export async function fetchAndProcessOrdersPOLY() {
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdPoly);
+    // For backfilling
+    await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }
