@@ -7,53 +7,61 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/order/get_order_list";
 
+    // Define the statuses you want to fetch
+    const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'IN_CANCEL', 'CANCELLED'];
+
     try {
-        const timestamp = Math.floor(Date.now() / 1000);
-        const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
-        const sign = crypto.createHmac('sha256', partner_key)
-            .update(baseString)
-            .digest('hex');
-        
         const now = new Date();
         const time_to = Math.floor(now.getTime() / 1000);
         now.setHours(0, 0, 0, 0); 
         const time_from = Math.floor(now.getTime() / 1000);
 
-        let cursor = "";
-        let more = true;
+        // Loop through each status one by one
+        for (const status of statusesToFetch) {
+            let cursor = "";
+            let more = true;
 
-        while (more) {
-            const { data } = await axios.get(HOST + PATH, {
-                params: {
-                    partner_id,
-                    shop_id,
-                    access_token,
-                    timestamp,
-                    sign,
-                    time_range_field: "create_time",
-                    time_from,
-                    time_to,
-                    page_size: 100,
-                    cursor,
-                    order_status: 'READY_TO_SHIP',
-                    response_optional_fields: 'order_status'
-                }
-            });
+            while (more) {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
+                const sign = crypto.createHmac('sha256', partner_key)
+                    .update(baseString)
+                    .digest('hex');
 
-            if (data.error) {
-                throw new Error(`Shopee API Error: ${data.message || data.error}`);
-            }
-
-            const responseData = data.response;
-            if (responseData && responseData.order_list) {
-                responseData.order_list.forEach(order => {
-                    allOrderSns.push(order.order_sn);
+                const { data } = await axios.get(HOST + PATH, {
+                    params: {
+                        partner_id,
+                        shop_id,
+                        access_token,
+                        timestamp,
+                        sign,
+                        time_range_field: "create_time",
+                        time_from,
+                        time_to,
+                        page_size: 100,
+                        cursor,
+                        order_status: status, // Dynamic status here
+                        response_optional_fields: 'order_status'
+                    }
                 });
-                
-                more = responseData.more;
-                cursor = responseData.next_cursor;
-            } else {
-                more = false;
+
+                if (data.error) {
+                    // Log error but maybe continue to next status? 
+                    // For now, throwing error to stop execution as per strict requirements.
+                    throw new Error(`Shopee API Error [${status}]: ${data.message || data.error}`);
+                }
+
+                const responseData = data.response;
+                if (responseData && responseData.order_list) {
+                    responseData.order_list.forEach(order => {
+                        allOrderSns.push(order.order_sn);
+                    });
+                    
+                    more = responseData.more;
+                    cursor = responseData.next_cursor;
+                } else {
+                    more = false;
+                }
             }
         }
 
@@ -62,7 +70,8 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
         console.log(e);
     }
 
-    return allOrderSns;
+    // Optional: Remove duplicates if an order changed status during the fetch (rare but possible)
+    return [...new Set(allOrderSns)];
 }
 
 async function getOrderDetail(brand, batch, partner_id, partner_key, access_token, shop_id) {
@@ -87,7 +96,8 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 timestamp,
                 sign,
                 order_sn_list,
-                response_optional_fields: 'total_amount'
+                // Request order_status so we can filter out CANCELLED orders
+                response_optional_fields: 'total_amount,order_status'
             }
         });
 
@@ -97,6 +107,9 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
         if (data.response && data.response.order_list) {
             data.response.order_list.forEach(order => {
+                // IMPORTANT: Do not count sales from CANCELLED orders
+                if (order.order_status === 'CANCELLED') return;
+                
                 totalSales += order.total_amount || 0;
             });
         }
@@ -110,18 +123,21 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 }
 
 export async function mainRealtime(brand, partner_id, partner_key, access_token, shop_id) {
+    // 1. Get List (now includes READY_TO_SHIP, SHIPPED, etc, AND CANCELLED)
     const allOrderSns = await getOrderList(brand, partner_id, partner_key, access_token, shop_id);
     
-    console.log("All order list. First three: ");
-    console.log(allOrderSns.slice(0, 3));
+    // Remove duplicates just in case an order changed status between fetch loops
+    const uniqueOrderSns = [...new Set(allOrderSns)];
+
+    console.log("All order list count:", uniqueOrderSns.length);
+    console.log("First three:", uniqueOrderSns.slice(0, 3));
 
     let batchSize = 50;
     let totalSalesBrand = 0;
     
-    // Process in batches of 50 as per API limit
-    for(let i = 0; i < allOrderSns.length; i += batchSize) {
-        const batchOrderSns = allOrderSns.slice(i, i + batchSize);
-        // Pass auth params to the helper function
+    for(let i = 0; i < uniqueOrderSns.length; i += batchSize) {
+        const batchOrderSns = uniqueOrderSns.slice(i, i + batchSize);
+        // 2. Get Detail (Passes all auth params)
         const subTotal = await getOrderDetail(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id);
         totalSalesBrand += subTotal;
     }
