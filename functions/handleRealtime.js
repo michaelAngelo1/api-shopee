@@ -8,7 +8,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const PATH = "/api/v2/order/get_order_list";
 
     // Define the statuses you want to fetch
-    const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'IN_CANCEL', 'CANCELLED'];
+    const statusesToFetch = ['UNPAID', 'READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'IN_CANCEL', 'CANCELLED'];
 
     try {
         const nowSeconds = Math.floor(Date.now() / 1000);
