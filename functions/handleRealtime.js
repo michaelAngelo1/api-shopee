@@ -108,7 +108,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         if (data.response && data.response.order_list) {
             data.response.order_list.forEach(order => {
                 // IMPORTANT: Do not count sales from CANCELLED orders
-                if (order.order_status === 'CANCELLED') return;
+                // if (order.order_status === 'CANCELLED') return;
                 
                 totalSales += order.total_amount || 0;
             });
