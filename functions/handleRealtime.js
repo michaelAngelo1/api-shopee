@@ -130,7 +130,7 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     const uniqueOrderSns = [...new Set(allOrderSns)];
 
     console.log("All order list count:", uniqueOrderSns.length);
-    console.log("First three:", uniqueOrderSns.slice(0, 3));
+    console.log("Last three:", uniqueOrderSns.slice(-3));
 
     let batchSize = 50;
     let totalSalesBrand = 0;
