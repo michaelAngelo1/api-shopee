@@ -106,14 +106,15 @@ app.post('push/shopee/test', (req, res) => {
 
 app.post('push/shopee/live', (req, res) => {
 
-    const payload = req.body;
+    console.log("Request: ", req);
+    // const payload = req.body;
     
-    if(payload.code === 3) {
-        console.log("Order sn: ", payload.data.order_sn);
-        console.log("Order status: ", payload.data.status);
-        console.log("Update time: ", payload.data.update_time);
-        console.log("Shop id: ", payload.shop_id);
-    }
+    // if(payload.code === 3) {
+    //     console.log("Order sn: ", payload.data.order_sn);
+    //     console.log("Order status: ", payload.data.status);
+    //     console.log("Update time: ", payload.data.update_time);
+    //     console.log("Shop id: ", payload.shop_id);
+    // }
 
     res.status(200).json({
         message: "Shopee Live Push acknowledged"
