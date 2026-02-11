@@ -13,7 +13,6 @@ const tiktokSecrets = {
     "Chess": ""
 }
 
-// Should check for syntax error
 const brandSecrets = {
     "Eileen Grace": {
         appKey: process.env.TIKTOK_PARTNER_APP_KEY,
