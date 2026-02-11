@@ -393,7 +393,10 @@ const createWorker = (queueName, processor, name) => {
 };
 
 function handleMockRun() {
-    return "Mock function is running!";
+    return {
+        message: "Mock function is running!",
+        description: "This internal app fetches data from Shopee and Tiktok Marketing API and merges it to our BigQuery. Deployed on Cloud Run. It is as simple as that."
+    };
 }
 
 // --- Worker Definitions ---
