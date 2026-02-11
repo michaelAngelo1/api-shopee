@@ -88,7 +88,7 @@ app.get('/mock/run', async (req, res) => {
     // });
 });
 
-app.post('push/shopee/test', (req, res) => {
+app.post('/push/shopee/test', (req, res) => {
 
     const payload = req.body;
     
@@ -104,7 +104,7 @@ app.post('push/shopee/test', (req, res) => {
     })
 });
 
-app.post('push/shopee/live', (req, res) => {
+app.post('/push/shopee/live', (req, res) => {
 
     console.log("Request: ", req);
     // const payload = req.body;
