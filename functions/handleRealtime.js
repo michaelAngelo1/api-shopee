@@ -11,8 +11,8 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'IN_CANCEL', 'CANCELLED'];
 
     try {
-        const now = new Date();
-        const time_to = Math.floor(now.getTime() / 1000);
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        const time_to = nowSeconds;
 
         // --- ROBUST TIMEZONE FIX (MATH BASED) ---
         // 1. Jakarta is UTC+7 (25200 seconds)
