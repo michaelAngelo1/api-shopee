@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 async function getOrderList(brand, partner_id, partner_key, access_token, shop_id) {
     console.log("[REALTIME-SALES] Handle realtime get order list on brand: ", brand);
-    let allOrderSns;
+    let allOrderSns = [];
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/order/get_order_list";
 
