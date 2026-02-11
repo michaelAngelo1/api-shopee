@@ -67,9 +67,44 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
 
 async function getOrderDetail(brand, batch, partner_id, partner_key, access_token, shop_id) {
     console.log("[REALTIME-SALES] Handle realtime get order detail on brand: ", brand);
-    let totalSales;
+    let totalSales = 0;
+    const HOST = "https://partner.shopeemobile.com";
+    const PATH = "/api/v2/order/get_order_detail";
 
+    try {
+        const order_sn_list = batch.join(',');
+        const timestamp = Math.floor(Date.now() / 1000);
+        const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
+        const sign = crypto.createHmac('sha256', partner_key)
+            .update(baseString)
+            .digest('hex');
 
+        const { data } = await axios.get(HOST + PATH, {
+            params: {
+                partner_id,
+                shop_id,
+                access_token,
+                timestamp,
+                sign,
+                order_sn_list,
+                response_optional_fields: 'total_amount'
+            }
+        });
+
+        if (data.error) {
+             throw new Error(`Shopee API Detail Error: ${data.message || data.error}`);
+        }
+
+        if (data.response && data.response.order_list) {
+            data.response.order_list.forEach(order => {
+                totalSales += order.total_amount || 0;
+            });
+        }
+
+    } catch (e) {
+        console.log("[REALTIME-SALES] Error get order detail on brand: ", brand);
+        console.log(e);
+    }
 
     return totalSales;
 }
@@ -80,11 +115,17 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     console.log("All order list. First three: ");
     console.log(allOrderSns.slice(0, 3));
 
-    // let batchSize = 50;
-    // let totalSalesBrand = 0;
-    // for(let i=0; i<allOrderSns.length; i+=batchSize) {
-    //     const batchOrderSns = allOrderSns.slice(i, i+batchSize);
-    //     const subTotal = await getOrderDetail(brand, batchOrderSns);
-    //     totalSalesBrand += subTotal;
-    // }
+    let batchSize = 50;
+    let totalSalesBrand = 0;
+    
+    // Process in batches of 50 as per API limit
+    for(let i = 0; i < allOrderSns.length; i += batchSize) {
+        const batchOrderSns = allOrderSns.slice(i, i + batchSize);
+        // Pass auth params to the helper function
+        const subTotal = await getOrderDetail(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id);
+        totalSalesBrand += subTotal;
+    }
+
+    console.log("[REALTIME-SALES] Total sales on brand: ", brand);
+    console.log(totalSalesBrand);
 }
