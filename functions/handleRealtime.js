@@ -113,7 +113,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
                 // 2. FILTER: Ignore Cancelled
                 if (order.order_status === 'CANCELLED') {
-                    console.log("Cancelled order: ", order.order_sn);
+                    // console.log("Cancelled order: ", order.order_sn);
                     return;
                 };
 
@@ -123,9 +123,9 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
                         // 3. FIX: Bundle Deal 0 Price Fallback
                         if (price === 0) {
-                            console.log("[RS-DEBUG] Possible bundle deal: ", order.order_sn);
-                            console.log("[RS-DEBUG] Bundle discounted price: ", price);
-                            console.log("[RS-DEBUG] Bundle model original price: ", item.model_original_price);
+                            // console.log("[RS-DEBUG] Possible bundle deal: ", order.order_sn);
+                            // console.log("[RS-DEBUG] Bundle discounted price: ", price);
+                            // console.log("[RS-DEBUG] Bundle model original price: ", item.model_original_price);
                             price = parseFloat(item.model_original_price || 0);
                         }
 
@@ -146,7 +146,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 export async function mainRealtime(brand, partner_id, partner_key, access_token, shop_id) {
     const allOrderSns = await getOrderList(brand, partner_id, partner_key, access_token, shop_id);
     
-    console.log(`[REALTIME-SALES] Total orders fetched: ${allOrderSns.length}`);
+    console.log(`[REALTIME-SALES] Total ${brand} orders fetched: ${allOrderSns.length}`);
     
     let batchSize = 50;
     let totalSalesBrand = 0;

@@ -105,19 +105,19 @@ app.get('/realtime-sync', async (req, res) => {
         };
 
         // // --- GROUP 1: Shared Account Risk ---
-        // // 1. Evoke: Starts Immediately
-        // await orderQueueEV.add('realtime-fetch-orders-evoke', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `evoke-daily-sync-${timestamp}`,
-        //     delay: 0 
-        // });
+        // 1. Evoke: Starts Immediately
+        await orderQueueEV.add('realtime-fetch-orders-evoke', {}, { 
+            ...baseOptions, 
+            jobId: `evoke-daily-sync-${timestamp}`,
+            delay: 0 
+        });
 
-        // // 2. Dr. Jou: Starts +3 minutes later
-        // await orderQueueDRJOU.add('realtime-fetch-orders-drjou', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `drjou-daily-sync-${timestamp}`,
-        //     delay: 180000 
-        // });
+        // 2. Dr. Jou: Starts +3 minutes later
+        await orderQueueDRJOU.add('realtime-fetch-orders-drjou', {}, { 
+            ...baseOptions, 
+            jobId: `drjou-daily-sync-${timestamp}`,
+            delay: 180000 
+        });
 
         // // 3. Swissvita: Starts +6 minutes later
         // await orderQueueSV.add('realtime-fetch-orders-sv', {}, { 
