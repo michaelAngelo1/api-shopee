@@ -7,21 +7,11 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/order/get_order_list";
 
-    const statusesToFetch = ['UNPAID', 'READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED', 'INVOICE_PENDING'];
+    const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED', 'INVOICE_PENDING'];
 
     try {
-        const nowSeconds = Math.floor(Date.now() / 1000);
-        
-        // --- PRECISE TIMEZONE CALCULATION (00:00:00 WIB Today) ---
-        // 1. Add 7 hours (25200s) to current UTC time to get "Jakarta Time"
-        // 2. Modulo 86400 to find how many seconds have passed since Jakarta Midnight
-        // 3. Subtract those seconds from 'now' to get the UTC timestamp of Jakarta Midnight
-        const jakartaOffset = 25200; 
-        const secondsPassedTodayJakarta = (nowSeconds + jakartaOffset) % 86400;
-        const time_from = nowSeconds - secondsPassedTodayJakarta;
-        const time_to = nowSeconds;
-
-        console.log(`[REALTIME-SALES] Fetching range: ${new Date(time_from * 1000).toISOString()} (Jakarta Midnight) to Now`);
+        let time_from = Math.floor(new Date("2026-02-12T00:00:00+07:00") / 1000);
+        let time_to = Math.floor(new Date("2026-02-12T23:59:59+07:00") / 1000);
 
         for (const status of statusesToFetch) {
             let cursor = "";
