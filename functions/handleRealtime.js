@@ -109,12 +109,10 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
         if (data.response && data.response.order_list) {
             data.response.order_list.forEach(order => {
-                // 1. FILTER: Ignore orders before 00:00:00 WIB (Loose API boundary fix)
-                // create_time is in seconds, same as our timestamp
                 if (order.create_time < JAKARTA_MIDNIGHT_TS) return;
 
                 // 2. FILTER: Ignore Cancelled
-                // if (order.order_status === 'CANCELLED') return;
+                if (order.order_status === 'CANCELLED') return;
 
                 if (order.item_list) {
                     order.item_list.forEach(item => {
