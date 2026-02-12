@@ -32,7 +32,7 @@ const orderQueueNB = new Queue("fetch-orders-nb", redisConnection);
 const orderQueueMIRAE = new Queue("fetch-orders-mirae", redisConnection);
 const orderQueuePOLY = new Queue("fetch-orders-poly", redisConnection);
 
-app.get('/staging-sync', async (req, res) => {
+app.get('/realtime-sync', async (req, res) => {
 
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
         console.warn("Unauthorized attempt to trigger daily sync");

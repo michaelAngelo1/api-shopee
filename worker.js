@@ -44,22 +44,22 @@ console.log("System Starting: Initializing Queues and Workers...");
 
 // --- 2. INITIALIZE QUEUES (PRODUCERS) ---
 const mockQueue = new Queue('mock-run', redisConnection);
-const orderQueue = new Queue("staging-order-processing", redisConnection);
-const orderQueueMD = new Queue("staging-fetch-orders-md", redisConnection);
-const orderQueueSHRD = new Queue("staging-fetch-orders-shrd", redisConnection);
-const orderQueueCLEV = new Queue("staging-fetch-orders-clev", redisConnection);
-const orderQueueDRJOU = new Queue("staging-fetch-orders-drjou", redisConnection);
-const orderQueueMOSS = new Queue("staging-fetch-orders-moss", redisConnection);
-const orderQueueGB = new Queue("staging-fetch-orders-gb", redisConnection);
-const orderQueueIL = new Queue("staging-fetch-orders-il", redisConnection);
-const orderQueueEV = new Queue("staging-fetch-orders-evoke", redisConnection);
-const orderQueueMMW = new Queue("staging-fetch-orders-mmw", redisConnection);
-const orderQueueCHESS = new Queue("staging-fetch-orders-chess", redisConnection);
-const orderQueueSV = new Queue("staging-fetch-orders-sv", redisConnection);
-const orderQueuePN = new Queue("staging-fetch-orders-pn", redisConnection);
-const orderQueueNB = new Queue("staging-fetch-orders-nb", redisConnection);
-const orderQueueMIRAE = new Queue("staging-fetch-orders-mirae", redisConnection);
-const orderQueuePOLY = new Queue("staging-fetch-orders-poly", redisConnection);
+const orderQueue = new Queue("realtime-order-processing", redisConnection);
+const orderQueueMD = new Queue("realtime-fetch-orders-md", redisConnection);
+const orderQueueSHRD = new Queue("realtime-fetch-orders-shrd", redisConnection);
+const orderQueueCLEV = new Queue("realtime-fetch-orders-clev", redisConnection);
+const orderQueueDRJOU = new Queue("realtime-fetch-orders-drjou", redisConnection);
+const orderQueueMOSS = new Queue("realtime-fetch-orders-moss", redisConnection);
+const orderQueueGB = new Queue("realtime-fetch-orders-gb", redisConnection);
+const orderQueueIL = new Queue("realtime-fetch-orders-il", redisConnection);
+const orderQueueEV = new Queue("realtime-fetch-orders-evoke", redisConnection);
+const orderQueueMMW = new Queue("realtime-fetch-orders-mmw", redisConnection);
+const orderQueueCHESS = new Queue("realtime-fetch-orders-chess", redisConnection);
+const orderQueueSV = new Queue("realtime-fetch-orders-sv", redisConnection);
+const orderQueuePN = new Queue("realtime-fetch-orders-pn", redisConnection);
+const orderQueueNB = new Queue("realtime-fetch-orders-nb", redisConnection);
+const orderQueueMIRAE = new Queue("realtime-fetch-orders-mirae", redisConnection);
+const orderQueuePOLY = new Queue("realtime-fetch-orders-poly", redisConnection);
 
 
 // --- 3. EXPRESS ROUTES (HTTP HANDLERS) ---
@@ -90,7 +90,7 @@ app.get('/mock/run', async (req, res) => {
 
 
 // Cloud Scheduler Endpoint - FULLY POPULATED
-app.get('/staging-sync', async (req, res) => {
+app.get('/realtime-sync', async (req, res) => {
     // Security check for Cloud Scheduler
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
         // console.warn("Unauthorized attempt to trigger daily sync"); 
@@ -106,21 +106,21 @@ app.get('/staging-sync', async (req, res) => {
 
         // // --- GROUP 1: Shared Account Risk ---
         // // 1. Evoke: Starts Immediately
-        // await orderQueueEV.add('staging-fetch-orders-evoke', {}, { 
+        // await orderQueueEV.add('realtime-fetch-orders-evoke', {}, { 
         //     ...baseOptions, 
         //     jobId: `evoke-daily-sync-${timestamp}`,
         //     delay: 0 
         // });
 
         // // 2. Dr. Jou: Starts +3 minutes later
-        // await orderQueueDRJOU.add('staging-fetch-orders-drjou', {}, { 
+        // await orderQueueDRJOU.add('realtime-fetch-orders-drjou', {}, { 
         //     ...baseOptions, 
         //     jobId: `drjou-daily-sync-${timestamp}`,
         //     delay: 180000 
         // });
 
         // // 3. Swissvita: Starts +6 minutes later
-        // await orderQueueSV.add('staging-fetch-orders-sv', {}, { 
+        // await orderQueueSV.add('realtime-fetch-orders-sv', {}, { 
         //     ...baseOptions, 
         //     jobId: `sv-daily-sync-${timestamp}`,
         //     delay: 360000 
@@ -131,7 +131,7 @@ app.get('/staging-sync', async (req, res) => {
         const interval = 45000; 
 
         // Eileen Grace
-        await orderQueue.add('staging-fetch-daily-orders', {}, { 
+        await orderQueue.add('realtime-fetch-daily-orders', {}, { 
             ...baseOptions, 
             jobId: `daily-sync-${timestamp}`, 
             delay: stagger 
@@ -139,7 +139,7 @@ app.get('/staging-sync', async (req, res) => {
         stagger += interval;
 
         // // Miss Daisy
-        // await orderQueueMD.add('staging-fetch-orders-md', {}, { 
+        // await orderQueueMD.add('realtime-fetch-orders-md', {}, { 
         //     ...baseOptions, 
         //     jobId: `md-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -147,7 +147,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // SH-RD
-        // await orderQueueSHRD.add('staging-fetch-orders-shrd', {}, { 
+        // await orderQueueSHRD.add('realtime-fetch-orders-shrd', {}, { 
         //     ...baseOptions, 
         //     jobId: `shrd-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -155,7 +155,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Cleviant
-        // await orderQueueCLEV.add('staging-fetch-orders-clev', {}, { 
+        // await orderQueueCLEV.add('realtime-fetch-orders-clev', {}, { 
         //     ...baseOptions, 
         //     jobId: `clev-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -163,7 +163,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Mosseru
-        // await orderQueueMOSS.add('staging-fetch-orders-moss', {}, { 
+        // await orderQueueMOSS.add('realtime-fetch-orders-moss', {}, { 
         //     ...baseOptions, 
         //     jobId: `moss-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -171,7 +171,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // G-Belle
-        // await orderQueueGB.add('staging-fetch-orders-gb', {}, { 
+        // await orderQueueGB.add('realtime-fetch-orders-gb', {}, { 
         //     ...baseOptions, 
         //     jobId: `gb-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -179,7 +179,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Ivy & Lily
-        // await orderQueueIL.add('staging-fetch-orders-il', {}, { 
+        // await orderQueueIL.add('realtime-fetch-orders-il', {}, { 
         //     ...baseOptions, 
         //     jobId: `il-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -187,7 +187,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Mamaway
-        // await orderQueueMMW.add('staging-fetch-orders-mmw', {}, { 
+        // await orderQueueMMW.add('realtime-fetch-orders-mmw', {}, { 
         //     ...baseOptions, 
         //     jobId: `mmw-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -195,7 +195,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Chess
-        // await orderQueueCHESS.add('staging-fetch-orders-chess', {}, { 
+        // await orderQueueCHESS.add('realtime-fetch-orders-chess', {}, { 
         //     ...baseOptions, 
         //     jobId: `chess-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -203,7 +203,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Past Nine
-        // await orderQueuePN.add('staging-fetch-orders-pn', {}, { 
+        // await orderQueuePN.add('realtime-fetch-orders-pn', {}, { 
         //     ...baseOptions, 
         //     jobId: `pn-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -211,7 +211,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Nutri Beyond
-        // await orderQueueNB.add('staging-fetch-orders-nb', {}, { 
+        // await orderQueueNB.add('realtime-fetch-orders-nb', {}, { 
         //     ...baseOptions, 
         //     jobId: `nb-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -219,7 +219,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Mirae
-        // await orderQueueMIRAE.add('staging-fetch-orders-mirae', {}, { 
+        // await orderQueueMIRAE.add('realtime-fetch-orders-mirae', {}, { 
         //     ...baseOptions, 
         //     jobId: `mirae-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -227,7 +227,7 @@ app.get('/staging-sync', async (req, res) => {
         // stagger += interval;
 
         // // Polynia
-        // await orderQueuePOLY.add('staging-fetch-orders-poly', {}, { 
+        // await orderQueuePOLY.add('realtime-fetch-orders-poly', {}, { 
         //     ...baseOptions, 
         //     jobId: `poly-daily-sync-${timestamp}`, 
         //     delay: stagger 
@@ -409,84 +409,84 @@ const mockProcessor = async (job) => {
 const mockWorker = createWorker("mock-run", mockProcessor, "MOCK");
 
 const orderProcessor = async (job) => {
-    if (job.name === 'staging-fetch-daily-orders' || job.name === 'manual-fetch') return fetchAndProcessOrders();
+    if (job.name === 'realtime-fetch-daily-orders' || job.name === 'manual-fetch') return fetchAndProcessOrders();
     throw new Error(`Unknown job name: ${job.name}`);
 };
-const orderWorker = createWorker("staging-order-processing", orderProcessor, "EG");
+const orderWorker = createWorker("realtime-order-processing", orderProcessor, "EG");
 
 const mdOrderProcessor = async (job) => {
-    if (job.name === 'staging-fetch-orders-md') return fetchAndProcessOrdersMD();
+    if (job.name === 'realtime-fetch-orders-md') return fetchAndProcessOrdersMD();
     throw new Error(`Unknown job name: ${job.name}`);
 };
-const mdWorker = createWorker("staging-fetch-orders-md", mdOrderProcessor, "MD");
+const mdWorker = createWorker("realtime-fetch-orders-md", mdOrderProcessor, "MD");
 
-const shrdWorker = createWorker("staging-fetch-orders-shrd", async (job) => {
-    if (job.name === 'staging-fetch-orders-shrd') return fetchAndProcessOrdersSHRD();
+const shrdWorker = createWorker("realtime-fetch-orders-shrd", async (job) => {
+    if (job.name === 'realtime-fetch-orders-shrd') return fetchAndProcessOrdersSHRD();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "SHRD");
 
-const clevWorker = createWorker("staging-fetch-orders-clev", async (job) => {
-    if (job.name === 'staging-fetch-orders-clev') return fetchAndProcessOrdersCLEV();
+const clevWorker = createWorker("realtime-fetch-orders-clev", async (job) => {
+    if (job.name === 'realtime-fetch-orders-clev') return fetchAndProcessOrdersCLEV();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "CLEV");
 
-const drjouWorker = createWorker("staging-fetch-orders-drjou", async (job) => {
-    if (job.name === 'staging-fetch-orders-drjou') return fetchAndProcessOrdersDRJOU();
+const drjouWorker = createWorker("realtime-fetch-orders-drjou", async (job) => {
+    if (job.name === 'realtime-fetch-orders-drjou') return fetchAndProcessOrdersDRJOU();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "DRJOU");
 
-const mossWorker = createWorker("staging-fetch-orders-moss", async (job) => {
-    if (job.name === 'staging-fetch-orders-moss') return fetchAndProcessOrdersMOSS();
+const mossWorker = createWorker("realtime-fetch-orders-moss", async (job) => {
+    if (job.name === 'realtime-fetch-orders-moss') return fetchAndProcessOrdersMOSS();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "MOSS");
 
-const gbWorker = createWorker("staging-fetch-orders-gb", async (job) => {
-    if (job.name === 'staging-fetch-orders-gb') return fetchAndProcessOrdersGB();
+const gbWorker = createWorker("realtime-fetch-orders-gb", async (job) => {
+    if (job.name === 'realtime-fetch-orders-gb') return fetchAndProcessOrdersGB();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "GB");
 
-const ilWorker = createWorker("staging-fetch-orders-il", async (job) => {
-    if (job.name === 'staging-fetch-orders-il') return fetchAndProcessOrdersIL();
+const ilWorker = createWorker("realtime-fetch-orders-il", async (job) => {
+    if (job.name === 'realtime-fetch-orders-il') return fetchAndProcessOrdersIL();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "IL");
 
-const evWorker = createWorker("staging-fetch-orders-evoke", async (job) => {
-    if (job.name === 'staging-fetch-orders-evoke') return fetchAndProcessOrdersEVOKE();
+const evWorker = createWorker("realtime-fetch-orders-evoke", async (job) => {
+    if (job.name === 'realtime-fetch-orders-evoke') return fetchAndProcessOrdersEVOKE();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "EVOKE");
 
-const mmwWorker = createWorker("staging-fetch-orders-mmw", async (job) => {
-    if (job.name === 'staging-fetch-orders-mmw') return fetchAndProcessOrdersMMW();
+const mmwWorker = createWorker("realtime-fetch-orders-mmw", async (job) => {
+    if (job.name === 'realtime-fetch-orders-mmw') return fetchAndProcessOrdersMMW();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "MMW");
 
-const chessWorker = createWorker("staging-fetch-orders-chess", async (job) => {
-    if (job.name === 'staging-fetch-orders-chess') return fetchAndProcessOrdersCHESS();
+const chessWorker = createWorker("realtime-fetch-orders-chess", async (job) => {
+    if (job.name === 'realtime-fetch-orders-chess') return fetchAndProcessOrdersCHESS();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "CHESS");
 
-const svWorker = createWorker("staging-fetch-orders-sv", async (job) => {
-    if (job.name === 'staging-fetch-orders-sv') return fetchAndProcessOrdersSV();
+const svWorker = createWorker("realtime-fetch-orders-sv", async (job) => {
+    if (job.name === 'realtime-fetch-orders-sv') return fetchAndProcessOrdersSV();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "SV");
 
-const pnWorker = createWorker("staging-fetch-orders-pn", async (job) => {
-    if (job.name === 'staging-fetch-orders-pn') return fetchAndProcessOrdersPN();
+const pnWorker = createWorker("realtime-fetch-orders-pn", async (job) => {
+    if (job.name === 'realtime-fetch-orders-pn') return fetchAndProcessOrdersPN();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "PN");
 
-const nbWorker = createWorker("staging-fetch-orders-nb", async (job) => {
-    if (job.name === 'staging-fetch-orders-nb') return fetchAndProcessOrdersNB();
+const nbWorker = createWorker("realtime-fetch-orders-nb", async (job) => {
+    if (job.name === 'realtime-fetch-orders-nb') return fetchAndProcessOrdersNB();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "NB");
 
-const miraeWorker = createWorker("staging-fetch-orders-mirae", async (job) => {
-    if (job.name === 'staging-fetch-orders-mirae') return fetchAndProcessOrdersMIRAE();
+const miraeWorker = createWorker("realtime-fetch-orders-mirae", async (job) => {
+    if (job.name === 'realtime-fetch-orders-mirae') return fetchAndProcessOrdersMIRAE();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "MIRAE");
 
-const polyWorker = createWorker("staging-fetch-orders-poly", async (job) => {
-    if (job.name === 'staging-fetch-orders-poly') return fetchAndProcessOrdersPOLY();
+const polyWorker = createWorker("realtime-fetch-orders-poly", async (job) => {
+    if (job.name === 'realtime-fetch-orders-poly') return fetchAndProcessOrdersPOLY();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "POLY");
 
