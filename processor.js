@@ -235,11 +235,11 @@ export async function fetchAndProcessOrders() {
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Naruko, Relove, JR, Enchante
-    // await handleNaruko();
-    // await handleRelove();
-    // await handleJR();
+    await handleNaruko();
+    await handleRelove();
+    await handleJR();
     // await handleEnchante();
-    // await handleRocketindoShop();
+    await handleRocketindoShop();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
@@ -372,7 +372,8 @@ async function handleNaruko() {
 
     await refreshTokenNewBrands(brand, shopId)
 
-    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await mainRealtime(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -395,7 +396,8 @@ async function handleRelove() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await mainRealtime(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -418,7 +420,8 @@ async function handleJR() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await mainRealtime(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -455,6 +458,7 @@ async function handleRocketindoShop() {
 
     await refreshTokenNewBrands(brand, shopId)
 
-    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await mainRealtime(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
