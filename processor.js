@@ -293,6 +293,7 @@ let brandSecret = {
     "Relove": "projects/231801348950/secrets/relove-shopee-tokens",
     "Joey & Roo": "projects/231801348950/secrets/joey-roo-shopee-tokens",
     "Enchante": "projects/231801348950/secrets/enchante-shopee-tokens",
+    "Rocketindo Shop": "projects/231801348950/secrets/rocketindoshop-shopee-tokens",
 }
 
 async function saveTokensNewBrands(brand, tokens) {
@@ -338,6 +339,7 @@ async function loadTokensNewBrands(brand) {
         "Relove": "projects/231801348950/secrets/relove-shopee-tokens/versions/latest",
         "Joey & Roo": "projects/231801348950/secrets/joey-roo-shopee-tokens/versions/latest",
         "Enchante": "projects/231801348950/secrets/enchante-shopee-tokens/versions/latest",
+        "Rocketindo Shop": "projects/231801348950/secrets/rocketindoshop-shopee-tokens/versions/latest",
     }
     const secretName = brandSecretName[brand];
     console.log("SECRET NAME: ", secretName);
