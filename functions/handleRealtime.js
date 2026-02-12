@@ -7,7 +7,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/order/get_order_list";
 
-    const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED', 'INVOICE_PENDING'];
+    const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED'];
 
     try {
         let time_from = Math.floor(new Date("2026-02-12T00:00:00+07:00") / 1000);
@@ -31,7 +31,6 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         access_token,
                         timestamp,
                         sign,
-                        time_range_field: "create_time",
                         time_from: time_from,
                         time_to: time_to,
                         page_size: 100,
