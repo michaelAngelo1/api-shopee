@@ -11,6 +11,7 @@ import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
+import { mainRealtime } from '../functions/handleRealtime.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -128,7 +129,8 @@ export async function fetchAndProcessOrdersMIRAE() {
 
     await refreshToken();
 
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
+    await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
+    // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
 

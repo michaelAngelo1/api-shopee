@@ -12,6 +12,7 @@ import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
 import { handleFinance } from '../functions/handleFinance.js';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
+import { mainRealtime } from '../functions/handleRealtime.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -127,7 +128,9 @@ export async function fetchAndProcessOrdersMMW() {
     MMW_REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
+
+    await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
+    // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
 
     // await handleFinance(brand);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
