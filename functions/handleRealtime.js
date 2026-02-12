@@ -112,7 +112,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 if (order.create_time < JAKARTA_MIDNIGHT_TS) return;
 
                 // 2. FILTER: Ignore Cancelled
-                if (order.order_status === 'CANCELLED') return;
+                // if (order.order_status === 'CANCELLED') return;
 
                 if (order.item_list) {
                     order.item_list.forEach(item => {
