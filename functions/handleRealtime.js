@@ -10,8 +10,14 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED'];
 
     try {
-        let time_from = Math.floor(new Date("2026-02-12T00:00:00+07:00") / 1000);
-        let time_to = Math.floor(new Date("2026-02-12T23:59:59+07:00") / 1000);
+        const nowSeconds = Math.floor(Date.now() / 1000);
+
+        const jakartaOffset = 25200; // UTC+7 (7 * 3600)
+        const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+        const time_from = nowSeconds - secondsPassedToday;
+        
+        // --- 2. FIX: Set time_to to NOW, not future ---
+        const time_to = nowSeconds;
 
         for (const status of statusesToFetch) {
             let cursor = "";
