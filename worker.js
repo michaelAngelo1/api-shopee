@@ -211,12 +211,12 @@ app.get('/realtime-sync', async (req, res) => {
         // stagger += interval;
 
         // // Nutri Beyond
-        // await orderQueueNB.add('realtime-fetch-orders-nb', {}, { 
-        //     ...baseOptions, 
-        //     jobId: `nb-daily-sync-${timestamp}`, 
-        //     delay: stagger 
-        // });
-        // stagger += interval;
+        await orderQueueNB.add('realtime-fetch-orders-nb', {}, { 
+            ...baseOptions, 
+            jobId: `nb-daily-sync-${timestamp}`, 
+            delay: stagger 
+        });
+        stagger += interval;
 
         // // Mirae
         // await orderQueueMIRAE.add('realtime-fetch-orders-mirae', {}, { 
