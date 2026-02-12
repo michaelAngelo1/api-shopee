@@ -43,7 +43,7 @@ async function refreshToken() {
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint MD: ", fullUrl);
+    // console.log("Hitting Refresh Token endpoint MD: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -80,7 +80,7 @@ async function saveTokensToSecret(tokens) {
             }
         });
 
-        console.log("Saved Shopee tokens to Secret Manager");
+        // console.log("Saved Shopee tokens to Secret Manager");
 
         // Destroying previous token version
         const [versions] = await secretClient.listSecretVersions({
@@ -93,13 +93,13 @@ async function saveTokensToSecret(tokens) {
                     await secretClient.destroySecretVersion({
                         name: version.name
                     });
-                    console.log(`Destroyed old token version: ${version.name}`);
+                    // console.log(`Destroyed old token version: ${version.name}`);
                 } catch (destroyError) {
                     console.error(`Failed to destroy version ${version.name}:`, destroyError);
                 }
             }
         }
-        console.log("[MD] Successfully saved tokens to MD Secret Manager: ", parent);
+        // console.log("[MD] Successfully saved tokens to MD Secret Manager: ", parent);
     } catch (e) {
         console.error("[MD] Error saving tokens to Secret Manager: ", e);
     }
@@ -114,7 +114,7 @@ async function loadTokensFromSecret() {
         });
         const data = version.payload.data.toString('UTF-8');
         const tokens = JSON.parse(data);
-        console.log("Tokens loaded from Secret Manager: ", tokens);
+        // console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
         console.error("[MD] Error loading tokens from Secret Manager: ", e);

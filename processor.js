@@ -51,7 +51,7 @@ async function refreshToken() {
         shop_id: SHOP_ID
     }
 
-    console.log("Hitting Refresh Token endpoint: ", fullUrl);
+    // console.log("Hitting Refresh Token endpoint: ", fullUrl);
 
     const response = await axios.post(fullUrl, body, {
         headers: {
@@ -86,7 +86,7 @@ async function saveTokensToSecret(tokens) {
             }
         });
 
-        console.log("Saved Shopee tokens to Secret Manager");
+        // console.log("Saved Shopee tokens to Secret Manager");
 
         // Destroying previous token version
         const [versions] = await secretClient.listSecretVersions({
@@ -99,7 +99,7 @@ async function saveTokensToSecret(tokens) {
                     await secretClient.destroySecretVersion({
                         name: version.name
                     });
-                    console.log(`Destroyed old token version: ${version.name}`);
+                    // console.log(`Destroyed old token version: ${version.name}`);
                 } catch (destroyError) {
                     console.error(`Failed to destroy version ${version.name}:`, destroyError);
                 }
@@ -119,7 +119,7 @@ async function loadTokensFromSecret() {
         });
         const data = version.payload.data.toString('UTF-8');
         const tokens = JSON.parse(data);
-        console.log("Tokens loaded from Secret Manager: ", tokens);
+        // console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
         console.log("Error loading tokens from Secret Manager: ", e);
@@ -248,7 +248,7 @@ const NEW_BRANDS_REFRESH_URL = "https://partner.shopeemobile.com/api/v2/auth/acc
 let NEW_BRANDS_ACCESS_TOKEN, NEW_BRANDS_REFRESH_TOKEN;
 
 async function refreshTokenNewBrands(brand, shop_id) {
-    console.log("Refreshing token for brand: ", brand);
+    // console.log("Refreshing token for brand: ", brand);
 
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
@@ -265,7 +265,7 @@ async function refreshTokenNewBrands(brand, shop_id) {
         shop_id: shop_id
     }
 
-    console.log("Hitting Refresh Token endpoint New Brands: ", fullUrl);
+    // console.log("Hitting Refresh Token endpoint New Brands: ", fullUrl);
 
     try {
         const response = await axios.post(fullUrl, body, {
@@ -313,7 +313,7 @@ async function saveTokensNewBrands(brand, tokens) {
             }
         });
 
-        console.log("[NEW-BRANDS] Saved Shopee tokens to Secret Manager");
+        // console.log("[NEW-BRANDS] Saved Shopee tokens to Secret Manager");
 
         // Destroying previous token version
         const [versions] = await secretClient.listSecretVersions({
@@ -326,13 +326,13 @@ async function saveTokensNewBrands(brand, tokens) {
                     await secretClient.destroySecretVersion({
                         name: version.name
                     });
-                    console.log(`Destroyed old token version: ${version.name}`);
+                    // console.log(`Destroyed old token version: ${version.name}`);
                 } catch (destroyError) {
                     console.error(`Failed to destroy version ${version.name}:`, destroyError);
                 }
             }
         }
-        console.log("[NEW-BRANDS] Successfully saved tokens to New Brands Secret Manager: ", parent);
+        // console.log("[NEW-BRANDS] Successfully saved tokens to New Brands Secret Manager: ", parent);
     } catch (e) {
         console.error("[NEW-BRANDS] Error saving tokens to Secret Manager: ", e);
     }
@@ -348,14 +348,14 @@ async function loadTokensNewBrands(brand) {
         "Rocketindo Shop": "projects/231801348950/secrets/rocketindoshop-shopee-tokens/versions/latest",
     }
     const secretName = brandSecretName[brand];
-    console.log("SECRET NAME: ", secretName);
+    // console.log("SECRET NAME: ", secretName);
     try {
         const [version] = await secretClient.accessSecretVersion({
             name: secretName,
         });
         const data = version.payload.data.toString('UTF-8');
         const tokens = JSON.parse(data);
-        console.log(brand, " Tokens loaded from Secret Manager: ", tokens);
+        // console.log(brand, " Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
         console.error("[NEW-BRANDS] Error loading tokens from Secret Manager: ", e);
