@@ -1,23 +1,26 @@
 import axios from 'axios';
 import crypto from 'crypto';
 
+// 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
+// Jakarta is UTC+7 (25200 seconds)
+const nowSeconds = Math.floor(Date.now() / 1000);
+const jakartaOffset = 25200; 
+const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
+
 async function getOrderList(brand, partner_id, partner_key, access_token, shop_id) {
     console.log("[REALTIME-SALES] Handle realtime get order list on brand: ", brand);
     let allOrderSns = [];
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/order/get_order_list";
 
+    // Removed INVOICE_PENDING (Invalid) and UNPAID
     const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED'];
 
     try {
-        const nowSeconds = Math.floor(Date.now() / 1000);
-
-        const jakartaOffset = 25200; // UTC+7 (7 * 3600)
-        const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-        const time_from = nowSeconds - secondsPassedToday;
-        
-        // --- 2. FIX: Set time_to to NOW, not future ---
-        const time_to = nowSeconds;
+        // Use the Jakarta Midnight timestamp we calculated
+        const time_from = JAKARTA_MIDNIGHT_TS;
+        const time_to = nowSeconds; 
 
         for (const status of statusesToFetch) {
             let cursor = "";
@@ -43,7 +46,8 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         page_size: 100,
                         cursor,
                         order_status: status,
-                        response_optional_fields: 'order_status'
+                        // REMOVED response_optional_fields completely for list
+                        // create_time is NOT supported here, and we don't need order_status here
                     }
                 });
 
@@ -55,10 +59,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                 const responseData = data.response;
                 if (responseData && responseData.order_list) {
                     responseData.order_list.forEach(order => {
-                        // Double check: Shopee API is sometimes loose with boundaries
-                        if (order.create_time >= time_from) {
-                            allOrderSns.push(order.order_sn);
-                        }
+                        allOrderSns.push(order.order_sn);
                     });
                     
                     more = responseData.more;
@@ -98,7 +99,9 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 timestamp,
                 sign,
                 order_sn_list,
-                response_optional_fields: 'item_list,order_status'
+                // FIX: Only request item_list. 
+                // create_time and order_status are returned BY DEFAULT, so don't request them.
+                response_optional_fields: 'item_list'
             }
         });
 
@@ -106,14 +109,18 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
         if (data.response && data.response.order_list) {
             data.response.order_list.forEach(order => {
+                // 1. FILTER: Ignore orders before 00:00:00 WIB (Loose API boundary fix)
+                // create_time is in seconds, same as our timestamp
+                if (order.create_time < JAKARTA_MIDNIGHT_TS) return;
+
+                // 2. FILTER: Ignore Cancelled
                 if (order.order_status === 'CANCELLED') return;
 
                 if (order.item_list) {
                     order.item_list.forEach(item => {
-                        // Calculate GMV (Gross Merchandise Value)
                         let price = parseFloat(item.model_discounted_price || 0);
 
-                        // Fallback: If bundle deal (price is 0), use original price
+                        // 3. FIX: Bundle Deal 0 Price Fallback
                         if (price === 0) {
                             price = parseFloat(item.model_original_price || 0);
                         }
@@ -135,12 +142,8 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 export async function mainRealtime(brand, partner_id, partner_key, access_token, shop_id) {
     const allOrderSns = await getOrderList(brand, partner_id, partner_key, access_token, shop_id);
     
-    console.log(`[REALTIME-SALES] Total unique orders (Today): ${allOrderSns.length}`);
-    if (allOrderSns.length > 0) {
-        // Log last 3 to verify we caught the early morning orders
-        console.log("Last three (Oldest fetched):", allOrderSns.slice(-3));
-    }
-
+    console.log(`[REALTIME-SALES] Total orders fetched: ${allOrderSns.length}`);
+    
     let batchSize = 50;
     let totalSalesBrand = 0;
     
