@@ -37,7 +37,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         page_size: 100,
                         cursor,
                         order_status: status,
-                        response_optional_fields: 'order_status,create_time'
+                        response_optional_fields: 'order_status'
                     }
                 });
 
