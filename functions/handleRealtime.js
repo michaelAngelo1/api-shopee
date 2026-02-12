@@ -31,6 +31,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         access_token,
                         timestamp,
                         sign,
+                        time_range_field: 'create_time',
                         time_from: time_from,
                         time_to: time_to,
                         page_size: 100,
