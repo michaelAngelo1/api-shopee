@@ -120,6 +120,9 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
                         // 3. FIX: Bundle Deal 0 Price Fallback
                         if (price === 0) {
+                            console.log("[RS-DEBUG] Possible bundle deal: ", order.order_sn);
+                            console.log("[RS-DEBUG] Bundle discounted price: ", price);
+                            console.log("[RS-DEBUG] Bundle model original price: ", item.model_original_price);
                             price = parseFloat(item.model_original_price || 0);
                         }
 
