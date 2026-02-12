@@ -1,8 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
 
-// 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
-// Jakarta is UTC+7 (25200 seconds)
 const nowSeconds = Math.floor(Date.now() / 1000);
 const jakartaOffset = 25200; 
 const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
