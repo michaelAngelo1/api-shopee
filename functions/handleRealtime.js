@@ -2,13 +2,6 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { handleMergeRealtime } from './handleMergeRealtime.js';
 
-// 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
-// Jakarta is UTC+7 (25200 seconds)
-const nowSeconds = Math.floor(Date.now() / 1000);
-const jakartaOffset = 25200; 
-const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
-
 async function getOrderList(brand, partner_id, partner_key, access_token, shop_id) {
     console.log("[REALTIME-SALES] Handle realtime get order list on brand: ", brand);
     let allOrderSns = [];
@@ -19,6 +12,12 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     const statusesToFetch = ['READY_TO_SHIP', 'PROCESSED', 'SHIPPED', 'COMPLETED', 'IN_CANCEL', 'CANCELLED'];
 
     try {
+        // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
+        // Jakarta is UTC+7 (25200 seconds)
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        const jakartaOffset = 25200; 
+        const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+        const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
         // Use the Jakarta Midnight timestamp we calculated
         const time_from = JAKARTA_MIDNIGHT_TS;
         const time_to = nowSeconds; 
