@@ -106,25 +106,25 @@ app.get('/realtime-sync', async (req, res) => {
 
         // // --- GROUP 1: Shared Account Risk ---
         // 1. Evoke: Starts Immediately
-        await orderQueueEV.add('realtime-fetch-orders-evoke', {}, { 
-            ...baseOptions, 
-            jobId: `evoke-daily-sync-${timestamp}`,
-            delay: 0 
-        });
+        // await orderQueueEV.add('realtime-fetch-orders-evoke', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `evoke-daily-sync-${timestamp}`,
+        //     delay: 0 
+        // });
 
-        // 2. Dr. Jou: Starts +3 minutes later
-        await orderQueueDRJOU.add('realtime-fetch-orders-drjou', {}, { 
-            ...baseOptions, 
-            jobId: `drjou-daily-sync-${timestamp}`,
-            delay: 1800 
-        });
+        // // 2. Dr. Jou: Starts +3 minutes later
+        // await orderQueueDRJOU.add('realtime-fetch-orders-drjou', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `drjou-daily-sync-${timestamp}`,
+        //     delay: 1800 
+        // });
 
-        // 3. Swissvita: Starts +6 minutes later
-        await orderQueueSV.add('realtime-fetch-orders-sv', {}, { 
-            ...baseOptions, 
-            jobId: `sv-daily-sync-${timestamp}`,
-            delay: 3600
-        });
+        // // 3. Swissvita: Starts +6 minutes later
+        // await orderQueueSV.add('realtime-fetch-orders-sv', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `sv-daily-sync-${timestamp}`,
+        //     delay: 3600
+        // });
 
         // // --- GROUP 2: Independent Brands ---
         let stagger = 3000; 
@@ -138,100 +138,100 @@ app.get('/realtime-sync', async (req, res) => {
         });
         stagger += interval;
 
-        // Miss Daisy
-        await orderQueueMD.add('realtime-fetch-orders-md', {}, { 
-            ...baseOptions, 
-            jobId: `md-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Miss Daisy
+        // await orderQueueMD.add('realtime-fetch-orders-md', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `md-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // SH-RD
-        await orderQueueSHRD.add('realtime-fetch-orders-shrd', {}, { 
-            ...baseOptions, 
-            jobId: `shrd-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // SH-RD
+        // await orderQueueSHRD.add('realtime-fetch-orders-shrd', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `shrd-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Cleviant
-        await orderQueueCLEV.add('realtime-fetch-orders-clev', {}, { 
-            ...baseOptions, 
-            jobId: `clev-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Cleviant
+        // await orderQueueCLEV.add('realtime-fetch-orders-clev', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `clev-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Mosseru
-        await orderQueueMOSS.add('realtime-fetch-orders-moss', {}, { 
-            ...baseOptions, 
-            jobId: `moss-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Mosseru
+        // await orderQueueMOSS.add('realtime-fetch-orders-moss', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `moss-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // G-Belle
-        await orderQueueGB.add('realtime-fetch-orders-gb', {}, { 
-            ...baseOptions, 
-            jobId: `gb-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // G-Belle
+        // await orderQueueGB.add('realtime-fetch-orders-gb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `gb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Ivy & Lily
-        await orderQueueIL.add('realtime-fetch-orders-il', {}, { 
-            ...baseOptions, 
-            jobId: `il-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Ivy & Lily
+        // await orderQueueIL.add('realtime-fetch-orders-il', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `il-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Mamaway
-        await orderQueueMMW.add('realtime-fetch-orders-mmw', {}, { 
-            ...baseOptions, 
-            jobId: `mmw-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Mamaway
+        // await orderQueueMMW.add('realtime-fetch-orders-mmw', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `mmw-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Chess
-        await orderQueueCHESS.add('realtime-fetch-orders-chess', {}, { 
-            ...baseOptions, 
-            jobId: `chess-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Chess
+        // await orderQueueCHESS.add('realtime-fetch-orders-chess', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `chess-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Past Nine
-        await orderQueuePN.add('realtime-fetch-orders-pn', {}, { 
-            ...baseOptions, 
-            jobId: `pn-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Past Nine
+        // await orderQueuePN.add('realtime-fetch-orders-pn', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `pn-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // // Nutri Beyond
-        await orderQueueNB.add('realtime-fetch-orders-nb', {}, { 
-            ...baseOptions, 
-            jobId: `nb-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // // Nutri Beyond
+        // await orderQueueNB.add('realtime-fetch-orders-nb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `nb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Mirae
-        await orderQueueMIRAE.add('realtime-fetch-orders-mirae', {}, { 
-            ...baseOptions, 
-            jobId: `mirae-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // // Mirae
+        // await orderQueueMIRAE.add('realtime-fetch-orders-mirae', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `mirae-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
-        // Polynia
-        await orderQueuePOLY.add('realtime-fetch-orders-poly', {}, { 
-            ...baseOptions, 
-            jobId: `poly-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
+        // // Polynia
+        // await orderQueuePOLY.add('realtime-fetch-orders-poly', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `poly-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
 
         console.log("Daily sync job enqueued by Cloud Scheduler with Staggered Delays");
         res.status(200).send("Successfully enqueued daily sync job");
