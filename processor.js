@@ -235,10 +235,10 @@ export async function fetchAndProcessOrders() {
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Naruko, Relove, JR
-    // await handleNaruko();
-    // await handleRelove();
-    // await handleJR();
-    // await handleRocketindoShop();
+    await handleNaruko();
+    await handleRelove();
+    await handleJR();
+    await handleRocketindoShop();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
