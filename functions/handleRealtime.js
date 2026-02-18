@@ -84,6 +84,13 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
     const PATH = "/api/v2/order/get_order_detail";
 
     try {
+        // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
+        // Jakarta is UTC+7 (25200 seconds)
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        const jakartaOffset = 25200; 
+        const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+        const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
+        
         const order_sn_list = batch.join(',');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
