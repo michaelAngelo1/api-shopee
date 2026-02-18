@@ -1,6 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
-import { handleMergeRealtime } from './handleMergeRealtime';
+import { handleMergeRealtime } from './handleMergeRealtime.js';
 
 // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
 // Jakarta is UTC+7 (25200 seconds)
