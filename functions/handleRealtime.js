@@ -1,5 +1,6 @@
 import axios from 'axios';
 import crypto from 'crypto';
+import { handleMergeRealtime } from './handleMergeRealtime';
 
 // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
 // Jakarta is UTC+7 (25200 seconds)
@@ -112,10 +113,10 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 if (order.create_time < JAKARTA_MIDNIGHT_TS) return;
 
                 // 2. FILTER: Ignore Cancelled
-                if (order.order_status === 'CANCELLED') {
+                // if (order.order_status === 'CANCELLED') {
                     // console.log("Cancelled order: ", order.order_sn);
-                    return;
-                };
+                //     return;
+                // };
 
                 if (order.item_list) {
                     order.item_list.forEach(item => {
@@ -159,4 +160,7 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
 
     console.log("[REALTIME-SALES] Total GMV on brand: ", brand);
     console.log(totalSalesBrand.toLocaleString('id-ID'));
+
+    let marketplace = "Shopee";
+    await handleMergeRealtime(brand, marketplace, totalSalesBrand.toLocaleString('id-ID'));
 }
