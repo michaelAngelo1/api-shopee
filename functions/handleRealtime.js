@@ -90,7 +90,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         const jakartaOffset = 25200; 
         const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
         const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
-        
+
         const order_sn_list = batch.join(',');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
@@ -157,6 +157,12 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     
     let batchSize = 50;
     let totalSalesBrand = 0;
+
+    console.log('Three earliest orders today: ');
+    console.log(allOrderSns.slice(0, 3));
+
+    console.log("Three most recent orders today: ");
+    console.log(allOrderSns.slice(-3));
     
     for(let i = 0; i < allOrderSns.length; i += batchSize) {
         const batchOrderSns = allOrderSns.slice(i, i + batchSize);
