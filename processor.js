@@ -419,7 +419,7 @@ async function handleJR() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    await mainRealtime(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await mainRealtime(brandTT, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }

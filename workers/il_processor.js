@@ -131,7 +131,7 @@ export async function fetchAndProcessOrdersIL() {
 
     await refreshToken();
 
-    await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
+    await mainRealtime(brandTT, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
 
