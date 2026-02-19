@@ -120,7 +120,7 @@ async function loadTokensFromSecret() {
 
 export async function fetchAndProcessOrdersCHESS() {
     console.log("Starting fetch orders CHESS");
-    let brand = "Chess";
+    let brand = "CHESS";
 
     const loadedTokens = await loadTokensFromSecret();
     CHESS_ACCESS_TOKEN = loadedTokens.accessToken;
