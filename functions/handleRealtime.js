@@ -127,7 +127,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 if (order.item_list) {
                     order.item_list.forEach(item => {
                         let price = parseFloat(item.model_discounted_price || 0);
-
+                        console.log("Item model discounted price: ", price, " for brand: ", brand);
                         // 3. FIX: Bundle Deal 0 Price Fallback
                         if (price === 0) {
                             // console.log("[RS-DEBUG] Possible bundle deal: ", order.order_sn);
