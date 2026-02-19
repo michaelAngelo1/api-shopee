@@ -34,7 +34,7 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
     let devSheetId = "1zArzQCqewtCxkka9l03bRpZLAjqOjapV6ngHUp0jluM"
     let prodSheetId = "1RMcbhi0wZgXqvYf_lFma2U8vznJh4ACy_OmsTjplgKI"
 
-    const doc = new GoogleSpreadsheet(devSheetId, saAuth);
+    const doc = new GoogleSpreadsheet(prodSheetId, saAuth);
     await doc.loadInfo();
 
     const sheet = doc.sheetsByIndex[0];
