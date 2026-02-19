@@ -49,7 +49,7 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
             row.assign({
                 'GMV': sales_value,
                 'Timestamp': now.toLocaleString('en-US', { hour12: false }),
-                'Last Updated Minute': `=INT((NOW() - D${rowNum}) * 1440)`
+                'Last Updated Minute': '10 minutes ago'
             });
     
             if (row._rawData.length > 5) {
