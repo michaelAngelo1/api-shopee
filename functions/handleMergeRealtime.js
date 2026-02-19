@@ -44,12 +44,12 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
 
         if(rowBrand == brand && rowPlatform == marketplace) {
             const now = new Date();
-            const rowNum = row.rowNumber;
+            const utc7Time = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+            const formattedTimestamp = utc7Time.toISOString().replace('T', ' ').substring(0, 19);
             
             row.assign({
                 'GMV': sales_value,
-                'Timestamp': now.toLocaleString('en-US', { hour12: false }),
-                'Last Updated Minute': '10 minutes ago'
+                'Timestamp': formattedTimestamp,
             });
     
             if (row._rawData.length > 5) {
