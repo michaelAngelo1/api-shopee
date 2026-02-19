@@ -138,7 +138,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
 
                         const qty = item.model_quantity_purchased || 0;
                         totalGMV += (price * qty);
-                        console.log("Total GMV running total: ", totalGMV);
+                        console.log("Total GMV running total: ", totalGMV, " for brand: ", brand);
                     });
                 }
             });
