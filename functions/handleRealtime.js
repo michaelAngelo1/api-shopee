@@ -275,5 +275,5 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     console.log(totalSalesBrand.toLocaleString('id-ID'));
 
     let marketplace = "Shopee";
-    // await handleMergeRealtime(brand, marketplace, totalSalesBrand);
+    await handleMergeRealtime(brand, marketplace, totalSalesBrand);
 }
