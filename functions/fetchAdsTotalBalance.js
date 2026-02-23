@@ -124,7 +124,7 @@ async function submitData(brand, expenses) {
   
     const datasetId = 'shopee_api';
 
-    console.log(`[SHOPEE] Ads Total Balance on ${brand}`);
+    console.log(`[SHOPEE] Merge Shopee Ads Total Balance on ${brand}`);
 
     
     try {
