@@ -32,7 +32,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         shop_id: shop_id,
         sign,
         start_date: "01-01-2026",
-        end_date: "31-01-2026"
+        end_date: "15-01-2026"
     });
 
     const fullUrl = `${HOST}${PATH}?${params.toString()}`;
