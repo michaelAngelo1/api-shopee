@@ -125,40 +125,42 @@ async function submitData(brand, expenses) {
     const datasetId = 'shopee_api';
 
     console.log(`[SHOPEE] Merge Shopee Ads Total Balance on ${brand}`);
-
-    
-    try {
-
-        for(const expense of expenses) {
-            const query = `
-                SELECT Tanggal_Dibuat
-                FROM \`${datasetId}.${tableName}\`
-                WHERE Tanggal_Dibuat = @date
-            `;
-            const options = {
-                query,
-                params: { 
-                    date: expense.date 
-                }
-            }
-            const [rows] = await bigquery.query(options);
-    
-            if(rows.length > 0) {
-                console.log("Row already exists");
-                continue;
-            }
-    
-            await bigquery
-                .dataset(datasetId)
-                .table(tableName)
-                .insert({
-                    Tanggal_Dibuat: expense.date,
-                    Spending: expense.expense,
-                });
-        }
-
-        console.log(`Successfully written ads spending to ${brand} table.`)
-    } catch (e) {
-        console.error(`Error inserting ads spending on ${brand}: ${e}`);
+    for(const expense of expenses) {
+        console.log("Expense: ", expense);
     }
+    
+    // try {
+
+    //     for(const expense of expenses) {
+    //         const query = `
+    //             SELECT Tanggal_Dibuat
+    //             FROM \`${datasetId}.${tableName}\`
+    //             WHERE Tanggal_Dibuat = @date
+    //         `;
+    //         const options = {
+    //             query,
+    //             params: { 
+    //                 date: expense.date 
+    //             }
+    //         }
+    //         const [rows] = await bigquery.query(options);
+    
+    //         if(rows.length > 0) {
+    //             console.log("Row already exists");
+    //             continue;
+    //         }
+    
+    //         await bigquery
+    //             .dataset(datasetId)
+    //             .table(tableName)
+    //             .insert({
+    //                 Tanggal_Dibuat: expense.date,
+    //                 Spending: expense.expense,
+    //             });
+    //     }
+
+    //     console.log(`Successfully written ads spending to ${brand} table.`)
+    // } catch (e) {
+    //     console.error(`Error inserting ads spending on ${brand}: ${e}`);
+    // }
 }
