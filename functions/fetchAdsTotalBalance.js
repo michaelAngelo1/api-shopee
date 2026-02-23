@@ -32,7 +32,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         shop_id: shop_id,
         sign,
         start_date: "01-01-2026",
-        end_date: "21-02-2026"
+        end_date: "31-01-2026"
     });
 
     const fullUrl = `${HOST}${PATH}?${params.toString()}`;
@@ -67,7 +67,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
                 await submitData(brand, totalExpense);
             } else {
                 console.log("[SHOPEE] response ads does not exist: ", brand);
-                console.log(response);
+                console.log(response.data.message);
                 retries -= 1;
                 if(retries > 0) await sleep(5000);
             }
