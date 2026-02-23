@@ -129,38 +129,38 @@ async function submitData(brand, expenses) {
         console.log("Expense: ", expense);
     }
     
-    // try {
+    try {
 
-    //     for(const expense of expenses) {
-    //         const query = `
-    //             SELECT Tanggal_Dibuat
-    //             FROM \`${datasetId}.${tableName}\`
-    //             WHERE Tanggal_Dibuat = @date
-    //         `;
-    //         const options = {
-    //             query,
-    //             params: { 
-    //                 date: expense.date 
-    //             }
-    //         }
-    //         const [rows] = await bigquery.query(options);
+        for(const expense of expenses) {
+            const query = `
+                SELECT Tanggal_Dibuat
+                FROM \`${datasetId}.${tableName}\`
+                WHERE Tanggal_Dibuat = @date
+            `;
+            const options = {
+                query,
+                params: { 
+                    date: expense.date 
+                }
+            }
+            const [rows] = await bigquery.query(options);
     
-    //         if(rows.length > 0) {
-    //             console.log("Row already exists");
-    //             continue;
-    //         }
+            if(rows.length > 0) {
+                console.log("Row already exists");
+                continue;
+            }
     
-    //         await bigquery
-    //             .dataset(datasetId)
-    //             .table(tableName)
-    //             .insert({
-    //                 Tanggal_Dibuat: expense.date,
-    //                 Spending: expense.expense,
-    //             });
-    //     }
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert({
+                    Tanggal_Dibuat: expense.date,
+                    Spending: expense.expense,
+                });
+        }
 
-    //     console.log(`Successfully written ads spending to ${brand} table.`)
-    // } catch (e) {
-    //     console.error(`Error inserting ads spending on ${brand}: ${e}`);
-    // }
+        console.log(`Successfully written ads spending to ${brand} table.`)
+    } catch (e) {
+        console.error(`Error inserting ads spending on ${brand}: ${e}`);
+    }
 }
