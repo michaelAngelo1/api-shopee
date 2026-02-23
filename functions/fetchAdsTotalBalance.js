@@ -112,6 +112,14 @@ async function submitData(brand, expenses) {
         tableName = "polynia_ads_spending";
     } else if(brand == "Mirae") {
         tableName = "mirae_ads_spending";
+    } else if(brand == "Naruko") {
+        tableName = "naruko_ads_spending";
+    } else if(brand == "Relove") {
+        tableName = "relove_ads_spending";
+    } else if(brand == "Joey Roo") {
+        tableName = "joey_roo_ads_spending";
+    } else if(brand == "Enchante") {
+        tableName = "enchante_ads_spending";
     }
  
     const datasetId = 'shopee_api';
