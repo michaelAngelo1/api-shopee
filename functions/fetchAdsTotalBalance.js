@@ -31,8 +31,8 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         access_token: accessToken,
         shop_id: shop_id,
         sign,
-        start_date: "15-01-2026",
-        end_date: "31-01-2026"
+        start_date: "01-02-2026",
+        end_date: "22-02-2026"
     });
 
     const fullUrl = `${HOST}${PATH}?${params.toString()}`;
