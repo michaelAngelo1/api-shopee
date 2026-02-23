@@ -67,7 +67,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
                 await submitData(brand, totalExpense);
             } else {
                 console.log("[SHOPEE] response ads does not exist: ", brand);
-                
+                console.log(response);
                 retries -= 1;
                 if(retries > 0) await sleep(5000);
             }
