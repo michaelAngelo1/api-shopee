@@ -18,22 +18,6 @@ const brandSecrets = {
         appKey: process.env.TIKTOK_PARTNER_APP_KEY,
         appSecret: process.env.TIKTOK_PARTNER_APP_SECRET
     },
-    "Mamaway": {
-        appKey: process.env.MAMAWAY_APP_KEY,
-        appSecret: process.env.MAMAWAY_APP_SECRET
-    },
-    "SHRD": {
-        appKey: process.env.SHRD_APP_KEY,
-        appSecret: process.env.SHRD_APP_SECRET
-    },
-    "Miss Daisy": {
-        appKey: process.env.MD_APP_KEY,
-        appSecret: process.env.MD_APP_SECRET
-    }, 
-    "Polynia": {
-        appKey: process.env.POLY_APP_KEY,
-        appSecret: process.env.POLY_APP_SECRET
-    }
 }
 
 async function loadTokens(brand) {
@@ -364,8 +348,9 @@ export async function handleFinance(brand) {
     await refreshTokens(brand, refreshToken);
 
     const shopCipher = await getShopCipher(brand, accessToken);
+    console.log("Shop cipher: ", shopCipher);
 
     // await getWithdrawals(brand, shopCipher, accessToken);
     // await getTransactionsByStatement(brand, shopCipher, accessToken);
-    await getStatements(brand, shopCipher, accessToken);
+    // await getStatements(brand, shopCipher, accessToken);
 }

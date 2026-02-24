@@ -194,7 +194,7 @@ export async function fetchAndProcessOrders() {
 
     // await refreshToken();
 
-    // await handleFinance(brand);
+    await handleFinance(brand);
 
     // await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
@@ -235,10 +235,10 @@ export async function fetchAndProcessOrders() {
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Naruko, Relove, JR, Enchante
-    await handleNaruko();
-    await handleRelove();
-    await handleJR();
-    await handleEnchante();
+    // await handleNaruko();
+    // await handleRelove();
+    // await handleJR();
+    // await handleEnchante();
     // await handleRocketindoShop();
 }
 
