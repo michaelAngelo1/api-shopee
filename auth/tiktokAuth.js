@@ -3,8 +3,6 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
-let tiktokAppKey = process.env.TIKTOK_PARTNER_APP_KEY;
-let tiktokAppSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
 
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
@@ -69,6 +67,9 @@ export async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 export async function refreshTokens(brand, refreshToken) {
+    let tiktokAppKey = "6j6u4kmpdda19"
+    let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+
     const appKey = tiktokAppKey
     const appSecret = tiktokAppSecret
 
@@ -84,10 +85,14 @@ export async function refreshTokens(brand, refreshToken) {
         let newAccessToken = response?.data?.data?.access_token;
         let newRefreshToken = response?.data?.data?.refresh_token;
 
-        await saveTokens(brand, {
-            accessToken: newAccessToken, 
-            refreshToken: newRefreshToken
-        });
+        if(newAccessToken && newRefreshToken) {
+            await saveTokens(brand, {
+                accessToken: newAccessToken, 
+                refreshToken: newRefreshToken
+            });
+        } else {
+            console.log("[TIKTOK-SECRETS] New tokens dont exist");
+        }
     } catch (e) {
         console.log("[TIKTOK-SECRETS] Error refreshing tokens: ", e);
     }
@@ -95,6 +100,10 @@ export async function refreshTokens(brand, refreshToken) {
 
 export async function getShopCipher(brand, accessToken) {
     try {
+
+        let tiktokAppKey = "6j6u4kmpdda19"
+        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+
         const appKey = tiktokAppKey
         const appSecret = tiktokAppSecret
         
