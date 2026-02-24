@@ -2,7 +2,7 @@ import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuth';
+import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuth.js';
 const secretClient = new SecretManagerServiceClient();
 let tiktokAppKey = process.env.TIKTOK_PARTNER_APP_KEY;
 let tiktokAppSecret = process.env.TIKTOK_PARTNER_APP_SECRET;

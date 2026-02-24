@@ -84,3 +84,5 @@ export async function handleTiktokAffiliate(brand) {
 
     await handleAffiliate(brand, shopCipher, accessToken);
 }
+
+await handleTiktokAffiliate("Eileen Grace")
