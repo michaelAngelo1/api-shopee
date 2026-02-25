@@ -139,12 +139,12 @@ app.get('/realtime-sync', async (req, res) => {
         stagger += interval;
 
         // Miss Daisy
-        await orderQueueMD.add('realtime-fetch-orders-md', {}, { 
-            ...baseOptions, 
-            jobId: `md-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // await orderQueueMD.add('realtime-fetch-orders-md', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `md-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
         // SH-RD
         await orderQueueSHRD.add('realtime-fetch-orders-shrd', {}, { 
