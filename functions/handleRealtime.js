@@ -30,9 +30,8 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
         const time_from = JAKARTA_MIDNIGHT_TS;
         const time_to = nowSeconds; 
 
-        // TESTING. DELETE LATER
+        // FOR DEBUGGING / TESTING. COMMENT LATER
         // const time_from = JAKARTA_MIDNIGHT_TS - 86400; 
-        // const time_to = JAKARTA_MIDNIGHT_TS - 1;
         // const time_to = nowSeconds;
 
         for (const status of statusesToFetch) {
@@ -109,7 +108,8 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         const nowSeconds = Math.floor(Date.now() / 1000);
         const jakartaOffset = 25200; 
         const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-        const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
+        const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
+        const JAKARTA_MIDNIGHT_YESTERDAY = JAKARTA_MIDNIGHT_TODAY - 86400;
 
         const order_sn_list = batch.join(',');
         const timestamp = Math.floor(Date.now() / 1000);
@@ -137,14 +137,28 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         if (data.response && data.response.order_list) {
             data.response.order_list.forEach(order => {
                 let isTargetDate = false;
+
+                // For debugging: yesterday's orders
+                // if (order.payment_method !== 'Cash on Delivery') {
+                //     // Non-COD must be PAID today
+                //     if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.pay_time <= JAKARTA_MIDNIGHT_TODAY) {
+                //         isTargetDate = true;
+                //     }
+                // } else {
+                //     // COD must be CREATED today
+                //     if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.create_time <= JAKARTA_MIDNIGHT_TODAY) {
+                //         isTargetDate = true;
+                //     }
+                // }
+                // Production
                 if (order.payment_method !== 'Cash on Delivery') {
                     // Non-COD must be PAID today
-                    if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_TS) {
+                    if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_TODAY) {
                         isTargetDate = true;
                     }
                 } else {
                     // COD must be CREATED today
-                    if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_TS) {
+                    if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_TODAY) {
                         isTargetDate = true;
                     }
                 }
@@ -159,14 +173,14 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                         let price = parseFloat(item.model_discounted_price || 0);
                         // console.log("Item model discounted price: ", price, " for brand: ", brand);
                         
-                        if (price === 0) {
-                            price = parseFloat(item.model_original_price || 0);
-                            console.log(`[TRAP] Bundle Deal Fallback on ${order.order_sn}: Overcounting by using full price Rp ${price}`);
-                        }
-
+                        // if (price === 0) {
+                        //     console.log("Order Sn where price is 0: ", order.order_sn);
+                        //     console.log(item);                       
+                        // }
                         
                         const qty = item.model_quantity_purchased || 0;
                         let itemTotal = (price * qty);
+                        // console.log("Item Subtotal: ", itemTotal)
                         
                         if (order.order_status === 'CANCELLED') {
                             console.log(`[GHOST CAUGHT] Cancelled Order added to GMV: ${order.order_sn} | Value: Rp ${itemTotal} | COD: ${order.payment_method === 'Cash on Delivery'}`);
@@ -195,9 +209,10 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         voucherFromSellerTotal += voucherFromSellerBatch;
     }
 
-    // console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
+    console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
 
     return totalGMV - voucherFromSellerTotal;
+    // return totalGMV;
 }
 
 async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id) {
@@ -283,7 +298,20 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
 //     let partnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278";
 //     let shopId = 332381969;
 //     let accessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogbT5zAYwiszcvAI4AUAB.M6HNQJUFKrVPO1BV44R0xTqOD8NaMHzyUDgK0ppPf0s"
-//     await mainRealtime("Miss Daisy", partnerId, partnerKey, accessToken, shopId);
+//     // await mainRealtime("Miss Daisy", partnerId, partnerKey, accessToken, shopId);
+
+//     let shrdPartnerId = "2013428"
+//     let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
+//     let shrdShopId = 167106407
+//     let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASixvfnMBjDihK2TCDgBQAE.39eevJTTSQFJZGn59NJUGy46qpwirDgOJxtWJXQ4UbM"
+//     // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId);
+
+//     let mdPartnerId = "2010423"
+//     let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
+//     let gbShopId = 1354940630
+//     let gbAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGNaBi4YFIAEovr35zAYwmK_5sgE4AUAB.1GxdCjZtv9hJYdgYVYm2Z_w72Huc10MF_80JDGVjcxs"
+//     await mainRealtime("G-Belle", mdPartnerId, mdPartnerKey, gbAccessToken, gbShopId);
+
 // }
 
 // await testbed();
