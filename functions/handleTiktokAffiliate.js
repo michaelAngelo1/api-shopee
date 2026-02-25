@@ -19,10 +19,10 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         
         const appKey = tiktokAppKey;
         const appSecret = tiktokAppSecret;
+        const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2026-01-31T00:00:00+07:00").getTime() / 1000);
         
         while(keepFetching) {
-            const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
-            const createTimeTo = Math.floor(new Date("2026-01-31T00:00:00+07:00").getTime() / 1000);
             const requestBody = {
                 create_time_ge: createTimeFrom,
                 create_time_lt: createTimeTo
