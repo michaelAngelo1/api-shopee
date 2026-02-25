@@ -1,5 +1,7 @@
-import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuth";
-import { handleMergeRealtime } from "./handleMergeRealtime";
+import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuth.js";
+import crypto from 'crypto';
+import axios from 'axios';
+// import { handleMergeRealtime } from "./handleMergeRealtime";
 
 async function getOrderList(brand, shopCipher, accessToken) {
 
@@ -24,8 +26,14 @@ async function getOrderList(brand, shopCipher, accessToken) {
 
         const createTimeFrom = JAKARTA_MIDNIGHT_TS;
         const createTimeTo = nowSeconds;
-        
+        let orderTotal = 0;
+
         while(keepFetching) {
+            const requestBody = {
+                create_time_ge: createTimeFrom,
+                create_time_lt: createTimeTo,
+            }
+
             const timestamp = Math.floor(Date.now() / 1000);
             const queryParams = {
                 app_key: tiktokAppKey, 
@@ -42,18 +50,16 @@ async function getOrderList(brand, shopCipher, accessToken) {
             for(const key of sortedKeys) {
                 result += key + queryParams[key];
             }
+            result += JSON.stringify(requestBody);
             result += tiktokAppSecret;
+
             const sign = crypto.createHmac('sha256', tiktokAppSecret).update(result).digest('hex');
             queryParams.sign = sign;
             const querySearchParams = new URLSearchParams(queryParams);
             const completeUrl = baseUrl + querySearchParams.toString();
 
-            const requestBody = {
-                create_time_ge: createTimeFrom,
-                create_time_lt: createTimeTo,
-            }
 
-            const response = await axios.get(completeUrl, 
+            const response = await axios.post(completeUrl, 
                 requestBody,
                 {
                     headers: {
@@ -63,7 +69,9 @@ async function getOrderList(brand, shopCipher, accessToken) {
                 }
             );
 
-            console.log("[TIKTOK-REALTIME] Raw response order list: ", response.data.data.orders);
+            // console.log("[TIKTOK-REALTIME] Raw response order list: ", response.data.data.orders);
+
+            orderTotal += response.data.data.orders.length;
 
             const nextPageToken = response.data.data.next_page_token;
 
@@ -74,22 +82,27 @@ async function getOrderList(brand, shopCipher, accessToken) {
             }
         }
 
+        // This number may be inflated due to: unspecified order status (should be other than UNPAID)
+        // Next step should account for order status
+        // If is_cod = true, then pay_time can be empty
+        // If is_cod = false, then pay_time can not be empty.
+        console.log("Order total on brand: ", brand, " length: ", orderTotal);
+
     } catch (e) {
         console.log("[TIKTOK-REALTIME] Error getting realtime tiktok data on brand: ", brand);
-        console.log(e);
+        console.log(e.response.data.message);
     }
 }
 
 export async function mainRealtimeTiktok(brand) {
     console.log("Main Realtime tiktok: ", brand);
 
-    await refreshTokens(brand, refreshToken);
     
     const tokens = await loadTokens(brand);
     let accessToken = tokens.accessToken;
     let refreshToken = tokens.refreshToken;
+    await refreshTokens(brand, refreshToken);
 
-    let brand = "Eileen Grace";
     const shopCipher = await getShopCipher(brand, accessToken);
 
     await getOrderList(brand, shopCipher, accessToken);
@@ -98,3 +111,5 @@ export async function mainRealtimeTiktok(brand) {
     // let marketplace = "Tiktok";
     // await handleMergeRealtime(brand, marketplace, totalSalesBrand);
 }
+
+await mainRealtimeTiktok("Eileen Grace");
