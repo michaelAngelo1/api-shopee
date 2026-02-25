@@ -147,12 +147,12 @@ app.get('/realtime-sync', async (req, res) => {
         // stagger += interval;
 
         // SH-RD
-        await orderQueueSHRD.add('realtime-fetch-orders-shrd', {}, { 
-            ...baseOptions, 
-            jobId: `shrd-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // await orderQueueSHRD.add('realtime-fetch-orders-shrd', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `shrd-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
         // Cleviant
         await orderQueueCLEV.add('realtime-fetch-orders-clev', {}, { 
@@ -171,12 +171,12 @@ app.get('/realtime-sync', async (req, res) => {
         stagger += interval;
 
         // G-Belle
-        await orderQueueGB.add('realtime-fetch-orders-gb', {}, { 
-            ...baseOptions, 
-            jobId: `gb-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
+        // await orderQueueGB.add('realtime-fetch-orders-gb', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `gb-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
+        // stagger += interval;
 
         // Ivy & Lily
         await orderQueueIL.add('realtime-fetch-orders-il', {}, { 
@@ -227,11 +227,11 @@ app.get('/realtime-sync', async (req, res) => {
         stagger += interval;
 
         // Polynia
-        await orderQueuePOLY.add('realtime-fetch-orders-poly', {}, { 
-            ...baseOptions, 
-            jobId: `poly-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
+        // await orderQueuePOLY.add('realtime-fetch-orders-poly', {}, { 
+        //     ...baseOptions, 
+        //     jobId: `poly-daily-sync-${timestamp}`, 
+        //     delay: stagger 
+        // });
 
         console.log("Daily sync job enqueued by Cloud Scheduler with Staggered Delays");
         res.status(200).send("Successfully enqueued daily sync job");

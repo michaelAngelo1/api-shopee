@@ -277,3 +277,13 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     let marketplace = "Shopee";
     await handleMergeRealtime(brand, marketplace, totalSalesBrand);
 }
+
+// async function testbed() {
+//     let partnerId = "2010423";
+//     let partnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278";
+//     let shopId = 332381969;
+//     let accessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogbT5zAYwiszcvAI4AUAB.M6HNQJUFKrVPO1BV44R0xTqOD8NaMHzyUDgK0ppPf0s"
+//     await mainRealtime("Miss Daisy", partnerId, partnerKey, accessToken, shopId);
+// }
+
+// await testbed();
