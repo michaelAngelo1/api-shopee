@@ -170,7 +170,7 @@ app.get('/realtime-sync', async (req, res) => {
         });
         stagger += interval;
 
-        G-Belle
+        //G-Belle
         await orderQueueGB.add('realtime-fetch-orders-gb', {}, { 
             ...baseOptions, 
             jobId: `gb-daily-sync-${timestamp}`, 
