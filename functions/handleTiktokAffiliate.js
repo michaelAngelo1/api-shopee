@@ -1,9 +1,11 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
-import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuth.js';
+import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuthAffiliate.js';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
+let appKey = process.env.TIKTOK_AFFILIATE_APP_KEY;
+let appSecret = process.env.TIKTOK_AFFILIATE_APP_SECRET;
 
 export async function handleAffiliate(brand, shopCipher, accessToken) {
     try {   
@@ -13,14 +15,11 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
 
         let keepFetching = true;
         let currPageToken = "";
-
-        let tiktokAppKey = "6j6u4kmpdda19"
-        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-        
-        const appKey = tiktokAppKey;
-        const appSecret = tiktokAppSecret;
         const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
-        const createTimeTo = Math.floor(new Date("2026-01-31T00:00:00+07:00").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
+
+        let rawAffiliateOrders = [];
+        let rawAffiliateOrdersLength = 0;
         
         while(keepFetching) {
             const requestBody = {
@@ -63,7 +62,9 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
                 }
             );
 
-            console.log("[TIKTOK-AFFILIATE] Affiliate raw response orders: ", response.data.data.orders);
+            // console.log("[TIKTOK-AFFILIATE] Affiliate raw response orders: ", response.data.data.orders);
+            rawAffiliateOrders.push(...response.data.data.orders);
+            rawAffiliateOrdersLength += response.data.data.orders.length;   
 
             const nextPageToken = response.data.data.next_page_token;
 
@@ -73,6 +74,10 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
                 keepFetching = false;
             }
         }
+
+        console.log("Affiliate orders qty: ", rawAffiliateOrdersLength);
+        console.log("Affiliate Orders. First: ");
+        console.log(rawAffiliateOrders[0]);
 
     } catch (e) {
         console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e.response.data.message);
