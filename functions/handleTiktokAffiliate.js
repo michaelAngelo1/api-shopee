@@ -15,8 +15,8 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
 
         let keepFetching = true;
         let currPageToken = "";
-        const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
-        const createTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
+        const createTimeFrom = Math.floor(new Date("2026-01-14T00:00:00+07:00").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2026-01-18T23:59:59+07:00").getTime() / 1000);
 
         let rawAffiliateOrders = [];
         let rawAffiliateOrdersLength = 0;
@@ -77,7 +77,18 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
 
         console.log("Affiliate orders qty: ", rawAffiliateOrdersLength);
         console.log("Affiliate Orders. First: ");
-        console.log(rawAffiliateOrders[0]);
+        // console.log(rawAffiliateOrders[0]);
+
+        for(const order of rawAffiliateOrders) {
+            if(order.id === "582125212408513896") {
+                order.skus.forEach(sku => {
+                    console.log("Order ID: ", order.id);
+                    console.log("Order created time: ", order.create_time);
+                    console.log("SKU GMV: ", sku.price.amount);
+                    console.log("SKU Est. Paid Commission: ", sku.estimated_paid_commission.amount);
+                });
+            }
+        }
 
     } catch (e) {
         console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e.response.data.message);
