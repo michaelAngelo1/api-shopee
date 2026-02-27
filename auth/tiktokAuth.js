@@ -10,9 +10,17 @@ const tiktokSecrets = {
     "SHRD": "projects/231801348950/secrets/shrd-tiktok-tokens",
     "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
     "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
+    "CHESS": "projects/231801348950/secrets/chess-tiktok-tokens",
+    "Cleviant": "projects/231801348950/secrets/cleviant-tiktok-tokens",
+    "Mosseru": "projects/231801348950/secrets/mosseru-tiktok-tokens",
+    "Evoke": "projects/231801348950/secrets/evoke-tiktok-tokens",
+    "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-tokens"
 }
 
 export async function loadTokens(brand) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     const secretName = tiktokSecrets[brand] + "/versions/latest";
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -29,6 +37,9 @@ export async function loadTokens(brand) {
 }
 
 export async function saveTokens(brand, tokens) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     const parent = tiktokSecrets[brand];
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
 
@@ -67,6 +78,9 @@ export async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 export async function refreshTokens(brand, refreshToken) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     let tiktokAppKey = "6j6u4kmpdda19"
     let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
 

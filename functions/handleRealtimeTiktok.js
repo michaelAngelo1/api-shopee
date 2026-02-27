@@ -1,7 +1,7 @@
 import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuth.js";
 import crypto from 'crypto';
 import axios from 'axios';
-// import { handleMergeRealtime } from "./handleMergeRealtime";
+import { handleMergeRealtime, loadCredentials } from "./handleMergeRealtime.js";
 
 async function getOrderList(brand, shopCipher, accessToken) {
 
@@ -27,6 +27,7 @@ async function getOrderList(brand, shopCipher, accessToken) {
         const createTimeFrom = JAKARTA_MIDNIGHT_TS;
         const createTimeTo = nowSeconds;
         let orderTotal = 0;
+        let orders = [];
 
         while(keepFetching) {
             const requestBody = {
@@ -69,9 +70,12 @@ async function getOrderList(brand, shopCipher, accessToken) {
                 }
             );
 
-            // console.log("[TIKTOK-REALTIME] Raw response order list: ", response.data.data.orders);
+            // console.log("[TIKTOK-REALTIME] Raw response order list: ", response);
 
-            orderTotal += response.data.data.orders.length;
+            if(response.data.data && response.data.data.orders) {
+                orders.push(...response.data.data.orders);
+                orderTotal += response.data.data.orders.length;
+            }
 
             const nextPageToken = response.data.data.next_page_token;
 
@@ -88,15 +92,39 @@ async function getOrderList(brand, shopCipher, accessToken) {
         // If is_cod = false, then pay_time can not be empty.
         console.log("Order total on brand: ", brand, " length: ", orderTotal);
 
+        await processOrdersGMV(brand, orders, "TIKTOK_SHOP");
+        await processOrdersGMV(brand, orders, "TOKOPEDIA");
     } catch (e) {
         console.log("[TIKTOK-REALTIME] Error getting realtime tiktok data on brand: ", brand);
-        console.log(e.response.data.message);
+        console.log(e);
     }
+}
+
+async function processOrdersGMV(brand, orders, commerce) {
+    const tiktokOnlyOrders = orders.filter(o => o.commerce_platform === commerce);
+    
+    let cleanedOrdersNonCOD = tiktokOnlyOrders.filter(o => {
+        return o.is_cod === false && o.paid_time > 0;
+    });
+
+    let cleanedOrdersCOD = tiktokOnlyOrders.filter(o => {
+        return o.is_cod === true && o.status !== "UNPAID";
+    });
+
+    let totalCleanedOrders = cleanedOrdersNonCOD.concat(cleanedOrdersCOD);
+
+    let totalAmount = 0;
+    totalCleanedOrders.forEach(o => {
+        totalAmount += parseFloat(o.payment.total_amount);
+    });
+    console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
+    
+    let marketplace = commerce == "TIKTOK_SHOP" ? "TikTok" : "Tokopedia";
+    await handleMergeRealtime(brand, marketplace, totalAmount)
 }
 
 export async function mainRealtimeTiktok(brand) {
     console.log("Main Realtime tiktok: ", brand);
-
     
     const tokens = await loadTokens(brand);
     let accessToken = tokens.accessToken;
@@ -106,10 +134,15 @@ export async function mainRealtimeTiktok(brand) {
     const shopCipher = await getShopCipher(brand, accessToken);
 
     await getOrderList(brand, shopCipher, accessToken);
-
-    // let totalSalesBrand = 0;
-    // let marketplace = "Tiktok";
-    // await handleMergeRealtime(brand, marketplace, totalSalesBrand);
 }
 
-await mainRealtimeTiktok("Eileen Grace");
+// await mainRealtimeTiktok("Eileen Grace");
+// await mainRealtimeTiktok("Mamaway");
+// await mainRealtimeTiktok("SHRD");
+// await mainRealtimeTiktok("Miss Daisy");
+// await mainRealtimeTiktok("Polynia");
+// await mainRealtimeTiktok("CHESS");
+// await mainRealtimeTiktok("Cléviant");
+// await mainRealtimeTiktok("Mossèru");
+// await mainRealtimeTiktok("Evoke")
+await mainRealtimeTiktok("Dr Jou");

@@ -3,7 +3,7 @@ import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 const secretClient = new SecretManagerServiceClient();
 
-async function loadCredentials() {
+export async function loadCredentials() {
     const secretName = "projects/231801348950/secrets/realtime-service-account/versions/latest";
 
     try {
@@ -20,6 +20,9 @@ async function loadCredentials() {
 }
 
 export async function handleMergeRealtime(brand, marketplace, sales_value) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     console.log(`Start merging to sheets for brand: ${brand} from ${marketplace} with ${sales_value} sales today.`);
 
     const saCreds = await loadCredentials();
@@ -32,9 +35,9 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
     });
 
     let devSheetId = "1zArzQCqewtCxkka9l03bRpZLAjqOjapV6ngHUp0jluM"
-    let prodSheetId = "1RMcbhi0wZgXqvYf_lFma2U8vznJh4ACy_OmsTjplgKI"
+    // let prodSheetId = "1RMcbhi0wZgXqvYf_lFma2U8vznJh4ACy_OmsTjplgKI"
 
-    const doc = new GoogleSpreadsheet(prodSheetId, saAuth);
+    const doc = new GoogleSpreadsheet(devSheetId, saAuth);
     await doc.loadInfo();
 
     const sheet = doc.sheetsByIndex[0];
