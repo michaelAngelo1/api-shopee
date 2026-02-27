@@ -20,8 +20,14 @@ export async function loadCredentials() {
 }
 
 export async function handleMergeRealtime(brand, marketplace, sales_value) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
+
+    if(marketplace == "TikTok" || marketplace == "Tokopedia") {
+        if(brand == "Cléviant") brand = "Cleviant";
+        if(brand == "Mossèru") brand = "Mosseru";
+        if(brand == "Nutri & Beyond") brand = "Nutri Beyond";
+        if(brand == "Ivy & Lily") brand = "Ivy Lily";
+        if(brand == "Joey & Roo") brand = "Joey Roo";
+    }
 
     console.log(`Start merging to sheets for brand: ${brand} from ${marketplace} with ${sales_value} sales today.`);
 
@@ -34,10 +40,10 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
         scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
-    let devSheetId = "1zArzQCqewtCxkka9l03bRpZLAjqOjapV6ngHUp0jluM"
-    // let prodSheetId = "1RMcbhi0wZgXqvYf_lFma2U8vznJh4ACy_OmsTjplgKI"
+    // let devSheetId = "1zArzQCqewtCxkka9l03bRpZLAjqOjapV6ngHUp0jluM"
+    let prodSheetId = "1RMcbhi0wZgXqvYf_lFma2U8vznJh4ACy_OmsTjplgKI"
 
-    const doc = new GoogleSpreadsheet(devSheetId, saAuth);
+    const doc = new GoogleSpreadsheet(prodSheetId, saAuth);
     await doc.loadInfo();
 
     const sheet = doc.sheetsByIndex[0];

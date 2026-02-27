@@ -3,11 +3,32 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { handleMergeRealtime, loadCredentials } from "./handleMergeRealtime.js";
 
+const secondInternalAppBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle", 
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop"
+];
+
 async function getOrderList(brand, shopCipher, accessToken) {
 
     try {
-        let tiktokAppKey = "6j6u4kmpdda19"
-        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        let tiktokAppKey;
+        let tiktokAppSecret;
+
+        if(!secondInternalAppBrands.includes(brand)) {
+            tiktokAppKey = "6j6u4kmpdda19"
+            tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            tiktokAppKey = "6j7inu4s9dkfq"
+            tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        }
 
 
         // let tiktokAppKey = process.env.TIKTOK_PARTNER_APP_KEY;
@@ -96,7 +117,7 @@ async function getOrderList(brand, shopCipher, accessToken) {
         await processOrdersGMV(brand, orders, "TOKOPEDIA");
     } catch (e) {
         console.log("[TIKTOK-REALTIME] Error getting realtime tiktok data on brand: ", brand);
-        console.log(e);
+        console.log(e.response.data.message);
     }
 }
 
@@ -123,7 +144,7 @@ async function processOrdersGMV(brand, orders, commerce) {
     await handleMergeRealtime(brand, marketplace, totalAmount)
 }
 
-export async function mainRealtimeTiktok(brand) {
+async function mainRealtimeTiktok(brand) {
     console.log("Main Realtime tiktok: ", brand);
     
     const tokens = await loadTokens(brand);
@@ -136,13 +157,27 @@ export async function mainRealtimeTiktok(brand) {
     await getOrderList(brand, shopCipher, accessToken);
 }
 
-// await mainRealtimeTiktok("Eileen Grace");
-// await mainRealtimeTiktok("Mamaway");
-// await mainRealtimeTiktok("SHRD");
-// await mainRealtimeTiktok("Miss Daisy");
-// await mainRealtimeTiktok("Polynia");
-// await mainRealtimeTiktok("CHESS");
-// await mainRealtimeTiktok("Cléviant");
-// await mainRealtimeTiktok("Mossèru");
-// await mainRealtimeTiktok("Evoke")
-await mainRealtimeTiktok("Dr Jou");
+export async function parentRealtimeTiktok() {
+    await mainRealtimeTiktok("Eileen Grace");
+    await mainRealtimeTiktok("Mamaway");
+    await mainRealtimeTiktok("SHRD");
+    await mainRealtimeTiktok("Miss Daisy");
+    await mainRealtimeTiktok("Polynia");
+    await mainRealtimeTiktok("CHESS");
+    await mainRealtimeTiktok("Cléviant");
+    await mainRealtimeTiktok("Mossèru");
+    await mainRealtimeTiktok("Evoke")
+    await mainRealtimeTiktok("Dr Jou");
+    await mainRealtimeTiktok("Mirae");
+    await mainRealtimeTiktok("Swissvita");
+    await mainRealtimeTiktok("G-Belle");
+    await mainRealtimeTiktok("Past Nine");
+    await mainRealtimeTiktok("Nutri & Beyond");
+    await mainRealtimeTiktok("Ivy & Lily");
+    await mainRealtimeTiktok("Naruko");
+    await mainRealtimeTiktok("Relove");
+    await mainRealtimeTiktok("Joey & Roo");
+    await mainRealtimeTiktok("Rocketindo Shop");
+}
+
+await parentRealtimeTiktok();

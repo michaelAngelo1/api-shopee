@@ -14,7 +14,17 @@ const tiktokSecrets = {
     "Cleviant": "projects/231801348950/secrets/cleviant-tiktok-tokens",
     "Mosseru": "projects/231801348950/secrets/mosseru-tiktok-tokens",
     "Evoke": "projects/231801348950/secrets/evoke-tiktok-tokens",
-    "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-tokens"
+    "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-tokens",
+    "Mirae": "projects/231801348950/secrets/mirae-tiktok-tokens",
+    "Swissvita": "projects/231801348950/secrets/swissvita-tiktok-tokens",
+    "G-Belle": "projects/231801348950/secrets/gbelle-tiktok-tokens",
+    "Past Nine": "projects/231801348950/secrets/pn-tiktok-tokens",
+    "Nutri & Beyond": "projects/231801348950/secrets/nb-tiktok-tokens",
+    "Ivy & Lily": "projects/231801348950/secrets/il-tiktok-tokens",
+    "Naruko": "projects/231801348950/secrets/naruko-tiktok-tokens",
+    "Relove": "projects/231801348950/secrets/relove-tiktok-tokens",
+    "Joey & Roo": "projects/231801348950/secrets/joey-roo-tiktok-tokens",
+    "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-tiktok-tokens"
 }
 
 export async function loadTokens(brand) {
@@ -77,12 +87,33 @@ export async function saveTokens(brand, tokens) {
 // Refresh token itself contains identity of the corresponding shop
 // Such is why it does not need shop_cipher or any other parameters. 
 
+const secondInternalAppBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle", 
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop"
+]
+
 export async function refreshTokens(brand, refreshToken) {
     if(brand == "Cléviant") brand = "Cleviant";
     if(brand == "Mossèru") brand = "Mosseru";
 
-    let tiktokAppKey = "6j6u4kmpdda19"
-    let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    let tiktokAppKey;
+    let tiktokAppSecret;
+
+    if(!secondInternalAppBrands.includes(brand)) {
+        tiktokAppKey = "6j6u4kmpdda19"
+        tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    } else {
+        tiktokAppKey = "6j7inu4s9dkfq"
+        tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+    }
 
     const appKey = tiktokAppKey
     const appSecret = tiktokAppSecret
@@ -115,8 +146,16 @@ export async function refreshTokens(brand, refreshToken) {
 export async function getShopCipher(brand, accessToken) {
     try {
 
-        let tiktokAppKey = "6j6u4kmpdda19"
-        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        let tiktokAppKey;
+        let tiktokAppSecret;
+
+        if(!secondInternalAppBrands.includes(brand)) {
+            tiktokAppKey = "6j6u4kmpdda19"
+            tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            tiktokAppKey = "6j7inu4s9dkfq"
+            tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        }
 
         const appKey = tiktokAppKey
         const appSecret = tiktokAppSecret
@@ -161,6 +200,6 @@ export async function getShopCipher(brand, accessToken) {
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
-        console.log(e);
+        console.log(e.response.data.message);
     }
 }
