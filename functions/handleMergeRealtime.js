@@ -64,8 +64,8 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
                 'Timestamp': formattedTimestamp,
             });
     
-            if (row._rawData.length > 5) {
-                row._rawData = row._rawData.slice(0, 5);
+            if (row._rawData.length > 4) {
+                row._rawData = row._rawData.slice(0, 4);
             }
     
             await row.save();
