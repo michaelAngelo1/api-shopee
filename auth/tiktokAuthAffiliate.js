@@ -8,6 +8,10 @@ let appSecret = process.env.TIKTOK_AFFILIATE_APP_SECRET;
 
 const tiktokAffiliateSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-affiliate-tokens",
+    "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-affiliate-tokens",
+    "SHRD": "projects/231801348950/secrets/shrd-tiktok-affiliate-tokens",
+    "Miss Daisy": "projects/231801348950/secrets/md-tiktok-affiliate-tokens",
+    "Polynia": "projects/231801348950/secrets/poly-tiktok-affiliate-tokens"
 }
 
 export async function loadTokens(brand) {

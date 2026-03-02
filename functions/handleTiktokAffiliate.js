@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
+import { BigQuery } from '@google-cloud/bigquery';
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuthAffiliate.js';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
@@ -15,8 +16,9 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
 
         let keepFetching = true;
         let currPageToken = "";
-        const createTimeFrom = Math.floor(new Date("2026-01-14T00:00:00+07:00").getTime() / 1000);
-        const createTimeTo = Math.floor(new Date("2026-01-18T23:59:59+07:00").getTime() / 1000);
+        const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
+        // const createTimeFrom = 1767200458;
+        const createTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
 
         let rawAffiliateOrders = [];
         let rawAffiliateOrdersLength = 0;
@@ -76,24 +78,101 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         }
 
         console.log("Affiliate orders qty: ", rawAffiliateOrdersLength);
-        console.log("Affiliate Orders. First: ");
+        // console.log("Affiliate Orders. First: ");
         // console.log(rawAffiliateOrders[0]);
 
-        for(const order of rawAffiliateOrders) {
-            if(order.id === "582125212408513896") {
-                order.skus.forEach(sku => {
-                    console.log("Order ID: ", order.id);
-                    console.log("Order created time: ", order.create_time);
-                    console.log("SKU GMV: ", sku.price.amount);
-                    console.log("SKU Est. Paid Commission: ", sku.estimated_paid_commission.amount);
-                });
-            }
-        }
+        // for(const order of rawAffiliateOrders) {
+        //     if(order.id === "582125212408513896") {
+        //         const date = new Date(order.create_time * 1000);
+        //         const utc7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000)); 
+        //         const isoString = utc7Date.toISOString();
+        //         const result = isoString.replace('T', ' ').substring(0, 19);
+        //         order.skus.forEach(sku => {
+        //             console.log("Order ID: ", order.id);
+        //             console.log("Order created time: ", result);
+        //             console.log("SKU GMV: ", sku.price.amount);
+        //             console.log("SKU Est. Paid Commission: ", sku.estimated_paid_commission.amount);
+        //         });
+        //     }
+        // }
+
+        return rawAffiliateOrders;
 
     } catch (e) {
         console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e.response.data.message);
     }
 }
+
+function convertTimestamp(orderCreatedTime) {
+    const date = new Date(orderCreatedTime * 1000);
+    const utc7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000)); 
+    const isoString = utc7Date.toISOString();
+    const result = isoString.replace('T', ' ').substring(0, 19);
+    return result;
+}
+
+const brandAffiliateTables = {
+    "Eileen Grace": "eileen_grace_tt_affiliate",
+    "Mamaway": "mamaway_tt_affiliate",
+    "SHRD": "shrd_tt_affiliate",
+    "Miss Daisy": "miss_daisy_tt_affiliate",
+    "Polynia": "polynia_tt_affiliate"
+}
+
+async function mergeTiktokAffiliate(orders, brand) {
+    try {
+        console.log("Merging tiktok affiliate orders on brand: ", brand);
+        const datasetId = "tiktok_api_us";
+        const bigquery = new BigQuery();
+        const tableName = brandAffiliateTables[brand];
+
+        let batchSize = 1000;
+        for(let i=0; i<orders.length; i+=batchSize) {
+            const batchData = orders.slice(i, i+batchSize);
+
+            const incomingOrderIds = batchData.map(row => `'${row.id}'`).join(",");
+
+            if(!incomingOrderIds) continue;
+
+            const query = `
+                SELECT Order_ID
+                FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
+                WHERE Order_ID IN (${incomingOrderIds})
+            `
+            const [existingRows] = await bigquery.query(query);
+            const existingIds = new Set(existingRows.map(row => row.Order_ID));
+            console.log("[TIKTOK-AFFILIATE] Found: ", existingIds.size, " duplicates in table: ", brandAffiliateTables[brand]);
+
+            const dataToInsert = batchData.filter(row => !existingIds.has(row.id));
+
+            if(dataToInsert.length === 0) {
+                console.log("[TIKTOK-AFFILIATE] All data already exists. Skipping inserts.");
+                continue;
+            }
+
+            console.log("[TIKTOK-AFFILIATE] Inserting ", dataToInsert.length, " new rows");
+
+            const formattedData = dataToInsert.map(d => {
+                let obj = {};
+                obj.Time_Created = convertTimestamp(d.create_time);
+                obj.Order_ID = d.id;
+                obj.Price = parseInt(d.skus[0].price.amount);
+                obj.Est_Commission_Payment = parseInt(d.skus[0].estimated_paid_commission.amount);
+                return obj;
+            });
+
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert(formattedData);
+            
+            console.log("[TIKTOK-AFFILIATE] Successfully inserted rows on: ", brandAffiliateTables[brand]);
+        }
+    } catch (e) {
+        console.log("[TIKTOK-AFFILIATE] Error merging tiktok affiliate orders on brand: ", brand);
+        console.log(e);
+    }
+} 
 
 export async function handleTiktokAffiliate(brand) {
     const tokens = await loadTokens(brand);
@@ -105,7 +184,14 @@ export async function handleTiktokAffiliate(brand) {
     const shopCipher = await getShopCipher(brand, accessToken);
     console.log("Shop cipher: ", shopCipher);
 
-    await handleAffiliate(brand, shopCipher, accessToken);
+    const affiliateOrders = await handleAffiliate(brand, shopCipher, accessToken);
+    affiliateOrders.sort((a, b) => a.create_time - b.create_time);
+
+    await mergeTiktokAffiliate(affiliateOrders, brand);
 }
 
-await handleTiktokAffiliate("Eileen Grace")
+// await handleTiktokAffiliate("Eileen Grace")
+// await handleTiktokAffiliate("Mamaway");
+// await handleTiktokAffiliate("SHRD");
+// await handleTiktokAffiliate("Miss Daisy");
+await handleTiktokAffiliate("Polynia");
