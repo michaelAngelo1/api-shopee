@@ -16,7 +16,7 @@ import { mainDanaDilepas } from './functions/escrowProcessor.js';
 import { handleWalletTransactions } from './functions/walletTransactions.js';
 import { handleFinance } from './functions/handleFinance.js';
 import { mainRealtime } from './functions/handleRealtime.js';
-import { handleTiktokAffiliate } from './functions/handleTiktokAffiliate.js';
+import { handleTiktokAffiliate, mainTiktokAffiliate } from './functions/handleTiktokAffiliate.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -196,7 +196,9 @@ export async function fetchAndProcessOrders() {
     // await refreshToken();
 
     // await handleFinance(brand);
-    await handleTiktokAffiliate(brand)
+    // await handleTiktokAffiliate(brand)
+
+    await mainTiktokAffiliate();
 
     // await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);

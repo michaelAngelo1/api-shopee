@@ -227,7 +227,7 @@ export async function handleTiktokAffiliate(brand) {
     await mergeTiktokAffiliate(affiliateOrders, brand);
 }
 
-async function mainTiktokAffiliate() {
+export async function mainTiktokAffiliate() {
     await handleTiktokAffiliate("Eileen Grace")
     await handleTiktokAffiliate("Mamaway");
     await handleTiktokAffiliate("SHRD");
