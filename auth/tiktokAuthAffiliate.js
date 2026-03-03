@@ -2,9 +2,7 @@ import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-const secretClient = new SecretManagerServiceClient();
-let appKey = process.env.TIKTOK_AFFILIATE_APP_KEY;
-let appSecret = process.env.TIKTOK_AFFILIATE_APP_SECRET;
+const secretClient = new SecretManagerServiceClient(); 
 
 const tiktokAffiliateSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-affiliate-tokens",
@@ -17,7 +15,16 @@ const tiktokAffiliateSecrets = {
     "Mossèru": "projects/231801348950/secrets/moss-tiktok-affiliate-tokens",
     "Evoke": "projects/231801348950/secrets/evoke-tiktok-affiliate-tokens",
     "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-affiliate-tokens",
-    "Mirae": "projects/231801348950/secrets/mirae-tiktok-affiliate-tokens"
+    "Mirae": "projects/231801348950/secrets/mirae-tiktok-affiliate-tokens",
+    "Swissvita": "projects/231801348950/secrets/sv-tiktok-affiliate-tokens",
+    "G-Belle": "projects/231801348950/secrets/gb-affiliate-tiktok-tokens",
+    "Past Nine": "projects/231801348950/secrets/pn-tiktok-affiliate-tokens",
+    "Nutri & Beyond": "projects/231801348950/secrets/nb-tiktok-affiliate-tokens",
+    "Ivy & Lily": "projects/231801348950/secrets/il-tiktok-affiliate-tokens",
+    "Naruko": "projects/231801348950/secrets/naruko-tiktok-affiliate-tokens",
+    "Relove": "projects/231801348950/secrets/relove-tiktok-affiliate-tokens",
+    "Joey & Roo": "projects/231801348950/secrets/jr-tiktok-affiliate-tokens",
+    "Rocketindo Shop": "projects/231801348950/secrets/rshop-tiktok-affiliate-tokens"
 }
 
 export async function loadTokens(brand) {
@@ -75,6 +82,16 @@ export async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 export async function refreshTokens(brand, refreshToken) {
+    let appKey;
+    let appSecret;
+
+    if(!secondAffiliateBrands.includes(brand)) {
+        appKey = "6j7bl3bsi59jh";
+        appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+    } else {
+        appKey = "6j7inu4s9dkfq";
+        appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+    }
     const refreshUrl = "https://auth.tiktok-shops.com/api/v2/token/refresh";
     const queryParams = "?" + "app_key=" + appKey + "&" + "app_secret=" + appSecret + "&" + "refresh_token=" + refreshToken + "&" + "grant_type=refresh_token";
     const completeUrl = refreshUrl + queryParams;
@@ -100,8 +117,32 @@ export async function refreshTokens(brand, refreshToken) {
     }
 }
 
+const secondAffiliateBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle",
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop"
+]
+
 export async function getShopCipher(brand, accessToken) {
     try {
+        let appKey;
+        let appSecret;
+
+        if(!secondAffiliateBrands.includes(brand)) {
+            appKey = "6j7bl3bsi59jh";
+            appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+        } else {
+            appKey = "6j7inu4s9dkfq";
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        }
+
         const timestamp = Math.floor(Date.now() / 1000);
         const queryParams = "app_key" + appKey + "timestamp" + timestamp;
         const path = "/authorization/202309/shops" // If fail, append "/"

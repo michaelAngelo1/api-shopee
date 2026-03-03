@@ -5,20 +5,42 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuthAffiliate.js';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
-let appKey = process.env.TIKTOK_AFFILIATE_APP_KEY;
-let appSecret = process.env.TIKTOK_AFFILIATE_APP_SECRET;
+
+const secondAffiliateBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle",
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop"
+]
 
 export async function handleAffiliate(brand, shopCipher, accessToken) {
     try {   
+        let appKey;
+        let appSecret;
+
+        if(!secondAffiliateBrands.includes(brand)) {
+            appKey = "6j7bl3bsi59jh";
+            appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+        } else {
+            appKey = "6j7inu4s9dkfq";
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        }
+
         console.log("[TIKTOK-AFFILIATE] Fetching tiktok affiliate for brand: ", brand);
         const path = "/affiliate_seller/202410/orders/search";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
 
         let keepFetching = true;
         let currPageToken = "";
-        const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
+        const createTimeFrom = Math.floor(new Date("2026-03-01T00:00:00+07:00").getTime() / 1000);
         // const createTimeFrom = 1767200458;
-        const createTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2026-03-02T23:59:59+07:00").getTime() / 1000);
 
         let rawAffiliateOrders = [];
         let rawAffiliateOrdersLength = 0;
@@ -123,6 +145,15 @@ const brandAffiliateTables = {
     "Evoke": "evoke_tt_affiliate",
     "Dr Jou": "dr_jou_tt_affiliate",
     "Mirae": "mirae_tt_affiliate",
+    "Swissvita": "swissvita_tt_affiliate",
+    "G-Belle": "gbelle_tt_affiliate",
+    "Past Nine": "past_nine_tt_affiliate",
+    "Nutri & Beyond": "nutri_beyond_tt_affiliate",
+    "Ivy & Lily": "ivy_lily_tt_affiliate",
+    "Naruko": "naruko_tt_affiliate",
+    "Relove": "relove_tt_affiliate",
+    "Joey & Roo": "joey_roo_tt_affiliate",
+    "Rocketindo Shop": "pinkrocket_tt_affiliate"
 }
 
 async function mergeTiktokAffiliate(orders, brand) {
@@ -196,14 +227,27 @@ export async function handleTiktokAffiliate(brand) {
     await mergeTiktokAffiliate(affiliateOrders, brand);
 }
 
-// await handleTiktokAffiliate("Eileen Grace")
-// await handleTiktokAffiliate("Mamaway");
-// await handleTiktokAffiliate("SHRD");
-// await handleTiktokAffiliate("Miss Daisy");
-// await handleTiktokAffiliate("Polynia");
-// await handleTiktokAffiliate("CHESS");
-// await handleTiktokAffiliate("Cléviant");
-// await handleTiktokAffiliate("Mossèru");
-// await handleTiktokAffiliate("Evoke");
-// await handleTiktokAffiliate("Dr Jou");
-await handleTiktokAffiliate("Mirae")
+async function mainTiktokAffiliate() {
+    await handleTiktokAffiliate("Eileen Grace")
+    await handleTiktokAffiliate("Mamaway");
+    await handleTiktokAffiliate("SHRD");
+    await handleTiktokAffiliate("Miss Daisy");
+    await handleTiktokAffiliate("Polynia");
+    await handleTiktokAffiliate("CHESS");
+    await handleTiktokAffiliate("Cléviant");
+    await handleTiktokAffiliate("Mossèru");
+    await handleTiktokAffiliate("Evoke");
+    await handleTiktokAffiliate("Dr Jou");
+    await handleTiktokAffiliate("Mirae")
+    await handleTiktokAffiliate("Swissvita");
+    await handleTiktokAffiliate("G-Belle");
+    await handleTiktokAffiliate("Past Nine");
+    await handleTiktokAffiliate("Nutri & Beyond");
+    await handleTiktokAffiliate("Ivy & Lily");
+    await handleTiktokAffiliate("Naruko");
+    await handleTiktokAffiliate("Relove");
+    await handleTiktokAffiliate("Joey & Roo");
+    await handleTiktokAffiliate("Rocketindo Shop");
+}
+
+await mainTiktokAffiliate();
