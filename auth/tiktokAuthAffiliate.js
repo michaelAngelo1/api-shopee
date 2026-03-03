@@ -11,7 +11,13 @@ const tiktokAffiliateSecrets = {
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-affiliate-tokens",
     "SHRD": "projects/231801348950/secrets/shrd-tiktok-affiliate-tokens",
     "Miss Daisy": "projects/231801348950/secrets/md-tiktok-affiliate-tokens",
-    "Polynia": "projects/231801348950/secrets/poly-tiktok-affiliate-tokens"
+    "Polynia": "projects/231801348950/secrets/poly-tiktok-affiliate-tokens",
+    "CHESS": "projects/231801348950/secrets/chess-tiktok-affiliate-tokens",
+    "Cléviant": "projects/231801348950/secrets/cleviant-tiktok-affiliate-tokens",
+    "Mossèru": "projects/231801348950/secrets/moss-tiktok-affiliate-tokens",
+    "Evoke": "projects/231801348950/secrets/evoke-tiktok-affiliate-tokens",
+    "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-affiliate-tokens",
+    "Mirae": "projects/231801348950/secrets/mirae-tiktok-affiliate-tokens"
 }
 
 export async function loadTokens(brand) {

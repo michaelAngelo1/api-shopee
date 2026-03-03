@@ -116,7 +116,13 @@ const brandAffiliateTables = {
     "Mamaway": "mamaway_tt_affiliate",
     "SHRD": "shrd_tt_affiliate",
     "Miss Daisy": "miss_daisy_tt_affiliate",
-    "Polynia": "polynia_tt_affiliate"
+    "Polynia": "polynia_tt_affiliate",
+    "CHESS": "chess_tt_affiliate",
+    "Cléviant": "cleviant_tt_affiliate",
+    "Mossèru": "mosseru_tt_affiliate",
+    "Evoke": "evoke_tt_affiliate",
+    "Dr Jou": "dr_jou_tt_affiliate",
+    "Mirae": "mirae_tt_affiliate",
 }
 
 async function mergeTiktokAffiliate(orders, brand) {
@@ -194,4 +200,10 @@ export async function handleTiktokAffiliate(brand) {
 // await handleTiktokAffiliate("Mamaway");
 // await handleTiktokAffiliate("SHRD");
 // await handleTiktokAffiliate("Miss Daisy");
-await handleTiktokAffiliate("Polynia");
+// await handleTiktokAffiliate("Polynia");
+// await handleTiktokAffiliate("CHESS");
+// await handleTiktokAffiliate("Cléviant");
+// await handleTiktokAffiliate("Mossèru");
+// await handleTiktokAffiliate("Evoke");
+// await handleTiktokAffiliate("Dr Jou");
+await handleTiktokAffiliate("Mirae")
