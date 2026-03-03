@@ -3,23 +3,45 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuth.js';
+import { objectToFlatArray } from 'bullmq';
 const secretClient = new SecretManagerServiceClient();
 let tiktokAppKey = process.env.TIKTOK_PARTNER_APP_KEY;
 let tiktokAppSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
 
+function convertTimestampJakarta(orderCreatedTime) {
+    const date = new Date(orderCreatedTime * 1000);
+    const utc7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000)); 
+    const isoString = utc7Date.toISOString();
+    const result = isoString.replace('T', ' ').substring(0, 19);
+    return result;
+}
+
+function convertTimestamp(orderCreatedTime) {
+    if (!orderCreatedTime || isNaN(orderCreatedTime)) {
+        return null; 
+    }
+    const date = new Date(orderCreatedTime * 1000);
+    if (isNaN(date.getTime())) {
+        return null; 
+    }
+    return date.toISOString().replace('T', ' ').substring(0, 19);
+}
+
 async function getWithdrawals(brand, shopCipher, accessToken) {
     try {
-        const appKey = tiktokAppKey
-        const appSecret = tiktokAppSecret
+        const appKey = "6j6u4kmpdda19"
+        const appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
         
         const path = "/finance/202309/withdrawals";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
-        const createTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
-        const createTimeTo = Math.floor(new Date("2026-01-31T23:59:59+07:00").getTime() / 1000);
+        const createTimeFrom = Math.floor(new Date("2025-10-01T00:00:00+07:00").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2025-10-31T23:59:59+07:00").getTime() / 1000);
         
         let keepFetching = true;
         let currPageToken = "";
         
+        let rawWithdrawals = [];
+
         while(keepFetching) {
             
             const timestamp = Math.floor(Date.now() / 1000);
@@ -55,7 +77,8 @@ async function getWithdrawals(brand, shopCipher, accessToken) {
                 }
             });
 
-            console.log("[TIKTOK-FINANCE] Raw response: ", response.data.data);
+            // console.log("[TIKTOK-FINANCE] Raw response: ", response.data.data.withdrawals);
+            rawWithdrawals.push(...response.data.data.withdrawals);
 
             const nextPageToken = response.data.data.next_page_token;
 
@@ -65,24 +88,37 @@ async function getWithdrawals(brand, shopCipher, accessToken) {
                 keepFetching = false;
             }
         }
+
+        const formattedWithdrawals = rawWithdrawals.map(r => {
+            let obj = {}
+            obj.amount = parseInt(r.amount);
+            obj.create_time = convertTimestampJakarta(r.create_time);
+            obj.withdrawal_id = r.id;
+            obj.status = r.status;
+            obj.type = r.type; // SETTLE: From orders. WITHDRAW: withdraw to wallet. 
+            return obj;
+        });
+
+        return formattedWithdrawals;
     } catch (e) {
         console.log("[TIKTOK-FINANCE] Error getting withdrawals on brand: ", brand);
         console.log(e);
     }
 }
 
-async function getTransactionsByStatement(brand, shopCipher, accessToken) {
+async function getTransactionsByStatement(brand, shopCipher, accessToken, statementId) {
     try {
-        const appKey = tiktokAppKey
-        const appSecret = tiktokAppSecret
+        const appKey = "6j6u4kmpdda19"
+        const appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
         
-        const statementId = "7599840168392115976";
         const path = `/finance/202501/statements/${statementId}/statement_transactions`;
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
         
         let keepFetching = true;
         let currPageToken = "";
         
+
+        let rawTransactionsPerStatement = [];
         while(keepFetching) {
             
             const timestamp = Math.floor(Date.now() / 1000);
@@ -117,7 +153,9 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken) {
                 }
             });
 
-            console.log("[TIKTOK-FINANCE] TRX by statement response: ", response.data.data);
+            // console.log("[TIKTOK-FINANCE] TRX by statement response: ", response.data.data);
+
+            rawTransactionsPerStatement.push(...response.data.data.transactions);
 
             const nextPageToken = response.data.data.next_page_token;
 
@@ -127,6 +165,19 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken) {
                 keepFetching = false;
             }
         }
+
+        const formattedTransactionsPerStatement = rawTransactionsPerStatement.map((r) => {
+            let data = {};
+            data.transaction_id = r.id;
+            data.order_id = r.order_id;
+            data.order_create_time = convertTimestampJakarta(r.order_create_time);
+            data.settlement_amount = parseInt(r.settlement_amount);
+            data.transaction_type = r.type;
+            data.statement_id = statementId;
+            return data;
+        });
+
+        return formattedTransactionsPerStatement;
     } catch (e) {
         console.log("[TIKTOK-FINANCE] Error getting trx by statement on brand: ", brand);
         console.log(e);
@@ -135,16 +186,18 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken) {
 
 async function getStatements(brand, shopCipher, accessToken) {
     try {
-        const appKey = tiktokAppKey
-        const appSecret = tiktokAppSecret
+        const appKey = "6j6u4kmpdda19"
+        const appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
         
         const path = "/finance/202309/statements";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
-        const statementTimeFrom = Math.floor(new Date("2026-01-01T00:00:00+07:00").getTime() / 1000);
-        const statementTimeTo = Math.floor(new Date("2026-02-02T00:00:00+07:00").getTime() / 1000);
+        const statementTimeFrom = Math.floor(new Date("2025-10-01T00:00:00+07:00").getTime() / 1000);
+        const statementTimeTo = Math.floor(new Date("2025-11-01T23:59:59+07:00").getTime() / 1000);
         
         let keepFetching = true;
         let currPageToken = "";
+
+        let rawStatements = [];
         
         while(keepFetching) {
             
@@ -182,7 +235,9 @@ async function getStatements(brand, shopCipher, accessToken) {
                 }
             });
 
-            console.log("[TIKTOK-FINANCE] Statements raw response: ", response.data.data);
+            // console.log("[TIKTOK-FINANCE] Statements raw response: ", response.data.data);
+
+            rawStatements.push(...response.data.data.statements);
 
             const nextPageToken = response.data.data.next_page_token;
 
@@ -192,10 +247,77 @@ async function getStatements(brand, shopCipher, accessToken) {
                 keepFetching = false;
             }
         }
+
+        const formattedRawStatements = rawStatements
+            .map(r => {
+                let obj = {};
+                obj.statement_id = r.id;
+                obj.withdrawal_id = r.payment_id;
+                obj.settlement_amount = parseInt(r.settlement_amount);
+                obj.statement_time = convertTimestamp(r.statement_time); // Converts to 07:00 (UTC+7). Settled every day at 00:00 (the next day)
+                return obj;
+            })
+            .filter(r => !r.statement_time.includes("2025-09"));
+
+        return formattedRawStatements;
     } catch (e) {
         console.log("[TIKTOK-FINANCE] Error getting statements on brand: ", brand);
         console.log(e);
     }
+}
+
+function generateWalletTransactions(rawWithdrawals, rawTransactions) {
+  // 1. Build and sort the Order Queue (Inflows)
+  // Filter out zero-amount orders and initialize the remaining_balance
+  const orderQueue = rawTransactions
+    .filter(trx => trx.settlement_amount > 0)
+    .sort((a, b) => new Date(a.order_create_time) - new Date(b.order_create_time))
+    .map(trx => ({
+      ...trx,
+      remaining_balance: trx.settlement_amount
+    }));
+
+  // 2. Isolate and sort the Withdrawals (Outflows)
+  const withdrawals = rawWithdrawals
+    .filter(w => w.type === 'WITHDRAW')
+    .sort((a, b) => new Date(a.create_time) - new Date(b.create_time));
+
+  const walletTrx = [];
+
+  // 3. The FIFO Matching Loop
+  for (const withdrawal of withdrawals) {
+    let unfulfilledAmount = withdrawal.amount;
+
+    while (unfulfilledAmount > 0 && orderQueue.length > 0) {
+      const currentOrder = orderQueue[0];
+      
+      // Determine how much we can take from this order
+      const allocationAmount = Math.min(unfulfilledAmount, currentOrder.remaining_balance);
+
+      // Create the flat record for BigQuery
+      walletTrx.push({
+        withdrawal_id: withdrawal.withdrawal_id,
+        withdrawal_create_time: withdrawal.create_time,
+        withdrawal_total_amount: withdrawal.amount,
+        statement_id: currentOrder.statement_id,
+        order_id: currentOrder.order_id,
+        order_create_time: currentOrder.order_create_time,
+        order_total_amount: currentOrder.settlement_amount,
+        allocated_amount: allocationAmount
+      });
+
+      // Deduct the allocated amount from our trackers
+      unfulfilledAmount -= allocationAmount;
+      currentOrder.remaining_balance -= allocationAmount;
+
+      // If the order is completely depleted, remove it from the front of the queue
+      if (currentOrder.remaining_balance === 0) {
+        orderQueue.shift();
+      }
+    }
+  }
+
+  return walletTrx;
 }
 
 export async function handleFinance(brand) {
@@ -209,7 +331,108 @@ export async function handleFinance(brand) {
     const shopCipher = await getShopCipher(brand, accessToken);
     console.log("Shop cipher: ", shopCipher);
 
-    // await getWithdrawals(brand, shopCipher, accessToken);
-    // await getTransactionsByStatement(brand, shopCipher, accessToken);
-    // await getStatements(brand, shopCipher, accessToken);
+    const rawWithdrawals = await getWithdrawals(brand, shopCipher, accessToken);
+    console.log("Raw Withdrawals: ");
+    console.log(rawWithdrawals.length, " in size");
+    // console.log(rawWithdrawals);
+
+    const rawStatements = await getStatements(brand, shopCipher, accessToken);
+    console.log("Raw Statements: ");
+    console.log(rawStatements.length, " in size ");
+    // console.log(rawStatements);
+    
+    // Create an array to hold all transactions from all statements
+    let allTransactionsPerStatement = [];
+
+    // Sequentially fetch transactions to avoid hitting TikTok API rate limits
+    for (const statement of rawStatements) {
+        // console.log(`Fetching transactions for statement: ${statement.statement_id}`);
+        const transactions = await getTransactionsByStatement(brand, shopCipher, accessToken, statement.statement_id);
+        
+        if (transactions && transactions.length > 0) {
+            allTransactionsPerStatement.push(...transactions);
+        }
+    }
+
+    console.log("Total Transactions across all statements: ", allTransactionsPerStatement.length);
+    
+    // Sort all transactions chronologically (latest first, for display)
+    const sortedTransactions = allTransactionsPerStatement.sort((a, b) => new Date(b.order_create_time) - new Date(a.order_create_time));
+    console.log("Top 10 Latest Transactions:");
+    console.log(sortedTransactions.slice(0, 10));
+
+    // Calculate total settlement amount across the entire period
+    const totalSettlementAmount = allTransactionsPerStatement.reduce((sum, t) => sum + (t.settlement_amount || 0), 0);
+    console.log("Total Settlement amount for period: ", totalSettlementAmount);
+    
+    // --- THIS IS WHERE YOU CALL THE FIFO FUNCTION FROM EARLIER ---
+    const flattenedLineageData = generateWalletTransactions(rawWithdrawals, allTransactionsPerStatement);
+    console.log(flattenedLineageData);
+
+    await mergeFinanceTiktok(brand, flattenedLineageData);
 }
+
+const brandTables = {
+    "Eileen Grace": "eileen_grace_wallet_trx",
+    "Mamaway": "mamaway_wallet_trx",
+    "SHRD": "shrd_wallet_trx",
+    "Miss Daisy": "miss_daisy_wallet_trx",
+    "Polynia": "polynia_wallet_trx",
+    "CHESS": "chess_wallet_trx",
+    "Cleviant": "cleviant_wallet_trx",
+    "Mosseru": "mosseru_wallet_trx",
+    "Evoke": "evoke_wallet_trx",
+    "Dr.Jou": "dr_jou_wallet_trx",
+    "Mirae": "mirae_wallet_trx",
+    "Swissvita": "swissvita_wallet_trx",
+    "G-Belle": "gbelle_wallet_trx",
+    "Past Nine": "past_nine_wallet_trx",
+    "Nutri Beyond": "nutri_beyond_wallet_trx",
+    "Ivy Lily": "ivy_lily_wallet_trx",
+    "Naruko": "naruko_wallet_trx",
+    "Relove": "relove_wallet_trx",
+    "Joey & Roo": "joey_roo_wallet_trx",
+    "Rocketindo Shop": "pinkrocket_wallet_trx"
+}
+
+async function mergeFinanceTiktok(brand, data) {
+    try {
+        const datasetId = "tiktok_api_us";
+        const tableId = brandTables[brand];
+        
+    } catch (e) {
+        console.log("[TIKTOK-FINANCE] Error merging wallet trx tiktok on brand: ", brand);
+        console.log(e);
+    }
+}
+
+// await handleFinance("Eileen Grace");
+// await handleFinance("Mamaway");
+
+// export async function handleFinance(brand) {
+
+//     const tokens = await loadTokens(brand);
+//     let accessToken = tokens.accessToken;
+//     let refreshToken = tokens.refreshToken;
+
+//     await refreshTokens(brand, refreshToken);
+
+//     const shopCipher = await getShopCipher(brand, accessToken);
+//     console.log("Shop cipher: ", shopCipher);
+
+//     const rawWithdrawals = await getWithdrawals(brand, shopCipher, accessToken);
+//     console.log("Raw Withdrawals: ");
+//     console.log(rawWithdrawals.length, " in size");
+//     console.log(rawWithdrawals);
+
+//     const rawStatements = await getStatements(brand, shopCipher, accessToken);
+//     console.log("Raw Statements: ");
+//     console.log(rawStatements.length, " in size ");
+//     console.log(rawStatements);
+    
+//     let statementId = "7555675755632412436";
+//     const transactionsPerStatement = await getTransactionsByStatement(brand, shopCipher, accessToken, statementId);
+//     console.log("Transactions per statement id: ", statementId);
+//     console.log(transactionsPerStatement.sort((a, b) => new Date(b.order_create_time) - new Date(a.order_create_time)).slice(0, 10));
+//     console.log("Settlement amount: ", transactionsPerStatement.reduce((i, t) => i + t.settlement_amount, 0));
+// }

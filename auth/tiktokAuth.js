@@ -7,9 +7,9 @@ const secretClient = new SecretManagerServiceClient();
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens",
-    "SHRD": "projects/231801348950/secrets/shrd-tiktok-tokens",
-    "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
-    "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
+    // "SHRD": "projects/231801348950/secrets/shrd-tiktok-tokens",
+    // "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
+    // "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
 }
 
 export async function loadTokens(brand) {
