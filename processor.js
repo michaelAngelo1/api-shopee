@@ -14,6 +14,7 @@ import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
 import { fetchAffiliateData } from './functions/amsProcessor.js';
 import { fetchDanaDilepas, mainDanaDilepas } from './functions/escrowProcessor.js';
 import { handleWalletTransactions } from './functions/walletTransactions.js';
+import { mainTiktokAffiliate } from './functions/handleTiktokAffiliate.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -183,6 +184,7 @@ export function getEndOfPreviousMonthTimestampWIB() {
 }
 
 export async function fetchAndProcessOrders() {
+
     console.log("[EG] Start fetching ads total balance. Calling the function.");
     let brand = "Eileen Grace";
 
@@ -192,6 +194,10 @@ export async function fetchAndProcessOrders() {
 
     await refreshToken();
 
+    // Tiktok Affiliate all brands
+    await mainTiktokAffiliate();
+
+    // wallet_trx, finance, and ads shopee
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID)
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
