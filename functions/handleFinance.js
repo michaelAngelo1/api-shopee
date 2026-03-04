@@ -1,12 +1,9 @@
 import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
+import { BigQuery } from '@google-cloud/bigquery';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuth.js';
-import { objectToFlatArray } from 'bullmq';
-const secretClient = new SecretManagerServiceClient();
-let tiktokAppKey = process.env.TIKTOK_PARTNER_APP_KEY;
-let tiktokAppSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
 
 function convertTimestampJakarta(orderCreatedTime) {
     const date = new Date(orderCreatedTime * 1000);
@@ -340,11 +337,9 @@ export async function handleFinance(brand) {
     console.log("Raw Statements: ");
     console.log(rawStatements.length, " in size ");
     // console.log(rawStatements);
-    
-    // Create an array to hold all transactions from all statements
+
     let allTransactionsPerStatement = [];
 
-    // Sequentially fetch transactions to avoid hitting TikTok API rate limits
     for (const statement of rawStatements) {
         // console.log(`Fetching transactions for statement: ${statement.statement_id}`);
         const transactions = await getTransactionsByStatement(brand, shopCipher, accessToken, statement.statement_id);
@@ -355,19 +350,16 @@ export async function handleFinance(brand) {
     }
 
     console.log("Total Transactions across all statements: ", allTransactionsPerStatement.length);
-    
-    // Sort all transactions chronologically (latest first, for display)
+
     const sortedTransactions = allTransactionsPerStatement.sort((a, b) => new Date(b.order_create_time) - new Date(a.order_create_time));
     console.log("Top 10 Latest Transactions:");
     console.log(sortedTransactions.slice(0, 10));
 
-    // Calculate total settlement amount across the entire period
     const totalSettlementAmount = allTransactionsPerStatement.reduce((sum, t) => sum + (t.settlement_amount || 0), 0);
     console.log("Total Settlement amount for period: ", totalSettlementAmount);
     
-    // --- THIS IS WHERE YOU CALL THE FIFO FUNCTION FROM EARLIER ---
     const flattenedLineageData = generateWalletTransactions(rawWithdrawals, allTransactionsPerStatement);
-    console.log(flattenedLineageData);
+    // console.log(flattenedLineageData);
 
     await mergeFinanceTiktok(brand, flattenedLineageData);
 }
@@ -398,41 +390,72 @@ const brandTables = {
 async function mergeFinanceTiktok(brand, data) {
     try {
         const datasetId = "tiktok_api_us";
-        const tableId = brandTables[brand];
-        
+        const tableName = brandTables[brand];
+        const bigquery = new BigQuery();
+
+        console.log("Data wallet trx before merging on brand: ", brand);
+        console.log(data.length);
+
+        let batchSize = 1000;
+        for(let i=0; i<data.length; i+=batchSize) {
+            const batchData = data.slice(i, i+batchSize);
+            
+            const incomingOrderIds = batchData.map(row => `'${row.order_id}'`).join(",");
+            if(!incomingOrderIds) continue;
+
+            const query = `
+                SELECT order_id
+                FROM  \`${bigquery.projectId}.${datasetId}.${tableName}\`
+                WHERE order_id IN (${incomingOrderIds})
+            `
+            const [existingRows] = await bigquery.query(query);
+            const existingOrderIds = new Set(existingRows.map(row => row.order_id));
+            console.log("[TIKTOK-FINANCE] Found: ", existingOrderIds.size, " duplicates in table: ", tableName);
+
+            const dataToInsert = batchData.filter(row => !existingOrderIds.has(row.order_id));
+            console.log("[TIKTOK-FINANCE] Data to insert: ", dataToInsert.length);
+
+            if(dataToInsert.length === 0) {
+                console.log("[TIKTOK-AFFILIATE] All data already exists. Skip");
+                continue;
+            }
+
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert(dataToInsert);
+
+            console.log("[TIKTOK-FINANCE] Successfully inserted rows on: ", brandTables[brand]);
+        }
+
     } catch (e) {
         console.log("[TIKTOK-FINANCE] Error merging wallet trx tiktok on brand: ", brand);
         console.log(e);
     }
 }
 
-// await handleFinance("Eileen Grace");
-// await handleFinance("Mamaway");
+export async function mainTiktokFinance() {
+    // await handleFinance("Eileen Grace")
+    await handleFinance("Mamaway");
+    // await handleFinance("SHRD");
+    // await handleFinance("Miss Daisy");
+    // await handleFinance("Polynia");
+    // await handleFinance("CHESS");
+    // await handleFinance("Cléviant");
+    // await handleFinance("Mossèru");
+    // await handleFinance("Evoke");
+    // await handleFinance("Dr Jou");
+    // await handleFinance("Mirae")
+    // await handleFinance("Swissvita");
+    // await handleFinance("G-Belle");
+    // await handleFinance("Past Nine");
+    // await handleFinance("Nutri & Beyond");
+    // await handleFinance("Ivy & Lily");
+    // await handleFinance("Naruko");
+    // await handleFinance("Relove");
+    // await handleFinance("Joey & Roo");
+    // await handleFinance("Rocketindo Shop");
+}
 
-// export async function handleFinance(brand) {
-
-//     const tokens = await loadTokens(brand);
-//     let accessToken = tokens.accessToken;
-//     let refreshToken = tokens.refreshToken;
-
-//     await refreshTokens(brand, refreshToken);
-
-//     const shopCipher = await getShopCipher(brand, accessToken);
-//     console.log("Shop cipher: ", shopCipher);
-
-//     const rawWithdrawals = await getWithdrawals(brand, shopCipher, accessToken);
-//     console.log("Raw Withdrawals: ");
-//     console.log(rawWithdrawals.length, " in size");
-//     console.log(rawWithdrawals);
-
-//     const rawStatements = await getStatements(brand, shopCipher, accessToken);
-//     console.log("Raw Statements: ");
-//     console.log(rawStatements.length, " in size ");
-//     console.log(rawStatements);
-    
-//     let statementId = "7555675755632412436";
-//     const transactionsPerStatement = await getTransactionsByStatement(brand, shopCipher, accessToken, statementId);
-//     console.log("Transactions per statement id: ", statementId);
-//     console.log(transactionsPerStatement.sort((a, b) => new Date(b.order_create_time) - new Date(a.order_create_time)).slice(0, 10));
-//     console.log("Settlement amount: ", transactionsPerStatement.reduce((i, t) => i + t.settlement_amount, 0));
-// }
+// October backfill
+await mainTiktokFinance();
