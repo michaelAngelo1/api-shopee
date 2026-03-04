@@ -4,12 +4,40 @@ import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
 
+const secondInternalBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle",
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop"
+]
+
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens",
-    // "SHRD": "projects/231801348950/secrets/shrd-tiktok-tokens",
-    // "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
-    // "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
+    "SHRD": "projects/231801348950/secrets/shrd-tiktok-tokens",
+    "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
+    "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
+    "CHESS": "projects/231801348950/secrets/chess-tiktok-tokens",
+    "Cléviant": "projects/231801348950/secrets/cleviant-tiktok-tokens",
+    "Mossèru": "projects/231801348950/secrets/mosseru-tiktok-tokens",
+    "Evoke": "projects/231801348950/secrets/evoke-tiktok-tokens",
+    "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-tokens",
+    "Mirae": "projects/231801348950/secrets/mirae-tiktok-tokens",
+    "Swissvita": "projects/231801348950/secrets/swissvita-tiktok-tokens",
+    "G-Belle": "projects/231801348950/secrets/gbelle-tiktok-tokens",
+    "Past Nine": "projects/231801348950/secrets/pn-tiktok-tokens",
+    "Nutri & Beyond": "projects/231801348950/secrets/nb-tiktok-tokens",
+    "Ivy & Lily": "projects/231801348950/secrets/il-tiktok-tokens",
+    "Naruko": "projects/231801348950/secrets/naruko-tiktok-tokens",
+    "Relove": "projects/231801348950/secrets/relove-tiktok-tokens",
+    "Joey & Roo": "projects/231801348950/secrets/joey-roo-tiktok-tokens",
+    "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-tiktok-tokens"
 }
 
 export async function loadTokens(brand) {
@@ -67,11 +95,16 @@ export async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 export async function refreshTokens(brand, refreshToken) {
-    let tiktokAppKey = "6j6u4kmpdda19"
-    let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    let appKey;
+    let appSecret;
 
-    const appKey = tiktokAppKey
-    const appSecret = tiktokAppSecret
+    if(!secondInternalBrands.includes(brand)) {
+        appKey = "6j6u4kmpdda19"
+        appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    } else {
+        appKey = "6j7inu4s9dkfq";
+        appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+    }
 
     const refreshUrl = "https://auth.tiktok-shops.com/api/v2/token/refresh";
     const queryParams = "?" + "app_key=" + appKey + "&" + "app_secret=" + appSecret + "&" + "refresh_token=" + refreshToken + "&" + "grant_type=refresh_token";
@@ -100,12 +133,16 @@ export async function refreshTokens(brand, refreshToken) {
 
 export async function getShopCipher(brand, accessToken) {
     try {
+        let appKey;
+        let appSecret;
 
-        let tiktokAppKey = "6j6u4kmpdda19"
-        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-
-        const appKey = tiktokAppKey
-        const appSecret = tiktokAppSecret
+        if(!secondInternalBrands.includes(brand)) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            appKey = "6j7inu4s9dkfq";
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        }
         
         const timestamp = Math.floor(Date.now() / 1000);
         const queryParams = "app_key" + appKey + "timestamp" + timestamp;

@@ -24,10 +24,32 @@ function convertTimestamp(orderCreatedTime) {
     return date.toISOString().replace('T', ' ').substring(0, 19);
 }
 
+const secondInternalBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle",
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop"
+]
+
 async function getWithdrawals(brand, shopCipher, accessToken) {
     try {
-        const appKey = "6j6u4kmpdda19"
-        const appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+
+        let appKey;
+        let appSecret;
+
+        if(!secondInternalBrands.includes(brand)) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            appKey = "6j7inu4s9dkfq";
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        }
         
         const path = "/finance/202309/withdrawals";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -105,8 +127,16 @@ async function getWithdrawals(brand, shopCipher, accessToken) {
 
 async function getTransactionsByStatement(brand, shopCipher, accessToken, statementId) {
     try {
-        const appKey = "6j6u4kmpdda19"
-        const appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        let appKey;
+        let appSecret;
+
+        if(!secondInternalBrands.includes(brand)) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            appKey = "6j7inu4s9dkfq";
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        }
         
         const path = `/finance/202501/statements/${statementId}/statement_transactions`;
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -183,8 +213,16 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
 
 async function getStatements(brand, shopCipher, accessToken) {
     try {
-        const appKey = "6j6u4kmpdda19"
-        const appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        let appKey;
+        let appSecret;
+
+        if(!secondInternalBrands.includes(brand)) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            appKey = "6j7inu4s9dkfq";
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        }
         
         const path = "/finance/202309/statements";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -263,55 +301,89 @@ async function getStatements(brand, shopCipher, accessToken) {
     }
 }
 
-function generateWalletTransactions(rawWithdrawals, rawTransactions) {
-  // 1. Build and sort the Order Queue (Inflows)
-  // Filter out zero-amount orders and initialize the remaining_balance
-  const orderQueue = rawTransactions
-    .filter(trx => trx.settlement_amount > 0)
-    .sort((a, b) => new Date(a.order_create_time) - new Date(b.order_create_time))
-    .map(trx => ({
-      ...trx,
-      remaining_balance: trx.settlement_amount
-    }));
+function generateWalletTransactions(rawWithdrawals, rawStatements, rawTransactions) {
+  
+  // 1. Map Statement -> Earnings ID
+  const statementToEarningsMap = new Map();
+  rawStatements.forEach(stmt => {
+    statementToEarningsMap.set(stmt.statement_id, stmt.withdrawal_id);
+  });
 
-  // 2. Isolate and sort the Withdrawals (Outflows)
-  const withdrawals = rawWithdrawals
+  // 2. Setup Earnings (Blocks) and Withdrawals
+  const earningsQueue = rawWithdrawals
+    .filter(w => w.type === 'SETTLE')
+    .map(w => ({
+      earnings_id: w.withdrawal_id,
+      create_time: w.create_time,
+      amount: w.amount,
+      used: false // Tracks if this block has been claimed by a withdrawal
+    }))
+    .sort((a, b) => new Date(a.create_time) - new Date(b.create_time));
+
+  const bankWithdrawals = rawWithdrawals
     .filter(w => w.type === 'WITHDRAW')
     .sort((a, b) => new Date(a.create_time) - new Date(b.create_time));
 
+  // 3. The Sliding Window: Exact Block Matching
+  const earningsToWithdrawalMap = new Map();
+
+  for (const w of bankWithdrawals) {
+    const target = w.amount;
+    let matchFound = false;
+
+    // Slide through the available earnings looking for the perfect combo
+    for (let start = 0; start < earningsQueue.length; start++) {
+      if (earningsQueue[start].used) continue;
+
+      let sum = 0;
+      let candidateIndices = [];
+
+      for (let end = start; end < earningsQueue.length; end++) {
+        if (earningsQueue[end].used) continue;
+
+        sum += earningsQueue[end].amount;
+        candidateIndices.push(end);
+
+        if (sum === target) {
+          // WE FOUND THE EXACT MATCH! Claim these earnings.
+          candidateIndices.forEach(idx => {
+            earningsQueue[idx].used = true;
+            earningsToWithdrawalMap.set(earningsQueue[idx].earnings_id, {
+              withdrawal_id: w.withdrawal_id,
+              withdrawal_create_time: w.create_time,
+              withdrawal_total_amount: w.amount
+            });
+          });
+          matchFound = true;
+          break;
+        } else if (sum > target) {
+          // Overshot the target. Stop adding to this block and slide the window forward.
+          break; 
+        }
+      }
+      if (matchFound) break;
+    }
+  }
+
+  // 4. Build the final output
   const walletTrx = [];
 
-  // 3. The FIFO Matching Loop
-  for (const withdrawal of withdrawals) {
-    let unfulfilledAmount = withdrawal.amount;
+  for (const trx of rawTransactions) {
+    const earningsId = statementToEarningsMap.get(trx.statement_id);
+    if (!earningsId) continue;
 
-    while (unfulfilledAmount > 0 && orderQueue.length > 0) {
-      const currentOrder = orderQueue[0];
-      
-      // Determine how much we can take from this order
-      const allocationAmount = Math.min(unfulfilledAmount, currentOrder.remaining_balance);
+    const wMatch = earningsToWithdrawalMap.get(earningsId);
 
-      // Create the flat record for BigQuery
-      walletTrx.push({
-        withdrawal_id: withdrawal.withdrawal_id,
-        withdrawal_create_time: withdrawal.create_time,
-        withdrawal_total_amount: withdrawal.amount,
-        statement_id: currentOrder.statement_id,
-        order_id: currentOrder.order_id,
-        order_create_time: currentOrder.order_create_time,
-        order_total_amount: currentOrder.settlement_amount,
-        allocated_amount: allocationAmount
-      });
-
-      // Deduct the allocated amount from our trackers
-      unfulfilledAmount -= allocationAmount;
-      currentOrder.remaining_balance -= allocationAmount;
-
-      // If the order is completely depleted, remove it from the front of the queue
-      if (currentOrder.remaining_balance === 0) {
-        orderQueue.shift();
-      }
-    }
+    walletTrx.push({
+      withdrawal_id: wMatch ? wMatch.withdrawal_id : null,
+      withdrawal_create_time: wMatch ? wMatch.withdrawal_create_time : null,
+      withdrawal_total_amount: wMatch ? wMatch.withdrawal_total_amount : null,
+      earnings_id: earningsId,
+      order_id: trx.order_id || null,
+      order_create_time: trx.order_create_time,
+      order_total_amount: trx.settlement_amount,
+      transaction_type: trx.transaction_type
+    });
   }
 
   return walletTrx;
@@ -358,7 +430,7 @@ export async function handleFinance(brand) {
     const totalSettlementAmount = allTransactionsPerStatement.reduce((sum, t) => sum + (t.settlement_amount || 0), 0);
     console.log("Total Settlement amount for period: ", totalSettlementAmount);
     
-    const flattenedLineageData = generateWalletTransactions(rawWithdrawals, allTransactionsPerStatement);
+    const flattenedLineageData = generateWalletTransactions(rawWithdrawals, rawStatements, allTransactionsPerStatement);
     // console.log(flattenedLineageData);
 
     await mergeFinanceTiktok(brand, flattenedLineageData);
@@ -371,16 +443,16 @@ const brandTables = {
     "Miss Daisy": "miss_daisy_wallet_trx",
     "Polynia": "polynia_wallet_trx",
     "CHESS": "chess_wallet_trx",
-    "Cleviant": "cleviant_wallet_trx",
-    "Mosseru": "mosseru_wallet_trx",
+    "Cléviant": "cleviant_wallet_trx",
+    "Mossèru": "mosseru_wallet_trx",
     "Evoke": "evoke_wallet_trx",
-    "Dr.Jou": "dr_jou_wallet_trx",
+    "Dr Jou": "dr_jou_wallet_trx",
     "Mirae": "mirae_wallet_trx",
     "Swissvita": "swissvita_wallet_trx",
     "G-Belle": "gbelle_wallet_trx",
     "Past Nine": "past_nine_wallet_trx",
-    "Nutri Beyond": "nutri_beyond_wallet_trx",
-    "Ivy Lily": "ivy_lily_wallet_trx",
+    "Nutri & Beyond": "nutri_beyond_wallet_trx",
+    "Ivy & Lily": "ivy_lily_wallet_trx",
     "Naruko": "naruko_wallet_trx",
     "Relove": "relove_wallet_trx",
     "Joey & Roo": "joey_roo_wallet_trx",
@@ -435,26 +507,26 @@ async function mergeFinanceTiktok(brand, data) {
 }
 
 export async function mainTiktokFinance() {
-    // await handleFinance("Eileen Grace")
+    await handleFinance("Eileen Grace")
     await handleFinance("Mamaway");
-    // await handleFinance("SHRD");
-    // await handleFinance("Miss Daisy");
-    // await handleFinance("Polynia");
-    // await handleFinance("CHESS");
-    // await handleFinance("Cléviant");
-    // await handleFinance("Mossèru");
-    // await handleFinance("Evoke");
-    // await handleFinance("Dr Jou");
-    // await handleFinance("Mirae")
-    // await handleFinance("Swissvita");
-    // await handleFinance("G-Belle");
-    // await handleFinance("Past Nine");
-    // await handleFinance("Nutri & Beyond");
-    // await handleFinance("Ivy & Lily");
-    // await handleFinance("Naruko");
-    // await handleFinance("Relove");
-    // await handleFinance("Joey & Roo");
-    // await handleFinance("Rocketindo Shop");
+    await handleFinance("SHRD");
+    await handleFinance("Miss Daisy");
+    await handleFinance("Polynia");
+    await handleFinance("CHESS");
+    await handleFinance("Cléviant");
+    await handleFinance("Mossèru");
+    await handleFinance("Evoke");
+    await handleFinance("Dr Jou");
+    await handleFinance("Mirae")
+    await handleFinance("Swissvita");
+    await handleFinance("G-Belle");
+    await handleFinance("Past Nine");
+    await handleFinance("Nutri & Beyond");
+    await handleFinance("Ivy & Lily");
+    await handleFinance("Naruko");
+    await handleFinance("Relove");
+    await handleFinance("Joey & Roo");
+    await handleFinance("Rocketindo Shop");
 }
 
 // October backfill
