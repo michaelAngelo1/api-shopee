@@ -28,9 +28,6 @@ const tiktokSecrets = {
 }
 
 export async function loadTokens(brand) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
-
     const secretName = tiktokSecrets[brand] + "/versions/latest";
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -47,9 +44,6 @@ export async function loadTokens(brand) {
 }
 
 export async function saveTokens(brand, tokens) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
-
     const parent = tiktokSecrets[brand];
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
 
@@ -87,33 +81,9 @@ export async function saveTokens(brand, tokens) {
 // Refresh token itself contains identity of the corresponding shop
 // Such is why it does not need shop_cipher or any other parameters. 
 
-const secondInternalAppBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle", 
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop"
-]
-
 export async function refreshTokens(brand, refreshToken) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
-
-    let tiktokAppKey;
-    let tiktokAppSecret;
-
-    if(!secondInternalAppBrands.includes(brand)) {
-        tiktokAppKey = "6j6u4kmpdda19"
-        tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-    } else {
-        tiktokAppKey = "6j7inu4s9dkfq"
-        tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
-    }
+    let tiktokAppKey = "6j6u4kmpdda19"
+    let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
 
     const appKey = tiktokAppKey
     const appSecret = tiktokAppSecret
@@ -146,16 +116,8 @@ export async function refreshTokens(brand, refreshToken) {
 export async function getShopCipher(brand, accessToken) {
     try {
 
-        let tiktokAppKey;
-        let tiktokAppSecret;
-
-        if(!secondInternalAppBrands.includes(brand)) {
-            tiktokAppKey = "6j6u4kmpdda19"
-            tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-        } else {
-            tiktokAppKey = "6j7inu4s9dkfq"
-            tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
-        }
+        let tiktokAppKey = "6j6u4kmpdda19"
+        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
 
         const appKey = tiktokAppKey
         const appSecret = tiktokAppSecret
@@ -200,6 +162,6 @@ export async function getShopCipher(brand, accessToken) {
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
-        console.log(e.response.data.message);
+        console.log(e);
     }
 }
