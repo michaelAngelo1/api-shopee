@@ -17,6 +17,7 @@ import { fetchAndProcessOrdersPN } from './workers/pn_processor.js';
 import { fetchAndProcessOrdersNB } from './workers/nb_processor.js';
 import { fetchAndProcessOrdersMIRAE } from './workers/mirae_processor.js';
 import { fetchAndProcessOrdersPOLY } from './workers/poly_processor.js';
+import { mainTiktokFinance } from './functions/handleFinance.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -38,6 +39,30 @@ const workerOptions = {
 }
 
 console.log("Worker is starting!");
+
+const tiktokWithdrawalProcessor = async (job) => {
+    if(job.name == "tiktok-withdrawal") {
+        return mainTiktokFinance();
+    }
+};
+const tiktokWithdrawalWorker = new Worker("tiktok-withdrawal", tiktokWithdrawalProcessor, workerOptions);
+tiktokWithdrawalWorker.on('active', (job) => {
+    console.log(`[tiktok-withdrawal] Picked up job with ID ${job.id}.`);
+});
+tiktokWithdrawalWorker.on('completed', (job) => {
+    console.log(`[tiktok-withdrawal] Job with ID ${job.id} has completed.`);
+});
+tiktokWithdrawalWorker.on('ready', (job) => {
+    console.log("[tiktok-withdrawal] Worker is ready to listen.");
+});
+tiktokWithdrawalWorker.on('failed', (job, err) => {
+    console.error(`[tiktok-withdrawal] Job with ID ${job.id} has failed. Error:`, err);
+});
+tiktokWithdrawalWorker.on('error', (err) => {
+    console.error('[tiktok-withdrawal] Worker encountered an error:', err);
+});
+
+
 
 const orderProcessor = async (job) => {
     switch(job.name) {

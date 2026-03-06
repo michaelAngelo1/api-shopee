@@ -31,6 +31,27 @@ const orderQueueNB = new Queue("fetch-orders-nb", redisConnection);
 const orderQueueMIRAE = new Queue("fetch-orders-mirae", redisConnection);
 const orderQueuePOLY = new Queue("fetch-orders-poly", redisConnection);
 
+// Tiktok Withdrawal Queue
+const withdrawalTiktok = new Queue("tiktok-withdrawal", redisConnection);
+
+app.get('/tiktok-withdrawal', async (req, res) => {
+    try {
+        const baseOptions = {
+            attempts: 5,
+            backoff: { type: 'exponential', delay: 600 }
+        };
+        const timestamp = new Date().toISOString();
+        
+        await withdrawalTiktok.add("tiktok-withdrawal", {}, {
+            ...baseOptions,
+            jobId: `tiktok-withdrawal-sync-${timestamp}`,
+            delay: 0,
+        });
+    } catch (e) {
+        res.status(500).send("Failed to enqueue Tiktok Withdrawal");
+    }
+});
+
 app.get('/trigger-daily-sync', async (req, res) => {
 
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
