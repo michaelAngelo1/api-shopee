@@ -198,7 +198,7 @@ export async function fetchAndProcessOrders() {
     // await handleFinance(brand);
     // await handleTiktokAffiliate(brand)
 
-    await mainTiktokAffiliate();
+    // await mainTiktokAffiliate();
 
     // await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
