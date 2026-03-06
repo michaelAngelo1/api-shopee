@@ -11,7 +11,6 @@ import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
-import { handleFinance } from '../functions/handleFinance.js';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();

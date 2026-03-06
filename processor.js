@@ -14,7 +14,7 @@ import { fetchAdsProductLevel } from './functions/fetchAdsProductLevel.js';
 import { fetchAffiliateData } from './functions/amsProcessor.js';
 import { mainDanaDilepas } from './functions/escrowProcessor.js';
 import { handleWalletTransactions } from './functions/walletTransactions.js';
-import { handleFinance } from './functions/handleFinance.js';
+// import { handleFinance } from './functions/handleFinance.js';
 import { mainRealtime } from './functions/handleRealtime.js';
 import { handleTiktokAffiliate, mainTiktokAffiliate } from './functions/handleTiktokAffiliate.js';
 // import fs from 'fs';
