@@ -207,7 +207,7 @@ export async function fetchAndProcessOrders() {
 
     await fetchAffiliateData(brand, SHOP_ID, 1000);
 
-    let advIdEG = "6899326735087566850";
+    let advIdEG = "7613595763196706833";
     const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
     const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
     const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
