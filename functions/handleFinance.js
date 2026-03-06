@@ -625,7 +625,7 @@ export async function handleFinance(brand, targetMonth) {
 }
 
 export async function mainTiktokFinance() {
-    const yearMonth = new Date().toISOString().slice(0, 7);
+    const targetMonth = new Date().toISOString().slice(0, 7);
 
     console.log("Current month: ", targetMonth);
     await handleFinance("Eileen Grace", targetMonth);
@@ -651,4 +651,4 @@ export async function mainTiktokFinance() {
 }
 
 // October backfill
-await mainTiktokFinance();
+// await mainTiktokFinance();
