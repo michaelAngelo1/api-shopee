@@ -211,20 +211,20 @@ export async function fetchAndProcessOrders() {
 
     // await fetchAffiliateData(brand, SHOP_ID, 1000);
 
-    // let advIdEG = "6899326735087566850";
-    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
-    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
-    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
+    let advIdEG = "7613595763196706833";
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
     
-    // console.log("[EG] All data on: ", brand);
-    // console.log(basicAdsData);
-    // console.log(pgmvMaxData);
-    // console.log(lgmvMaxData);
-    // console.log("\n");
+    console.log("[EG] All data on: ", brand);
+    console.log(basicAdsData);
+    console.log(pgmvMaxData);
+    console.log(lgmvMaxData);
+    console.log("\n");
 
-    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    // await fetchPGMVMaxBreakdown(brand, advIdEG);
+    await fetchPGMVMaxBreakdown(brand, advIdEG);
 
     // Rocketindo Shop
     // let advIdRshop = "7581835025746771976";
