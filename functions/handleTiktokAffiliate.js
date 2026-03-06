@@ -254,5 +254,3 @@ export async function mainTiktokAffiliate() {
     await handleTiktokAffiliate("Joey & Roo");
     await handleTiktokAffiliate("Rocketindo Shop");
 }
-
-await mainTiktokAffiliate();

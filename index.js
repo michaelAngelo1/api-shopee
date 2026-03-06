@@ -35,6 +35,10 @@ const orderQueuePOLY = new Queue("fetch-orders-poly", redisConnection);
 const withdrawalTiktok = new Queue("tiktok-withdrawal", redisConnection);
 
 app.get('/tiktok-withdrawal', async (req, res) => {
+    if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
+        console.warn("Unauthorized attempt to trigger daily sync");
+        return res.status(403).send('Forbidden');
+    }
     try {
         const baseOptions = {
             attempts: 5,
