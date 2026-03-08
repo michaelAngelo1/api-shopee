@@ -40,17 +40,17 @@ app.get('/tiktok-withdrawal', async (req, res) => {
         return res.status(403).send('Forbidden');
     }
     try {
-        // const baseOptions = {
-        //     attempts: 5,
-        //     backoff: { type: 'exponential', delay: 600 }
-        // };
-        // const timestamp = new Date().toISOString();
+        const baseOptions = {
+            attempts: 5,
+            backoff: { type: 'exponential', delay: 600 }
+        };
+        const timestamp = new Date().toISOString();
         
-        // await withdrawalTiktok.add("tiktok-withdrawal", {}, {
-        //     ...baseOptions,
-        //     jobId: `tiktok-withdrawal-sync-${timestamp}`,
-        //     delay: 0,
-        // });
+        await withdrawalTiktok.add("tiktok-withdrawal", {}, {
+            ...baseOptions,
+            jobId: `tiktok-withdrawal-sync-${timestamp}`,
+            delay: 0,
+        });
 
         res.status(200).send("Tiktok Withdrawal is successfully enqueued");
     } catch (e) {
