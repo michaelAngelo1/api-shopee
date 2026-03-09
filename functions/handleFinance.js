@@ -198,18 +198,13 @@ async function getStatements(brand, shopCipher, accessToken, monthsToFetch) {
     }
 }
 
+// Helper function to pause execution
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 async function getTransactionsByStatement(brand, shopCipher, accessToken, statementId) {
     try {
-        let appKey;
-        let appSecret;
-
-        if(!secondInternalBrands.includes(brand)) {
-            appKey = "6j6u4kmpdda19"
-            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-        } else {
-            appKey = "6j7inu4s9dkfq";
-            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
-        }
+        let appKey = !secondInternalBrands.includes(brand) ? "6j6u4kmpdda19" : "6j7inu4s9dkfq";
+        let appSecret = !secondInternalBrands.includes(brand) ? "c4680b9ff6797160adb92104a77e2e1aa085c733" : "3493907831adc26d58c74262f709b48a2205a2d0";
         
         const path = `/finance/202501/statements/${statementId}/statement_transactions`;
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -217,10 +212,9 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
         let keepFetching = true;
         let currPageToken = "";
         
-
         let rawTransactionsPerStatement = [];
+
         while(keepFetching) {
-            
             const timestamp = Math.floor(Date.now() / 1000);
             const queryParams = {   
                 app_key: appKey,
@@ -244,21 +238,50 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
             const sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
             queryParams.sign = sign;
             const querySearchParams = new URLSearchParams(queryParams);
-
             const completeUrl = baseUrl + querySearchParams.toString();
-            const response = await axios.get(completeUrl, {
-                headers: {
-                    'content-type': 'application/json',
-                    'x-tts-access-token': accessToken,
-                }
-            });
 
-            // console.log("[TIKTOK-FINANCE] TRX by statement response: ", response.data.data);
+            // The Retry Block
+            let response;
+            let success = false;
+            let retries = 0;
+            const maxRetries = 5;
+
+            while (!success && retries < maxRetries) {
+                try {
+                    response = await axios.get(completeUrl, {
+                        headers: {
+                            'content-type': 'application/json',
+                            'x-tts-access-token': accessToken,
+                        }
+                    });
+                    success = true; 
+                    
+                    // Baseline speed bump: wait 250ms between successful calls to avoid hitting limits
+                    await sleep(250); 
+                } catch (err) {
+                    const status = err.response ? err.response.status : null;
+                    const message = err.response?.data?.message || err.message;
+
+                    // If it's a rate limit (429) OR TikTok's custom downstream error message
+                    if (status === 429 || message.includes("Too many requests")) {
+                        retries++;
+                        const waitTime = retries * 2000; // Wait 2s, 4s, 6s...
+                        console.log(`[TIKTOK-FINANCE] Rate limited on ${brand}. Pausing for ${waitTime}ms (Attempt ${retries}/${maxRetries})...`);
+                        await sleep(waitTime);
+                    } else {
+                        // If it's a completely different error (like 401 Unauthorized), throw it immediately
+                        throw err; 
+                    }
+                }
+            }
+
+            if (!success) {
+                throw new Error(`Failed to fetch transactions after ${maxRetries} retries due to rate limits.`);
+            }
 
             rawTransactionsPerStatement.push(...response.data.data.transactions);
 
             const nextPageToken = response.data.data.next_page_token;
-
             if(nextPageToken && nextPageToken.length > 0) {
                 currPageToken = nextPageToken;
             } else {
@@ -279,8 +302,8 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
 
         return formattedTransactionsPerStatement;
     } catch (e) {
-        console.log("[TIKTOK-FINANCE] Error getting trx by statement on brand: ", brand);
-        console.log(e.response.data.message);
+        console.log(`[TIKTOK-FINANCE] Error getting trx by statement on brand: ${brand}`);
+        console.log(e.message || (e.response && e.response.data ? e.response.data.message : e));
     }
 }
 
