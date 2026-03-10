@@ -1,8 +1,10 @@
 import crypto from 'crypto';
 import axios from 'axios';
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuthTransaction.js";
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
+const secretClient = new SecretManagerServiceClient();
 
 const secondTransactionBrands = [
     "Mirae",
@@ -15,7 +17,23 @@ const secondTransactionBrands = [
     "Relove",
     "Joey & Roo",
     "Rocketindo Shop"
-]
+];
+
+export async function loadCredentials() {
+    const secretName = "projects/231801348950/secrets/realtime-service-account/versions/latest";
+
+    try {
+        const [version] = await secretClient.accessSecretVersion({
+            name: secretName
+        });
+        const data = version.payload.data.toString('UTF-8');
+        const creds = JSON.parse(data);
+
+        return creds;
+    } catch (e) {
+        console.error("[MERGE-REALTIME] Error getting service account credentials: ", e);
+    }
+}
 
 function generateDateRanges(targetMonthStr) {
     const [yearStr, monthStr] = targetMonthStr.split('-');
@@ -263,6 +281,15 @@ function mapToSQLSchema(brand, trx) {
     const ssp = val(trx.revenue_breakdown?.subtotal_before_discount_amount);
     const sellerDiscount = val(trx.revenue_breakdown?.seller_discount_amount);
 
+    // if (trx.order_id === '581613468706899197' || trx.adjustment_id === '581613468706899197' || trx.associated_order_id === '581613468706899197') {
+    //     console.log("\n--- LIVE FEES FOR 581613468706899197 ---");
+    //     const fees = trx.fee_tax_breakdown?.fee || {};
+    //     for (const [key, value] of Object.entries(fees)) {
+    //         if (Number(value) !== 0) console.log(`${key}: ${value}`);
+    //     }
+    //     console.log("----------------------------------------\n");
+    // }
+
     return {
         brand: brand,
         order_adjustment_id: trx.type === "ORDER" ? trx.order_id : trx.adjustment_id,
@@ -272,7 +299,7 @@ function mapToSQLSchema(brand, trx) {
         SSP_PSP_Discounts: sellerDiscount,
         PSP: ssp + sellerDiscount,
 
-        Total_fees: val(trx.fee_tax_amount),
+        Total_fees: val(trx.fee_tax_amount) + val(trx.shipping_cost_amount),
         Platform_commission_fee: val(trx.fee_tax_breakdown?.fee?.platform_commission_amount),
         Flat_fee: val(trx.fee_tax_breakdown?.fee?.fee_per_item_sold_amount),
         Sales_fee: val(trx.fee_tax_breakdown?.fee?.referral_fee_amount),
@@ -280,8 +307,8 @@ function mapToSQLSchema(brand, trx) {
         Mall_service_fee: val(trx.fee_tax_breakdown?.fee?.mall_service_fee_amount),
         Payment_fee: val(trx.fee_tax_breakdown?.fee?.transaction_fee_amount) || val(trx.fee_tax_breakdown?.fee?.credit_card_handling_fee_amount),
         
-        Shipping_cost: val(trx.shipping_cost_breakdown?.actual_shipping_fee_amount),
-        Shipping_costs_passed_on_to_the_logistics_provider: val(trx.shipping_cost_breakdown?.supplementary_component?.fbm_shipping_cost_amount),
+        Shipping_cost: val(trx.shipping_cost_amount),
+        Shipping_costs_passed_on_to_the_logistics_provider: val(trx.shipping_cost_breakdown?.actual_shipping_fee_amount),
         Replacement_shipping_fee_passed_on_to_the_customer: val(trx.shipping_cost_breakdown?.replacement_shipping_fee_amount),
         Exchange_shipping_fee_passed_on_to_the_customer: val(trx.shipping_cost_breakdown?.exchange_shipping_fee_amount),
         Shipping_cost_borne_by_the_platform: val(trx.shipping_cost_breakdown?.supplementary_component?.platform_shipping_fee_discount_amount),
@@ -293,7 +320,10 @@ function mapToSQLSchema(brand, trx) {
         Affiliate_commission: val(trx.fee_tax_breakdown?.fee?.affiliate_commission_amount),
         Affiliate_partner_commission: val(trx.fee_tax_breakdown?.fee?.affiliate_partner_commission_amount),
         Affiliate_Shop_Ads_commission: val(trx.fee_tax_breakdown?.fee?.affiliate_ads_commission_amount),
+
+        // This should be 0
         Affiliate_Shop_Ads_commission_before_PIT: val(trx.fee_tax_breakdown?.fee?.affiliate_commission_amount_before_pit),
+        
         Personal_income_tax_withheld_from_affiliate_Shop_Ads_commission: val(trx.fee_tax_breakdown?.tax?.pit_amount),
         Affiliate_Partner_shop_ads_commission: val(trx.fee_tax_breakdown?.fee?.tap_shop_ads_commission),
         
@@ -302,7 +332,7 @@ function mapToSQLSchema(brand, trx) {
         Bonus_cashback_service_fee: val(trx.fee_tax_breakdown?.fee?.bonus_cashback_service_fee_amount),
         LIVE_Specials_Service_Fee: val(trx.fee_tax_breakdown?.fee?.live_specials_fee_amount),
         Voucher_Xtra_Service_Fee: val(trx.fee_tax_breakdown?.fee?.voucher_xtra_service_fee_amount),
-        Order_processing_fee: val(trx.fee_tax_breakdown?.fee?.transaction_fee_amount),
+        Order_processing_fee: val(trx.fee_tax_breakdown?.fee?.vn_fix_infrastructure_fee),
         EAMS_Program_service_fee: val(trx.fee_tax_breakdown?.fee?.external_affiliate_marketing_fee_amount),
         Brands_Crazy_Deals_Flash_Sale_service_fee: val(trx.fee_tax_breakdown?.fee?.flash_sales_service_fee_amount),
         Dilayani_Tokopedia_fee: val(trx.fee_tax_breakdown?.fee?.tsp_commission_amount),
@@ -380,8 +410,9 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
     console.log("Sum of SSP: ", transactionBreakdownList.reduce((i, o) => i + o.SSP, 0))
     console.log("Sum of PSP: ", transactionBreakdownList.reduce((i, o) => i + o.PSP, 0));
     console.log("Sum of Total Fees: ", transactionBreakdownList.reduce((i, o) => i + o.Total_fees, 0))
+    console.log("Specific Order ID: ", transactionBreakdownList.filter(o => o.order_adjustment_id === "581613468706899197"));
 
-    await mergeToSheet("1wDwvbp2hy5XtvRFo_ZcuETFWmiiNRh1Urabsa2wYdQs", "Checker", transactionBreakdownList);
+    await mergeToSheet("1wDwvbp2hy5XtvRFo_ZcuETFWmiiNRh1Urabsa2wYdQs", "General Checker", transactionBreakdownList);
     // return transactionBreakdownList;
 }
 
@@ -407,13 +438,96 @@ export async function mergeToSheet(sheetId, sheetName, transactionBreakdownList)
     }
 
     await sheet.clear();
-    await sheet.setHeaderRow(['order_id', 'SSP', 'PSP', 'Total_fees']);
+    await sheet.setHeaderRow([
+        'brand',
+        'order_adjustment_id',
+        'related_order_id',
+        'type',
+        'SSP',
+        'SSP_PSP_Discounts',
+        'PSP',
+        'Total_fees',
+        'Platform_commission_fee',
+        'Flat_fee',
+        'Sales_fee',
+        'Pre_Order_Service_Fee',
+        'Mall_service_fee',
+        'Payment_fee',
+        'Shipping_cost',
+        'Shipping_costs_passed_on_to_the_logistics_provider',
+        'Replacement_shipping_fee_passed_on_to_the_customer',
+        'Exchange_shipping_fee_passed_on_to_the_customer',
+        'Shipping_cost_borne_by_the_platform',
+        'Shipping_cost_paid_by_the_customer',
+        'Refunded_shipping_cost_paid_by_the_customer',
+        'Return_shipping_costs_passed_on_to_the_customer',
+        'Shipping_cost_subsidy',
+        'Affiliate_commission',
+        'Affiliate_partner_commission',
+        'Affiliate_Shop_Ads_commission',
+        'Affiliate_Shop_Ads_commission_before_PIT',
+        'Personal_income_tax_withheld_from_affiliate_Shop_Ads_commission',
+        'Affiliate_Partner_shop_ads_commission',
+        'Shipping_Fee_Program_service_fee',
+        'Dynamic_Commission',
+        'Bonus_cashback_service_fee',
+        'LIVE_Specials_Service_Fee',
+        'Voucher_Xtra_Service_Fee',
+        'Order_processing_fee',
+        'EAMS_Program_service_fee',
+        'Brands_Crazy_Deals_Flash_Sale_service_fee',
+        'Dilayani_Tokopedia_fee',
+        'Dilayani_Tokopedia_handling_fee',
+        'PayLater_program_fee',
+        'Campaign_resource_fee',
+        'Installation_service_fee',
+        'Ajustment_amount'
+    ]);
 
     const rowsToAdd = transactionBreakdownList.map(trx => ({
-        'order_id': trx.order_id ? `'${trx.order_id}` : '', 
+        'brand': trx.brand,
+        'order_adjustment_id': trx.order_adjustment_id ? `'${trx.order_adjustment_id}` : '', 
+        'related_order_id': trx.related_order_id ? `'${trx.related_order_id}` : '',
+        'type': trx.type,
         'SSP': trx.SSP,
+        'SSP_PSP_Discounts': trx.SSP_PSP_Discounts,
         'PSP': trx.PSP,
-        'Total_fees': trx.Total_fees
+        'Total_fees': trx.Total_fees,
+        'Platform_commission_fee': trx.Platform_commission_fee,
+        'Flat_fee': trx.Flat_fee,
+        'Sales_fee': trx.Sales_fee,
+        'Pre_Order_Service_Fee': trx.Pre_Order_Service_Fee,
+        'Mall_service_fee': trx.Mall_service_fee,
+        'Payment_fee': trx.Payment_fee,
+        'Shipping_cost': trx.Shipping_cost,
+        'Shipping_costs_passed_on_to_the_logistics_provider': trx.Shipping_costs_passed_on_to_the_logistics_provider,
+        'Replacement_shipping_fee_passed_on_to_the_customer': trx.Replacement_shipping_fee_passed_on_to_the_customer,
+        'Exchange_shipping_fee_passed_on_to_the_customer': trx.Exchange_shipping_fee_passed_on_to_the_customer,
+        'Shipping_cost_borne_by_the_platform': trx.Shipping_cost_borne_by_the_platform,
+        'Shipping_cost_paid_by_the_customer': trx.Shipping_cost_paid_by_the_customer,
+        'Refunded_shipping_cost_paid_by_the_customer': trx.Refunded_shipping_cost_paid_by_the_customer,
+        'Return_shipping_costs_passed_on_to_the_customer': trx.Return_shipping_costs_passed_on_to_the_customer,
+        'Shipping_cost_subsidy': trx.Shipping_cost_subsidy,
+        'Affiliate_commission': trx.Affiliate_commission,
+        'Affiliate_partner_commission': trx.Affiliate_partner_commission,
+        'Affiliate_Shop_Ads_commission': trx.Affiliate_Shop_Ads_commission,
+        'Affiliate_Shop_Ads_commission_before_PIT': trx.Affiliate_Shop_Ads_commission_before_PIT,
+        'Personal_income_tax_withheld_from_affiliate_Shop_Ads_commission': trx.Personal_income_tax_withheld_from_affiliate_Shop_Ads_commission,
+        'Affiliate_Partner_shop_ads_commission': trx.Affiliate_Partner_shop_ads_commission,
+        'Shipping_Fee_Program_service_fee': trx.Shipping_Fee_Program_service_fee,
+        'Dynamic_Commission': trx.Dynamic_Commission,
+        'Bonus_cashback_service_fee': trx.Bonus_cashback_service_fee,
+        'LIVE_Specials_Service_Fee': trx.LIVE_Specials_Service_Fee,
+        'Voucher_Xtra_Service_Fee': trx.Voucher_Xtra_Service_Fee,
+        'Order_processing_fee': trx.Order_processing_fee,
+        'EAMS_Program_service_fee': trx.EAMS_Program_service_fee,
+        'Brands_Crazy_Deals_Flash_Sale_service_fee': trx.Brands_Crazy_Deals_Flash_Sale_service_fee,
+        'Dilayani_Tokopedia_fee': trx.Dilayani_Tokopedia_fee,
+        'Dilayani_Tokopedia_handling_fee': trx.Dilayani_Tokopedia_handling_fee,
+        'PayLater_program_fee': trx.PayLater_program_fee,
+        'Campaign_resource_fee': trx.Campaign_resource_fee,
+        'Installation_service_fee': trx.Installation_service_fee,
+        'Ajustment_amount': trx.Ajustment_amount
     }));
 
     // Chunking to prevent Payload Too Large errors on 5000+ rows
