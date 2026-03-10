@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import axios from 'axios';
 import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuthTransaction.js";
+import { google } from 'googleapis';
 
 const secondTransactionBrands = [
     "Mirae",
@@ -198,7 +199,6 @@ async function fetchTransactionsByStatement(brand, statementId, shopCipher, acce
         let success = false;
         let response;
 
-        // Auto-Retry Loop for Rate Limits
         while (!success && attempt < 5) {
             try {
                 const timestamp = Math.floor(Date.now() / 1000);
@@ -223,18 +223,18 @@ async function fetchTransactionsByStatement(brand, statementId, shopCipher, acce
                     headers: { 'content-type': 'application/json', 'x-tts-access-token': accessToken }
                 });
                 
-                success = true; // Request succeeded, break retry loop
+                success = true; 
 
             } catch (e) {
                 const isRateLimit = e?.response?.status === 429 || e?.response?.data?.message?.includes('Too many requests');
                 if (isRateLimit) {
                     attempt++;
-                    const backoffTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s...
+                    const backoffTime = Math.pow(2, attempt) * 1000; 
                     console.log(`[RATE LIMIT] Statement ${statementId}. Retrying in ${backoffTime/1000}s (Attempt ${attempt}/5)`);
                     await wait(backoffTime);
                 } else {
                     console.log(`[TIKTOK-TRANSACTION] Error on statement ${statementId}`, e?.response?.data?.message || e.message);
-                    return rawTransactions; // Return what we have if it's a hard error
+                    return rawTransactions; 
                 }
             }
         }
@@ -264,7 +264,9 @@ function mapToSQLSchema(brand, trx) {
 
     return {
         brand: brand,
-        order_id: trx.type === 'ORDER' ? String(trx.adjustment_id) : String(trx.associated_order_id),
+        order_adjustment_id: trx.type === "ORDER" ? trx.order_id : trx.adjustment_id,
+        related_order_id: trx.type === "ORDER" ? String(trx.order_id) : String(trx.adjustment_order_id),
+        type: trx.type ? String(trx.type) : null,
         SSP: ssp,
         SSP_PSP_Discounts: sellerDiscount,
         PSP: ssp + sellerDiscount,
@@ -321,7 +323,6 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
     
     const dates = generateDateRanges(targetMonth);
 
-    // 1. Build Settlement Maps
     const rawWithdrawals = await getWithdrawals(brand, shopCipher, accessToken, dates.withdrawalMonths);
     const settleEventMap = new Map();
     rawWithdrawals.filter(w => w.type === 'SETTLE').forEach(w => {
@@ -337,9 +338,8 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
     const statementIds = rawStatements.map(s => s.statement_id);
     console.log(`Total Statements to fetch transactions for: ${statementIds.length}`);
 
-    // 2. Fetch Raw Transactions in Chunks
     let allRawTransactions = [];
-    const CHUNK_SIZE = 10; // Reduced to prevent immediate QPS spikes
+    const CHUNK_SIZE = 10; 
     
     for (let i = 0; i < statementIds.length; i += CHUNK_SIZE) {
         console.log(`Processing Statement batch ${i} to ${i + CHUNK_SIZE}...`);
@@ -355,17 +355,15 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
             if (res && res.length > 0) allRawTransactions.push(...res);
         });
 
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Increased sleep to 1.5s
+        await new Promise(resolve => setTimeout(resolve, 1500)); 
     }
 
-    // 3. Filter by Target Month & Map to SQL Schema
     const transactionBreakdownList = [];
 
     allRawTransactions.forEach(trx => {
         const earningsId = statementToEarningsMap.get(String(trx.statement_id));
         const settleTime = settleEventMap.get(earningsId);
 
-        // Keep only if settled exactly in the target month
         if (settleTime && settleTime.startsWith(targetMonth)) {
             const sqlMappedData = mapToSQLSchema(brand, trx);
             transactionBreakdownList.push(sqlMappedData);
@@ -377,7 +375,49 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
     console.log(transactionBreakdownList.slice(0, 3));
     console.log("Finished Processing.");    
     
-    return transactionBreakdownList;
+    // Checker: sum of SSP, PSP, and Total_fees
+    console.log("Sum of SSP: ", transactionBreakdownList.reduce((i, o) => i + o.SSP, 0))
+    console.log("Sum of PSP: ", transactionBreakdownList.reduce((i, o) => i + o.PSP, 0));
+    console.log("Sum of Total Fees: ", transactionBreakdownList.reduce((i, o) => i + o.Total_fees, 0))
+
+    await mergeToSheet("1wDwvbp2hy5XtvRFo_ZcuETFWmiiNRh1Urabsa2wYdQs", transactionBreakdownList);
+    // return transactionBreakdownList;
+}
+
+async function mergeToSheet(sheetId, transactionBreakdownList) {
+    try {
+        const auth = new google.auth.GoogleAuth({
+            scopes: ['https://www.googleapis.com/auth/spreadsheets']
+        });
+        const sheets = google.sheets({ version: 'v4', auth });
+
+        const headers = ['order_id', 'SSP', 'PSP', 'Total_fees'];
+        const rows = transactionBreakdownList.map(trx => [
+            trx.order_id,
+            trx.SSP,
+            trx.PSP,
+            trx.Total_fees
+        ]);
+
+        const values = [headers, ...rows];
+
+        // Clear existing data first to prevent ghost rows from previous runs
+        await sheets.spreadsheets.values.clear({
+            spreadsheetId: sheetId,
+            range: 'Checker!A:D', 
+        });
+
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: sheetId,
+            range: 'Checker!A1',
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values }
+        });
+
+        console.log(`Successfully merged ${rows.length} rows to Sheet ID: ${sheetId}`);
+    } catch (e) {
+        console.log("[SHEETS] Error merging to sheet:", e.message);
+    }
 }
 
 async function mainTransactionsBreakdown() {
