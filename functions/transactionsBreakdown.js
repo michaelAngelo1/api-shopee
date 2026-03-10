@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import axios from 'axios';
 import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuthTransaction.js";
-import { google } from 'googleapis';
+import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { JWT } from 'google-auth-library';
 
 const secondTransactionBrands = [
     "Mirae",
@@ -380,44 +381,49 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
     console.log("Sum of PSP: ", transactionBreakdownList.reduce((i, o) => i + o.PSP, 0));
     console.log("Sum of Total Fees: ", transactionBreakdownList.reduce((i, o) => i + o.Total_fees, 0))
 
-    await mergeToSheet("1wDwvbp2hy5XtvRFo_ZcuETFWmiiNRh1Urabsa2wYdQs", transactionBreakdownList);
+    await mergeToSheet("1wDwvbp2hy5XtvRFo_ZcuETFWmiiNRh1Urabsa2wYdQs", "Checker", transactionBreakdownList);
     // return transactionBreakdownList;
 }
 
-async function mergeToSheet(sheetId, transactionBreakdownList) {
-    try {
-        const auth = new google.auth.GoogleAuth({
-            scopes: ['https://www.googleapis.com/auth/spreadsheets']
-        });
-        const sheets = google.sheets({ version: 'v4', auth });
+export async function mergeToSheet(sheetId, sheetName, transactionBreakdownList) {
+    console.log(`Start merging ${transactionBreakdownList.length} rows to sheet: ${sheetName}`);
 
-        const headers = ['order_id', 'SSP', 'PSP', 'Total_fees'];
-        const rows = transactionBreakdownList.map(trx => [
-            trx.order_id,
-            trx.SSP,
-            trx.PSP,
-            trx.Total_fees
-        ]);
+    const saCreds = await loadCredentials();
 
-        const values = [headers, ...rows];
+    const saAuth = new JWT({
+        email: saCreds.client_email,
+        key: saCreds.private_key,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
 
-        // Clear existing data first to prevent ghost rows from previous runs
-        await sheets.spreadsheets.values.clear({
-            spreadsheetId: sheetId,
-            range: 'Checker!A:D', 
-        });
+    const doc = new GoogleSpreadsheet(sheetId, saAuth);
+    await doc.loadInfo();
 
-        await sheets.spreadsheets.values.update({
-            spreadsheetId: sheetId,
-            range: 'Checker!A1',
-            valueInputOption: 'USER_ENTERED',
-            requestBody: { values }
-        });
-
-        console.log(`Successfully merged ${rows.length} rows to Sheet ID: ${sheetId}`);
-    } catch (e) {
-        console.log("[SHEETS] Error merging to sheet:", e.message);
+    const sheet = doc.sheetsByTitle[sheetName];
+    
+    if (!sheet) {
+        console.log(`[SHEETS] Error: Sheet tab "${sheetName}" not found.`);
+        return;
     }
+
+    await sheet.clear();
+    await sheet.setHeaderRow(['order_id', 'SSP', 'PSP', 'Total_fees']);
+
+    const rowsToAdd = transactionBreakdownList.map(trx => ({
+        'order_id': trx.order_id ? `'${trx.order_id}` : '', 
+        'SSP': trx.SSP,
+        'PSP': trx.PSP,
+        'Total_fees': trx.Total_fees
+    }));
+
+    // Chunking to prevent Payload Too Large errors on 5000+ rows
+    const CHUNK_SIZE = 2000;
+    for (let i = 0; i < rowsToAdd.length; i += CHUNK_SIZE) {
+        const chunk = rowsToAdd.slice(i, i + CHUNK_SIZE);
+        await sheet.addRows(chunk);
+    }
+
+    console.log(`Successfully merged ${rowsToAdd.length} rows to [${sheetName}].`);
 }
 
 async function mainTransactionsBreakdown() {
