@@ -39,7 +39,7 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         if(affiliateAppBrands[brand] == 1) {
             tiktokAppKey = "6j7bl3bsi59jh"
             tiktokAppSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443"
-        } else if(internalAppBrands[brand] == 2) {
+        } else if(affiliateAppBrands[brand] == 2) {
             tiktokAppKey = "6j7q24v1la9la"
             tiktokAppSecret = "8ea3e5fe98de48c2f83d6e20321010e7a79fd15a"
         } else {
@@ -171,7 +171,8 @@ const brandAffiliateTables = {
     "Naruko": "naruko_tt_affiliate",
     "Relove": "relove_tt_affiliate",
     "Joey & Roo": "joey_roo_tt_affiliate",
-    "Rocketindo Shop": "pinkrocket_tt_affiliate"
+    "Rocketindo Shop": "pinkrocket_tt_affiliate",
+    "M2": "m2_tt_affiliate"
 }
 
 async function mergeTiktokAffiliate(orders, brand) {
@@ -242,32 +243,32 @@ export async function handleTiktokAffiliate(brand) {
     const affiliateOrders = await handleAffiliate(brand, shopCipher, accessToken);
     affiliateOrders.sort((a, b) => a.create_time - b.create_time);
 
-    // await mergeTiktokAffiliate(affiliateOrders, brand);
+    await mergeTiktokAffiliate(affiliateOrders, brand);
 }
 
 export async function mainTiktokAffiliate() {
-    // await handleTiktokAffiliate("Eileen Grace")
-    // await handleTiktokAffiliate("Mamaway");
-    // await handleTiktokAffiliate("SHRD");
-    // await handleTiktokAffiliate("Miss Daisy");
-    // await handleTiktokAffiliate("Polynia");
-    // await handleTiktokAffiliate("CHESS");
+    await handleTiktokAffiliate("Eileen Grace")
+    await handleTiktokAffiliate("Mamaway");
+    await handleTiktokAffiliate("SHRD");
+    await handleTiktokAffiliate("Miss Daisy");
+    await handleTiktokAffiliate("Polynia");
+    await handleTiktokAffiliate("CHESS");
     await handleTiktokAffiliate("Cléviant");
     await handleTiktokAffiliate("Mossèru");
     await handleTiktokAffiliate("Evoke");
     await handleTiktokAffiliate("Dr Jou");
-    // await handleTiktokAffiliate("Mirae")
-    // await handleTiktokAffiliate("Swissvita");
-    // await handleTiktokAffiliate("G-Belle");
-    // await handleTiktokAffiliate("Past Nine");
-    // await handleTiktokAffiliate("Nutri & Beyond");
-    // await handleTiktokAffiliate("Ivy & Lily");
-    // await handleTiktokAffiliate("Naruko");
-    // await handleTiktokAffiliate("Relove");
-    // await handleTiktokAffiliate("Joey & Roo");
-    // await handleTiktokAffiliate("Rocketindo Shop");
-    // await handleTiktokAffiliate("M2");
+    await handleTiktokAffiliate("Mirae")
+    await handleTiktokAffiliate("Swissvita");
+    await handleTiktokAffiliate("G-Belle");
+    await handleTiktokAffiliate("Past Nine");
+    await handleTiktokAffiliate("Nutri & Beyond");
+    await handleTiktokAffiliate("Ivy & Lily");
+    await handleTiktokAffiliate("Naruko");
+    await handleTiktokAffiliate("Relove");
+    await handleTiktokAffiliate("Joey & Roo");
+    await handleTiktokAffiliate("Rocketindo Shop");
+    await handleTiktokAffiliate("M2");
 }
 
 // Comment out in deployment. 
-await mainTiktokAffiliate();
+// await mainTiktokAffiliate();
