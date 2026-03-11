@@ -56,9 +56,13 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
 
         let keepFetching = true;
         let currPageToken = "";
-        const createTimeFrom = Math.floor(new Date("2026-03-01T00:00:00+07:00").getTime() / 1000);
-        // const createTimeFrom = 1767200458;
-        const createTimeTo = Math.floor(new Date("2026-03-02T23:59:59+07:00").getTime() / 1000);
+        // const createTimeFrom = Math.floor(new Date("2026-03-01T00:00:00+07:00").getTime() / 1000);
+        // // const createTimeFrom = 1767200458;
+        // const createTimeTo = Math.floor(new Date("2026-03-02T23:59:59+07:00").getTime() / 1000);
+
+        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+        const createTimeFrom = Math.floor(new Date(`${yesterday}T00:00:00+07:00`).getTime() / 1000);
+        const createTimeTo = Math.floor(new Date(`${yesterday}T23:59:59+07:00`).getTime() / 1000);
 
         let rawAffiliateOrders = [];
         let rawAffiliateOrdersLength = 0;
