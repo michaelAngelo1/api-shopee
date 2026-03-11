@@ -4,20 +4,6 @@ import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
 
-const secondInternalAppBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle", 
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop",
-    "M2"
-];
-
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens",
@@ -43,6 +29,9 @@ const tiktokSecrets = {
 }
 
 export async function loadTokens(brand) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     const secretName = tiktokSecrets[brand] + "/versions/latest";
     try {
         const [version] = await secretClient.accessSecretVersion({
@@ -59,6 +48,9 @@ export async function loadTokens(brand) {
 }
 
 export async function saveTokens(brand, tokens) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     const parent = tiktokSecrets[brand];
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
 
@@ -96,16 +88,46 @@ export async function saveTokens(brand, tokens) {
 // Refresh token itself contains identity of the corresponding shop
 // Such is why it does not need shop_cipher or any other parameters. 
 
+const internalAppBrands = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cleviant": 1,
+    "Mosseru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "M2": 3,
+}
+
 export async function refreshTokens(brand, refreshToken) {
+    if(brand == "Cléviant") brand = "Cleviant";
+    if(brand == "Mossèru") brand = "Mosseru";
+
     let tiktokAppKey;
     let tiktokAppSecret;
 
-    if(!secondInternalAppBrands.includes(brand)) {
+    if(internalAppBrands[brand] == 1) {
         tiktokAppKey = "6j6u4kmpdda19"
         tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-    } else {
+    } else if(internalAppBrands[brand] == 2) {
         tiktokAppKey = "6j7inu4s9dkfq"
         tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+    } else {
+        tiktokAppKey = "6jbrll2ed26dp";
+        tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
     }
 
     const appKey = tiktokAppKey
@@ -142,12 +164,15 @@ export async function getShopCipher(brand, accessToken) {
         let tiktokAppKey;
         let tiktokAppSecret;
 
-        if(!secondInternalAppBrands.includes(brand)) {
+        if(internalAppBrands[brand] == 1) {
             tiktokAppKey = "6j6u4kmpdda19"
             tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-        } else {
+        } else if(internalAppBrands[brand] == 2) {
             tiktokAppKey = "6j7inu4s9dkfq"
             tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        } else {
+            tiktokAppKey = "6jbrll2ed26dp";
+            tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
         }
 
         const appKey = tiktokAppKey
@@ -193,6 +218,6 @@ export async function getShopCipher(brand, accessToken) {
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
-        console.log(e);
+        console.log(e.response.data.message);
     }
 }

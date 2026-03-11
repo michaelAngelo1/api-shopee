@@ -3,19 +3,29 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { handleMergeRealtime, loadCredentials } from "./handleMergeRealtime.js";
 
-const secondInternalAppBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle", 
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop",
-    "M2"
-];
+const internalAppBrands = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cleviant": 1,
+    "Mosseru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "M2": 3,
+}
 
 async function getOrderList(brand, shopCipher, accessToken) {
 
@@ -23,12 +33,15 @@ async function getOrderList(brand, shopCipher, accessToken) {
         let tiktokAppKey;
         let tiktokAppSecret;
 
-        if(!secondInternalAppBrands.includes(brand)) {
+        if(internalAppBrands[brand] == 1) {
             tiktokAppKey = "6j6u4kmpdda19"
             tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
-        } else {
+        } else if(internalAppBrands[brand] == 2) {
             tiktokAppKey = "6j7inu4s9dkfq"
             tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        } else {
+            tiktokAppKey = "6jbrll2ed26dp";
+            tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
         }
 
 
@@ -142,9 +155,7 @@ async function processOrdersGMV(brand, orders, commerce) {
     console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
     
     let marketplace = commerce == "TIKTOK_SHOP" ? "TikTok" : "Tokopedia";
-    
-    // Uncomment this merge in deploymnent.
-    // await handleMergeRealtime(brand, marketplace, totalAmount)
+    await handleMergeRealtime(brand, marketplace, totalAmount)
 }
 
 async function mainRealtimeTiktok(brand) {
@@ -181,8 +192,7 @@ export async function parentRealtimeTiktok() {
     await mainRealtimeTiktok("Relove");
     await mainRealtimeTiktok("Joey & Roo");
     await mainRealtimeTiktok("Rocketindo Shop");
-    // await mainRealtimeTiktok("M2");
+    await mainRealtimeTiktok("M2");
 }
 
-// You need to comment this in deployment. 
-await parentRealtimeTiktok();
+// await parentRealtimeTiktok();

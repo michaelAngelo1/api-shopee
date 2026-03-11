@@ -2,6 +2,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { handleMergeRealtime } from './handleMergeRealtime.js';
 import 'dotenv/config';
+import { mainM2 } from '../workers/m2_processor.js';
 
 async function getOrderList(brand, partner_id, partner_key, access_token, shop_id) {
     console.log("[REALTIME-SALES] Handle realtime get order list on brand: ", brand);
@@ -292,6 +293,8 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     let marketplace = "Shopee";
     await handleMergeRealtime(brand, marketplace, totalSalesBrand);
 }
+
+// await mainM2();
 
 // async function testbed() {
 //     let partnerId = "2010423";

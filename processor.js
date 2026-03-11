@@ -17,6 +17,7 @@ import { handleWalletTransactions } from './functions/walletTransactions.js';
 import { handleFinance } from './functions/handleFinance.js';
 import { mainRealtime } from './functions/handleRealtime.js';
 import { parentRealtimeTiktok } from './functions/handleRealtimeTiktok.js';
+import { mainM2 } from './workers/m2_processor.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -198,6 +199,7 @@ export async function fetchAndProcessOrders() {
     // await handleFinance(brand);
 
     await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await mainM2();
 
     await parentRealtimeTiktok();
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
