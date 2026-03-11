@@ -6,31 +6,49 @@ import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuthAffi
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
 
-const secondAffiliateBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle",
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop"
-]
+const affiliateAppBrands = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "Miss Daisy": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "M2": 3,
+}
 
 export async function handleAffiliate(brand, shopCipher, accessToken) {
     try {   
-        let appKey;
-        let appSecret;
+        let tiktokAppKey;
+        let tiktokAppSecret;
 
-        if(!secondAffiliateBrands.includes(brand)) {
-            appKey = "6j7bl3bsi59jh";
-            appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+        if(affiliateAppBrands[brand] == 1) {
+            tiktokAppKey = "6j7bl3bsi59jh"
+            tiktokAppSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443"
+        } else if(internalAppBrands[brand] == 2) {
+            tiktokAppKey = "6j7q24v1la9la"
+            tiktokAppSecret = "8ea3e5fe98de48c2f83d6e20321010e7a79fd15a"
         } else {
-            appKey = "6j7inu4s9dkfq";
-            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+            tiktokAppKey = "6jbrll2ed26dp";
+            tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
         }
+
+        let appKey = tiktokAppKey;
+        let appSecret = tiktokAppSecret;
 
         console.log("[TIKTOK-AFFILIATE] Fetching tiktok affiliate for brand: ", brand);
         const path = "/affiliate_seller/202410/orders/search";
@@ -121,7 +139,7 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         return rawAffiliateOrders;
 
     } catch (e) {
-        console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e.response.data.message);
+        console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e);
     }
 }
 
@@ -224,30 +242,32 @@ export async function handleTiktokAffiliate(brand) {
     const affiliateOrders = await handleAffiliate(brand, shopCipher, accessToken);
     affiliateOrders.sort((a, b) => a.create_time - b.create_time);
 
-    await mergeTiktokAffiliate(affiliateOrders, brand);
+    // await mergeTiktokAffiliate(affiliateOrders, brand);
 }
 
 export async function mainTiktokAffiliate() {
-    await handleTiktokAffiliate("Eileen Grace")
-    await handleTiktokAffiliate("Mamaway");
-    await handleTiktokAffiliate("SHRD");
-    await handleTiktokAffiliate("Miss Daisy");
-    await handleTiktokAffiliate("Polynia");
-    await handleTiktokAffiliate("CHESS");
+    // await handleTiktokAffiliate("Eileen Grace")
+    // await handleTiktokAffiliate("Mamaway");
+    // await handleTiktokAffiliate("SHRD");
+    // await handleTiktokAffiliate("Miss Daisy");
+    // await handleTiktokAffiliate("Polynia");
+    // await handleTiktokAffiliate("CHESS");
     await handleTiktokAffiliate("Cléviant");
     await handleTiktokAffiliate("Mossèru");
     await handleTiktokAffiliate("Evoke");
     await handleTiktokAffiliate("Dr Jou");
-    await handleTiktokAffiliate("Mirae")
-    await handleTiktokAffiliate("Swissvita");
-    await handleTiktokAffiliate("G-Belle");
-    await handleTiktokAffiliate("Past Nine");
-    await handleTiktokAffiliate("Nutri & Beyond");
-    await handleTiktokAffiliate("Ivy & Lily");
-    await handleTiktokAffiliate("Naruko");
-    await handleTiktokAffiliate("Relove");
-    await handleTiktokAffiliate("Joey & Roo");
-    await handleTiktokAffiliate("Rocketindo Shop");
+    // await handleTiktokAffiliate("Mirae")
+    // await handleTiktokAffiliate("Swissvita");
+    // await handleTiktokAffiliate("G-Belle");
+    // await handleTiktokAffiliate("Past Nine");
+    // await handleTiktokAffiliate("Nutri & Beyond");
+    // await handleTiktokAffiliate("Ivy & Lily");
+    // await handleTiktokAffiliate("Naruko");
+    // await handleTiktokAffiliate("Relove");
+    // await handleTiktokAffiliate("Joey & Roo");
+    // await handleTiktokAffiliate("Rocketindo Shop");
+    // await handleTiktokAffiliate("M2");
 }
 
+// Comment out in deployment. 
 await mainTiktokAffiliate();
