@@ -196,4 +196,4 @@ export async function parentRealtimeTiktok() {
     await mainRealtimeTiktok("M2");
 }
 
-// await parentRealtimeTiktok();
+await parentRealtimeTiktok();

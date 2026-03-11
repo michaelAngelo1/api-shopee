@@ -11,8 +11,8 @@ const tiktokSecrets = {
     "Miss Daisy": "projects/231801348950/secrets/md-tiktok-tokens",
     "Polynia": "projects/231801348950/secrets/polynia-tiktok-tokens",
     "CHESS": "projects/231801348950/secrets/chess-tiktok-tokens",
-    "Cleviant": "projects/231801348950/secrets/cleviant-tiktok-tokens",
-    "Mosseru": "projects/231801348950/secrets/mosseru-tiktok-tokens",
+    "Cléviant": "projects/231801348950/secrets/cleviant-tiktok-tokens",
+    "Mossèru": "projects/231801348950/secrets/mosseru-tiktok-tokens",
     "Evoke": "projects/231801348950/secrets/evoke-tiktok-tokens",
     "Dr Jou": "projects/231801348950/secrets/drjou-tiktok-tokens",
     "Mirae": "projects/231801348950/secrets/mirae-tiktok-tokens",
@@ -29,8 +29,6 @@ const tiktokSecrets = {
 }
 
 export async function loadTokens(brand) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
 
     const secretName = tiktokSecrets[brand] + "/versions/latest";
     try {
@@ -48,8 +46,6 @@ export async function loadTokens(brand) {
 }
 
 export async function saveTokens(brand, tokens) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
 
     const parent = tiktokSecrets[brand];
     const payload = Buffer.from(JSON.stringify(tokens, null, 2), 'UTF-8');
@@ -93,10 +89,11 @@ const internalAppBrands = {
     "Mamaway": 1,
     "SHRD": 1,
     "CHESS": 1,
+    "Miss Daisy": 1,
     "Polynia": 1,
     "CHESS": 1,
-    "Cleviant": 1,
-    "Mosseru": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
     "Evoke": 1,
     "Dr Jou": 1,
     "Mirae": 2,
@@ -113,8 +110,6 @@ const internalAppBrands = {
 }
 
 export async function refreshTokens(brand, refreshToken) {
-    if(brand == "Cléviant") brand = "Cleviant";
-    if(brand == "Mossèru") brand = "Mosseru";
 
     let tiktokAppKey;
     let tiktokAppSecret;
