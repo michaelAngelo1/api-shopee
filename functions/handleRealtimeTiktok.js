@@ -8,6 +8,7 @@ const internalAppBrands = {
     "Mamaway": 1,
     "SHRD": 1,
     "CHESS": 1,
+    "Miss Daisy": 1,
     "Polynia": 1,
     "CHESS": 1,
     "Cleviant": 1,
