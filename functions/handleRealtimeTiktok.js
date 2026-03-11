@@ -13,7 +13,8 @@ const secondInternalAppBrands = [
     "Naruko",
     "Relove",
     "Joey & Roo",
-    "Rocketindo Shop"
+    "Rocketindo Shop",
+    "M2"
 ];
 
 async function getOrderList(brand, shopCipher, accessToken) {
@@ -141,7 +142,9 @@ async function processOrdersGMV(brand, orders, commerce) {
     console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
     
     let marketplace = commerce == "TIKTOK_SHOP" ? "TikTok" : "Tokopedia";
-    await handleMergeRealtime(brand, marketplace, totalAmount)
+    
+    // Uncomment this merge in deploymnent.
+    // await handleMergeRealtime(brand, marketplace, totalAmount)
 }
 
 async function mainRealtimeTiktok(brand) {
@@ -178,6 +181,8 @@ export async function parentRealtimeTiktok() {
     await mainRealtimeTiktok("Relove");
     await mainRealtimeTiktok("Joey & Roo");
     await mainRealtimeTiktok("Rocketindo Shop");
+    // await mainRealtimeTiktok("M2");
 }
 
+// You need to comment this in deployment. 
 await parentRealtimeTiktok();

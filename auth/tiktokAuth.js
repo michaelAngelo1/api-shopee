@@ -24,7 +24,8 @@ const tiktokSecrets = {
     "Naruko": "projects/231801348950/secrets/naruko-tiktok-tokens",
     "Relove": "projects/231801348950/secrets/relove-tiktok-tokens",
     "Joey & Roo": "projects/231801348950/secrets/joey-roo-tiktok-tokens",
-    "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-tiktok-tokens"
+    "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-tiktok-tokens",
+    "M2": "projects/231801348950/secrets/m2-tiktok-tokens"
 }
 
 export async function loadTokens(brand) {
@@ -82,8 +83,16 @@ export async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 export async function refreshTokens(brand, refreshToken) {
-    let tiktokAppKey = "6j6u4kmpdda19"
-    let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    let tiktokAppKey;
+    let tiktokAppSecret;
+
+    if(!secondInternalAppBrands.includes(brand)) {
+        tiktokAppKey = "6j6u4kmpdda19"
+        tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    } else {
+        tiktokAppKey = "6j7inu4s9dkfq"
+        tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+    }
 
     const appKey = tiktokAppKey
     const appSecret = tiktokAppSecret
@@ -116,8 +125,16 @@ export async function refreshTokens(brand, refreshToken) {
 export async function getShopCipher(brand, accessToken) {
     try {
 
-        let tiktokAppKey = "6j6u4kmpdda19"
-        let tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        let tiktokAppKey;
+        let tiktokAppSecret;
+
+        if(!secondInternalAppBrands.includes(brand)) {
+            tiktokAppKey = "6j6u4kmpdda19"
+            tiktokAppSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else {
+            tiktokAppKey = "6j7inu4s9dkfq"
+            tiktokAppSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        }
 
         const appKey = tiktokAppKey
         const appSecret = tiktokAppSecret
