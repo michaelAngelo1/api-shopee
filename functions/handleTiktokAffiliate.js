@@ -3,35 +3,50 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { BigQuery } from '@google-cloud/bigquery';
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuthAffiliate.js';
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
-const secretClient = new SecretManagerServiceClient();
 
-// handleTiktokAffiliate on main
-const secondAffiliateBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle",
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop"
-]
+const affiliateAppBrands = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "Miss Daisy": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "M2": 3,
+}
 
 export async function handleAffiliate(brand, shopCipher, accessToken) {
     try {   
-        let appKey;
-        let appSecret;
+        let tiktokAppKey;
+        let tiktokAppSecret;
 
-        if(!secondAffiliateBrands.includes(brand)) {
-            appKey = "6j7bl3bsi59jh";
-            appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+        if(affiliateAppBrands[brand] == 1) {
+            tiktokAppKey = "6j7bl3bsi59jh"
+            tiktokAppSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443"
+        } else if(affiliateAppBrands[brand] == 2) {
+            tiktokAppKey = "6j7q24v1la9la"
+            tiktokAppSecret = "8ea3e5fe98de48c2f83d6e20321010e7a79fd15a"
         } else {
-            appKey = "6j7inu4s9dkfq";
-            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+            tiktokAppKey = "6jbrll2ed26dp";
+            tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
         }
+
+        let appKey = tiktokAppKey;
+        let appSecret = tiktokAppSecret;
 
         console.log("[TIKTOK-AFFILIATE] Fetching tiktok affiliate for brand: ", brand);
         const path = "/affiliate_seller/202410/orders/search";
@@ -40,7 +55,7 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         let keepFetching = true;
         let currPageToken = "";
         // const createTimeFrom = Math.floor(new Date("2026-03-01T00:00:00+07:00").getTime() / 1000);
-        // const createTimeFrom = 1767200458;
+        // // const createTimeFrom = 1767200458;
         // const createTimeTo = Math.floor(new Date("2026-03-02T23:59:59+07:00").getTime() / 1000);
 
         const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
@@ -126,7 +141,7 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         return rawAffiliateOrders;
 
     } catch (e) {
-        console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e.response.data.message);
+        console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e);
     }
 }
 
@@ -158,7 +173,8 @@ const brandAffiliateTables = {
     "Naruko": "naruko_tt_affiliate",
     "Relove": "relove_tt_affiliate",
     "Joey & Roo": "joey_roo_tt_affiliate",
-    "Rocketindo Shop": "pinkrocket_tt_affiliate"
+    "Rocketindo Shop": "pinkrocket_tt_affiliate",
+    "M2": "m2_tt_affiliate"
 }
 
 async function mergeTiktokAffiliate(orders, brand) {
@@ -253,4 +269,8 @@ export async function mainTiktokAffiliate() {
     await handleTiktokAffiliate("Relove");
     await handleTiktokAffiliate("Joey & Roo");
     await handleTiktokAffiliate("Rocketindo Shop");
+    await handleTiktokAffiliate("M2");
 }
+
+// Comment out in deployment. 
+// await mainTiktokAffiliate();

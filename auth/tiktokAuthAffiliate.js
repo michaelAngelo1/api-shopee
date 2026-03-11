@@ -4,7 +4,31 @@ import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient(); 
 
-// Tiktok auth affiliate on main
+const affiliateAppBrands = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "Miss Daisy": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "M2": 3,
+}
+
 const tiktokAffiliateSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-affiliate-tokens",
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-affiliate-tokens",
@@ -25,7 +49,8 @@ const tiktokAffiliateSecrets = {
     "Naruko": "projects/231801348950/secrets/naruko-tiktok-affiliate-tokens",
     "Relove": "projects/231801348950/secrets/relove-tiktok-affiliate-tokens",
     "Joey & Roo": "projects/231801348950/secrets/jr-tiktok-affiliate-tokens",
-    "Rocketindo Shop": "projects/231801348950/secrets/rshop-tiktok-affiliate-tokens"
+    "Rocketindo Shop": "projects/231801348950/secrets/rshop-tiktok-affiliate-tokens",
+    "M2": "projects/231801348950/secrets/m2-tiktok-tokens"
 }
 
 export async function loadTokens(brand) {
@@ -83,16 +108,23 @@ export async function saveTokens(brand, tokens) {
 // Such is why it does not need shop_cipher or any other parameters. 
 
 export async function refreshTokens(brand, refreshToken) {
-    let appKey;
-    let appSecret;
+    let tiktokAppKey;
+    let tiktokAppSecret;
 
-    if(!secondAffiliateBrands.includes(brand)) {
-        appKey = "6j7bl3bsi59jh";
-        appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+    if(affiliateAppBrands[brand] == 1) {
+        tiktokAppKey = "6j7bl3bsi59jh"
+        tiktokAppSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443"
+    } else if(affiliateAppBrands[brand] == 2) {
+        tiktokAppKey = "6j7q24v1la9la"
+        tiktokAppSecret = "8ea3e5fe98de48c2f83d6e20321010e7a79fd15a"
     } else {
-        appKey = "6j7inu4s9dkfq";
-        appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        tiktokAppKey = "6jbrll2ed26dp";
+        tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
     }
+
+    let appKey = tiktokAppKey;
+    let appSecret = tiktokAppSecret;
+
     const refreshUrl = "https://auth.tiktok-shops.com/api/v2/token/refresh";
     const queryParams = "?" + "app_key=" + appKey + "&" + "app_secret=" + appSecret + "&" + "refresh_token=" + refreshToken + "&" + "grant_type=refresh_token";
     const completeUrl = refreshUrl + queryParams;
@@ -118,31 +150,24 @@ export async function refreshTokens(brand, refreshToken) {
     }
 }
 
-const secondAffiliateBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle",
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop"
-]
-
 export async function getShopCipher(brand, accessToken) {
     try {
-        let appKey;
-        let appSecret;
+        let tiktokAppKey;
+        let tiktokAppSecret;
 
-        if(!secondAffiliateBrands.includes(brand)) {
-            appKey = "6j7bl3bsi59jh";
-            appSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+        if(affiliateAppBrands[brand] == 1) {
+            tiktokAppKey = "6j7bl3bsi59jh"
+            tiktokAppSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443"
+        } else if(affiliateAppBrands[brand] == 2) {
+            tiktokAppKey = "6j7q24v1la9la"
+            tiktokAppSecret = "8ea3e5fe98de48c2f83d6e20321010e7a79fd15a"
         } else {
-            appKey = "6j7inu4s9dkfq";
-            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+            tiktokAppKey = "6jbrll2ed26dp";
+            tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
         }
+
+        let appKey = tiktokAppKey;
+        let appSecret = tiktokAppSecret;
 
         const timestamp = Math.floor(Date.now() / 1000);
         const queryParams = "app_key" + appKey + "timestamp" + timestamp;
