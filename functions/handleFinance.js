@@ -47,7 +47,7 @@ function generateDateRanges(targetMonthStr) {
     };
 }
 
-function convertTimestampJakarta(orderCreatedTime) {
+export function convertTimestampJakarta(orderCreatedTime) {
     const date = new Date(orderCreatedTime * 1000);
     const utc7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000)); 
     const isoString = utc7Date.toISOString();
