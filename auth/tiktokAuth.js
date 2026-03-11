@@ -4,6 +4,20 @@ import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
 
+const secondInternalAppBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle", 
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Rocketindo Shop",
+    "M2"
+];
+
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
     "Mamaway": "projects/231801348950/secrets/mamaway-tiktok-tokens",
