@@ -17,6 +17,7 @@ import { handleWalletTransactions } from './functions/walletTransactions.js';
 // import { handleFinance } from './functions/handleFinance.js';
 import { mainRealtime } from './functions/handleRealtime.js';
 import { handleTiktokAffiliate, mainTiktokAffiliate } from './functions/handleTiktokAffiliate.js';
+import { mainM2 } from './workers/m2_processor.js';
 // import fs from 'fs';
 // import path from 'path';
 // import { fileURLToPath } from 'url';
@@ -186,6 +187,8 @@ export function getEndOfPreviousMonthTimestampWIB() {
 }
 
 export async function fetchAndProcessOrders() {
+    await mainM2();
+    
     console.log("[EG] Start fetching ads total balance. Calling the function.");
     let brand = "Eileen Grace";
 
@@ -425,30 +428,6 @@ async function handleJR() {
 
     await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await fetchAdsTotalBalance(brandTT, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
-    // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
-}
-
-async function handleEnchante() {
-    let advId = "7579206207240765448"
-    let brand = "Enchante"
-    let shopId = 1684342027
-
-    // const basicAds = await fetchTiktokBasicAds(brand, advId, 68000);
-    // const pgmvMax = await fetchProductGMVMax(brand, advId, 70000);
-    // const lgmvMax = await fetchLiveGMVMax(brand, advId, 72000);
-
-    // await handleTiktokAdsData(basicAds, pgmvMax, lgmvMax, brand);
-
-    // await fetchPGMVMaxBreakdown(brand, advId);
-    
-    const loadedTokens = await loadTokensNewBrands(brand);
-    NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
-    NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
-
-    await refreshTokenNewBrands(brand, shopId);
-
-    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
-    // await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
