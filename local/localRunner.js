@@ -34,6 +34,7 @@ async function mainRunner() {
     // await fetchAndProcessOrdersIL();
 
     // M2 jugak
+    await mainM2();
 }
 
 await mainRunner();
