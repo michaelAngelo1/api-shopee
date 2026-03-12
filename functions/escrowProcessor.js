@@ -23,8 +23,8 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
 
         while(hasMore) {
 
-            const releaseTimeStart = Math.floor(new Date("2026-02-01T00:00:00+07:00") / 1000);
-            const releaseTimeEnd = Math.floor(new Date("2026-02-28T23:59:59+07:00") / 1000);
+            const releaseTimeStart = Math.floor(new Date("2026-03-01T00:00:00+07:00") / 1000);
+            const releaseTimeEnd = Math.floor(new Date("2026-03-05T23:59:59+07:00") / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
@@ -222,6 +222,7 @@ const brandTables = {
     "Joey & Roo": "joey_roo_finance",
     "Enchante": "enchante_finance",
     "Rocketindo Shop": "pinkrocket_finance",
+    "M2": "m2_finance"
 }
 
 async function mergeData(data, brand) {
