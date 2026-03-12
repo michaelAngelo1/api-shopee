@@ -170,6 +170,7 @@ const brandTables = {
     "Joey & Roo": "joey_roo_finance",
     "Enchante": "enchante_finance",
     "Rocketindo Shop": "pinkrocket_finance",
+    "M2": "m2_finance"
 }
 
 async function mergeData(data, brand) {
