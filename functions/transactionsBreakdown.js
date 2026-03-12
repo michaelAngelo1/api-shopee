@@ -292,15 +292,14 @@ function mapToSQLSchema(brand, trx) {
     // }
 
     return {
-        brand: brand,
-        order_adjustment_id: trx.type === "ORDER" ? trx.order_id : trx.adjustment_id,
-        related_order_id: trx.type === "ORDER" ? String(trx.order_id) : String(trx.adjustment_order_id),
-        type: trx.type ? String(trx.type) : null,
-        create_time: convertTimestampJakarta(val(trx.order_create_time)),
+        Order_adjustment_ID: trx.type === "ORDER" ? trx.order_id : trx.adjustment_id,
+        Related_order_ID: trx.type === "ORDER" ? trx.order_id : trx.adjustment_order_id,
+        Type: trx.type ? String(trx.type) : null,
+        Order_created_time_UTC: convertTimestampJakarta(val(trx.order_create_time)),
 
-        SSP: ssp,
-        SSP_PSP_Discounts: sellerDiscount,
-        PSP: ssp + sellerDiscount,
+        Subtotal_before_discounts: ssp,
+        Seller_discounts: sellerDiscount,
+        Subtotal_after_seller_discounts: ssp + sellerDiscount,
 
         Total_fees: val(trx.fee_tax_amount) + val(trx.shipping_cost_amount),
         Platform_commission_fee: val(trx.fee_tax_breakdown?.fee?.platform_commission_amount),
@@ -406,22 +405,15 @@ async function handleTransactionsBreakdown(brand, targetMonth) {
 
     console.log("Transaction Breakdown List length: ", transactionBreakdownList.length);
     console.log("First three: ");
-    console.log(transactionBreakdownList.slice(0, 3));
+    console.log(transactionBreakdownList.filter(o => o.Shipping_cost_paid_by_the_customer > 0).slice(0, 3));
     console.log("Finished Processing.");    
-    
-    // Checker: sum of SSP, PSP, and Total_fees
-    console.log("Sum of SSP: ", transactionBreakdownList.reduce((i, o) => i + o.SSP, 0))
-    console.log("Sum of PSP: ", transactionBreakdownList.reduce((i, o) => i + o.PSP, 0));
-    console.log("Sum of Total Fees: ", transactionBreakdownList.reduce((i, o) => i + o.Total_fees, 0))
-    // console.log("Specific Order ID: ", transactionBreakdownList.filter(o => o.order_adjustment_id === "582272501493630505"));
 
-    const bqFileData = fs.readFileSync('./orders_from_bigquery_2.json', 'utf8');
-    const bqOrders = JSON.parse(bqFileData);
+    await mergeTransactionBreakdown(brand, transactionBreakdownList);
+}
 
-    // 3. Run the comparison
-    // compareShippingCosts(transactionBreakdownList, bqOrders);
-    // await mergeToSheet("1wDwvbp2hy5XtvRFo_ZcuETFWmiiNRh1Urabsa2wYdQs", "General Checker", transactionBreakdownList);
-    // return transactionBreakdownList;
+async function mergeTransactionBreakdown(brand, data) {
+    console.log("Transaction Breakdown data on brand: ", brand);
+    console.log(data.slice(0, 1));
 }
 
 async function mainTransactionsBreakdown() {
