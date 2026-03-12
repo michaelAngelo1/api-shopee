@@ -189,12 +189,13 @@ export async function fetchAndProcessOrders() {
     console.log("[EG] Start fetching ads total balance. Calling the function.");
     let brand = "Eileen Grace";
 
-    // const loadedTokens = await loadTokensFromSecret();
-    // ACCESS_TOKEN = loadedTokens.accessToken;
-    // REFRESH_TOKEN = loadedTokens.refreshToken;
+    const loadedTokens = await loadTokensFromSecret();
+    ACCESS_TOKEN = loadedTokens.accessToken;
+    REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    // await refreshToken();
+    await refreshToken();
 
+    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await handleFinance(brand);
     // await handleTiktokAffiliate(brand)
 
@@ -202,7 +203,6 @@ export async function fetchAndProcessOrders() {
 
     // await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     
@@ -211,20 +211,20 @@ export async function fetchAndProcessOrders() {
 
     // await fetchAffiliateData(brand, SHOP_ID, 1000);
 
-    let advIdEG = "7613595763196706833";
-    const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
-    const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
-    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
+    // let advIdEG = "7613595763196706833";
+    // const basicAdsData = await fetchTiktokBasicAds(brand, advIdEG);
+    // const pgmvMaxData = await fetchProductGMVMax(brand, advIdEG);
+    // const lgmvMaxData = await fetchLiveGMVMax(brand, advIdEG);
     
-    console.log("[EG] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[EG] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
 
-    await fetchPGMVMaxBreakdown(brand, advIdEG);
+    // await fetchPGMVMaxBreakdown(brand, advIdEG);
 
     // Rocketindo Shop
     // let advIdRshop = "7581835025746771976";
@@ -376,8 +376,8 @@ async function handleNaruko() {
 
     await refreshTokenNewBrands(brand, shopId)
 
-    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
-    await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -400,8 +400,8 @@ async function handleRelove() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
-    await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -424,8 +424,8 @@ async function handleJR() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
-    await fetchAdsTotalBalance(brandTT, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await fetchAdsTotalBalance(brandTT, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
@@ -448,8 +448,8 @@ async function handleEnchante() {
 
     await refreshTokenNewBrands(brand, shopId);
 
-    // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
-    await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
+    await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    // await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
 
