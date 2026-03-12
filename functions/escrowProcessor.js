@@ -23,10 +23,11 @@ export async function fetchDanaDilepas(brand, partner_id, partner_key, access_to
         let pageNumber = 1;
         let escrowContainer = [];
 
+        const now = new Date();
+        const releaseTimeEnd = Math.floor(now.getTime() / 1000);
+        const releaseTimeStart = Math.floor((now.getTime() - (7 * 24 * 60 * 60 * 1000)) / 1000);
+        
         while(hasMore) {
-            const now = new Date();
-            const releaseTimeEnd = Math.floor(now.getTime() / 1000);
-            const releaseTimeStart = Math.floor((now.getTime() - (7 * 24 * 60 * 60 * 1000)) / 1000);
             const params = new URLSearchParams({
                 partner_id: partner_id,
                 timestamp,
