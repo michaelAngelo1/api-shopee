@@ -17,23 +17,23 @@ import { fetchAndProcessOrdersSHRD } from "../workers/shrd_processor.js";
 import { fetchAndProcessOrdersSV } from "../workers/sv_processor.js";
 
 async function mainRunner() {
-    await fetchAndProcessOrders();
+    // await fetchAndProcessOrders();
     await fetchAndProcessOrdersMMW();
-    await fetchAndProcessOrdersSHRD();
-    await fetchAndProcessOrdersMD();
-    await fetchAndProcessOrdersPOLY();
-    await fetchAndProcessOrdersCHESS();
-    await fetchAndProcessOrdersCLEV();
-    await fetchAndProcessOrdersMOSS();
-    await fetchAndProcessOrdersEVOKE();
-    await fetchAndProcessOrdersDRJOU();
-    await fetchAndProcessOrdersMIRAE();
-    await fetchAndProcessOrdersSV();
-    await fetchAndProcessOrdersGB();
-    await fetchAndProcessOrdersPN();
-    await fetchAndProcessOrdersNB();
-    await fetchAndProcessOrdersIL();
-    await mainM2();
+    // await fetchAndProcessOrdersSHRD();
+    // await fetchAndProcessOrdersMD();
+    // await fetchAndProcessOrdersPOLY();
+    // await fetchAndProcessOrdersCHESS();
+    // await fetchAndProcessOrdersCLEV();
+    // await fetchAndProcessOrdersMOSS();
+    // await fetchAndProcessOrdersEVOKE();
+    // await fetchAndProcessOrdersDRJOU();
+    // await fetchAndProcessOrdersMIRAE();
+    // await fetchAndProcessOrdersSV();
+    // await fetchAndProcessOrdersGB();
+    // await fetchAndProcessOrdersPN();
+    // await fetchAndProcessOrdersNB();
+    // await fetchAndProcessOrdersIL();
+    // await mainM2();
 }
 
 // await mainRunner();
