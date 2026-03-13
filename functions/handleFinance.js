@@ -2,6 +2,7 @@ import 'dotenv/config';
 import crypto from 'crypto';
 import axios from 'axios';
 import { BigQuery } from '@google-cloud/bigquery';
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuth.js';
 
 function generateDateRanges(targetMonthStr) {
@@ -46,7 +47,7 @@ function generateDateRanges(targetMonthStr) {
     };
 }
 
-function convertTimestampJakarta(orderCreatedTime) {
+export function convertTimestampJakarta(orderCreatedTime) {
     const date = new Date(orderCreatedTime * 1000);
     const utc7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000)); 
     const isoString = utc7Date.toISOString();
@@ -65,23 +66,47 @@ function convertTimestamp(orderCreatedTime) {
     return date.toISOString().replace('T', ' ').substring(0, 19);
 }
 
-const secondInternalBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle",
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop"
-]
+const brandsInternalApp = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "Miss Daisy": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "Enchante": 3,
+}
 
 async function getWithdrawals(brand, shopCipher, accessToken, monthsToFetch) {
     try {
-        let appKey = !secondInternalBrands.includes(brand) ? "6j6u4kmpdda19" : "6j7inu4s9dkfq";
-        let appSecret = !secondInternalBrands.includes(brand) ? "c4680b9ff6797160adb92104a77e2e1aa085c733" : "3493907831adc26d58c74262f709b48a2205a2d0";
+
+        let appKey;
+        let appSecret;
+
+        if(brandsInternalApp[brand] === 1) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else if(brandsInternalApp[brand] === 2) {
+            appKey = "6j7inu4s9dkfq"
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        } else {
+            appKey = "6jbrll2ed26dp";
+            appSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92"
+        }
         
         const path = "/finance/202309/withdrawals";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -140,8 +165,20 @@ async function getWithdrawals(brand, shopCipher, accessToken, monthsToFetch) {
 
 async function getStatements(brand, shopCipher, accessToken, monthsToFetch) {
     try {
-        let appKey = !secondInternalBrands.includes(brand) ? "6j6u4kmpdda19" : "6j7inu4s9dkfq";
-        let appSecret = !secondInternalBrands.includes(brand) ? "c4680b9ff6797160adb92104a77e2e1aa085c733" : "3493907831adc26d58c74262f709b48a2205a2d0";
+
+        let appKey;
+        let appSecret;
+
+        if(brandsInternalApp[brand] === 1) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else if(brandsInternalApp[brand] === 2) {
+            appKey = "6j7inu4s9dkfq"
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        } else {
+            appKey = "6jbrll2ed26dp";
+            appSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92"
+        }
         
         const path = "/finance/202309/statements";
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -198,13 +235,21 @@ async function getStatements(brand, shopCipher, accessToken, monthsToFetch) {
     }
 }
 
-// Helper function to pause execution
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 async function getTransactionsByStatement(brand, shopCipher, accessToken, statementId) {
     try {
-        let appKey = !secondInternalBrands.includes(brand) ? "6j6u4kmpdda19" : "6j7inu4s9dkfq";
-        let appSecret = !secondInternalBrands.includes(brand) ? "c4680b9ff6797160adb92104a77e2e1aa085c733" : "3493907831adc26d58c74262f709b48a2205a2d0";
+        let appKey;
+        let appSecret;
+
+        if(brandsInternalApp[brand] === 1) {
+            appKey = "6j6u4kmpdda19"
+            appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else if(brandsInternalApp[brand] === 2) {
+            appKey = "6j7inu4s9dkfq"
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
+        } else {
+            appKey = "6jbrll2ed26dp";
+            appSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92"
+        }
         
         const path = `/finance/202501/statements/${statementId}/statement_transactions`;
         const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
@@ -212,9 +257,10 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
         let keepFetching = true;
         let currPageToken = "";
         
-        let rawTransactionsPerStatement = [];
 
+        let rawTransactionsPerStatement = [];
         while(keepFetching) {
+            
             const timestamp = Math.floor(Date.now() / 1000);
             const queryParams = {   
                 app_key: appKey,
@@ -238,50 +284,21 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
             const sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
             queryParams.sign = sign;
             const querySearchParams = new URLSearchParams(queryParams);
+
             const completeUrl = baseUrl + querySearchParams.toString();
-
-            // The Retry Block
-            let response;
-            let success = false;
-            let retries = 0;
-            const maxRetries = 5;
-
-            while (!success && retries < maxRetries) {
-                try {
-                    response = await axios.get(completeUrl, {
-                        headers: {
-                            'content-type': 'application/json',
-                            'x-tts-access-token': accessToken,
-                        }
-                    });
-                    success = true; 
-                    
-                    // Baseline speed bump: wait 250ms between successful calls to avoid hitting limits
-                    await sleep(250); 
-                } catch (err) {
-                    const status = err.response ? err.response.status : null;
-                    const message = err.response?.data?.message || err.message;
-
-                    // If it's a rate limit (429) OR TikTok's custom downstream error message
-                    if (status === 429 || message.includes("Too many requests")) {
-                        retries++;
-                        const waitTime = retries * 2000; // Wait 2s, 4s, 6s...
-                        console.log(`[TIKTOK-FINANCE] Rate limited on ${brand}. Pausing for ${waitTime}ms (Attempt ${retries}/${maxRetries})...`);
-                        await sleep(waitTime);
-                    } else {
-                        // If it's a completely different error (like 401 Unauthorized), throw it immediately
-                        throw err; 
-                    }
+            const response = await axios.get(completeUrl, {
+                headers: {
+                    'content-type': 'application/json',
+                    'x-tts-access-token': accessToken,
                 }
-            }
+            });
 
-            if (!success) {
-                throw new Error(`Failed to fetch transactions after ${maxRetries} retries due to rate limits.`);
-            }
+            // console.log("[TIKTOK-FINANCE] TRX by statement response: ", response.data.data);
 
             rawTransactionsPerStatement.push(...response.data.data.transactions);
 
             const nextPageToken = response.data.data.next_page_token;
+
             if(nextPageToken && nextPageToken.length > 0) {
                 currPageToken = nextPageToken;
             } else {
@@ -302,8 +319,8 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
 
         return formattedTransactionsPerStatement;
     } catch (e) {
-        console.log(`[TIKTOK-FINANCE] Error getting trx by statement on brand: ${brand}`);
-        console.log(e.message || (e.response && e.response.data ? e.response.data.message : e));
+        console.log("[TIKTOK-FINANCE] Error getting trx by statement on brand: ", brand);
+        console.log(e.response.data.message);
     }
 }
 
@@ -311,7 +328,10 @@ function generateWalletTransactions(rawWithdrawals, rawStatements, rawTransactio
   // 1. Map Statement -> Earnings ID
   const statementToEarningsMap = new Map();
   rawStatements.forEach(stmt => {
-    statementToEarningsMap.set(String(stmt.statement_id), String(stmt.withdrawal_id));
+    statementToEarningsMap.set(String(stmt.statement_id), {
+        earnings_id: String(stmt.withdrawal_id),
+        earnings_create_time: stmt.statement_time 
+    });
   });
 
   // 2. Setup Earnings (Blocks) and Withdrawals
@@ -393,7 +413,12 @@ function generateWalletTransactions(rawWithdrawals, rawStatements, rawTransactio
   const walletTrx = [];
 
   for (const trx of rawTransactions) {
-    const earningsId = statementToEarningsMap.get(String(trx.statement_id));
+    const statementInfo = statementToEarningsMap.get(String(trx.statement_id));
+    if (!statementInfo || !statementInfo.earnings_id) continue;
+
+    const earningsId = statementInfo.earnings_id;
+    const earningsCreateTime = statementInfo.earnings_create_time;
+
     if (!earningsId) continue;
 
     const wMatch = earningsToWithdrawalMap.get(earningsId);
@@ -403,6 +428,7 @@ function generateWalletTransactions(rawWithdrawals, rawStatements, rawTransactio
       withdrawal_create_time: wMatch ? wMatch.withdrawal_create_time : null,
       withdrawal_total_amount: wMatch ? wMatch.withdrawal_total_amount : null,
       earnings_id: earningsId,
+      earnings_create_time: earningsCreateTime,
       transaction_id: String(trx.transaction_id),
       order_id: trx.order_id ? String(trx.order_id) : null,
       order_create_time: trx.order_create_time,
@@ -434,70 +460,129 @@ const brandTables = {
     "Naruko": "naruko_wallet_trx",
     "Relove": "relove_wallet_trx",
     "Joey & Roo": "joey_roo_wallet_trx",
-    "Rocketindo Shop": "pinkrocket_wallet_trx"
+    "Rocketindo Shop": "pinkrocket_wallet_trx",
+    "Enchante": "enchante_wallet_trx"
 }
+
+// async function mergeFinanceTiktok(brand, data) {
+//     try {
+//         const datasetId = "tiktok_api_us";
+//         const tableName = brandTables[brand];
+//         const bigquery = new BigQuery();
+
+//         console.log(`[${brand}] Processing ${data.length} rows...`);
+//         if (data.length === 0) return;
+
+//         // --- STEP 1: GLOBAL CLEANUP VIA CTAS ---
+//         console.log(`[${brand}] Rebuilding table to drop old unwithdrawn rows...`);
+//         const allTxIds = data.map(row => `'${row.transaction_id}'`).join(",");
+
+//         const ctasQuery = `
+//             CREATE OR REPLACE TABLE \`${bigquery.projectId}.${datasetId}.${tableName}\` AS
+//             SELECT * FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
+//             WHERE NOT (
+//                 transaction_id IN (${allTxIds}) 
+//                 AND withdrawal_id IS NULL
+//             )
+//         `;
+        
+//         await bigquery.query({ query: ctasQuery });
+//         console.log(`[${brand}] Table rebuilt successfully.`);
+
+//         // --- STEP 2: BATCH INSERTS VIA SQL (NO STREAMING API) ---
+//         let batchSize = 1000;
+//         for(let i=0; i<data.length; i+=batchSize) {
+//             const batchData = data.slice(i, i+batchSize);
+//             const batchIds = batchData.map(row => `'${row.transaction_id}'`).join(",");
+
+//             const checkQuery = `
+//                 SELECT transaction_id, earnings_create_time
+//                 FROM  \`${bigquery.projectId}.${datasetId}.${tableName}\`
+//                 WHERE transaction_id IN (${batchIds})
+//             `;
+//             const [existingRows] = await bigquery.query(checkQuery);
+            
+//             // Map existing rows to check their current earnings_create_time status
+//             const existingRowsMap = new Map();
+//             existingRows.forEach(row => existingRowsMap.set(row.transaction_id, row.earnings_create_time));
+            
+//             // 1. Filter out rows we already have completely for INSERTS
+//             const dataToInsert = batchData.filter(row => !existingRowsMap.has(row.transaction_id));
+            
+//             // 2. Find rows that exist in DB, but have a NULL earnings_create_time (NEW)
+//             const dataToUpdate = batchData.filter(row => {
+//                 // Update ONLY if DB value is null/empty AND our incoming data actually has a value
+//                 const dbTime = existingRowsMap.get(row.transaction_id);
+//                 return existingRowsMap.has(row.transaction_id) && !dbTime && row.earnings_create_time; 
+//             });
+            
+//             console.log(`[${brand}] Insert: ${dataToInsert.length} | Update: ${dataToUpdate.length}`);
+
+//             if(dataToInsert.length > 0) {
+//                 // Construct a raw SQL INSERT INTO query (Unchanged except adding e_time from previous step)
+//                 const valuesString = dataToInsert.map(row => {
+//                     const w_id = row.withdrawal_id ? `'${row.withdrawal_id}'` : 'NULL';
+//                     const w_time = row.withdrawal_create_time ? `'${row.withdrawal_create_time}'` : 'NULL';
+//                     const w_amt = row.withdrawal_total_amount !== null ? row.withdrawal_total_amount : 'NULL';
+//                     const e_id = row.earnings_id ? `'${row.earnings_id}'` : 'NULL';
+//                     const e_time = row.earnings_create_time ? `'${row.earnings_create_time}'` : 'NULL';
+//                     const t_id = row.transaction_id ? `'${row.transaction_id}'` : 'NULL';
+//                     const o_id = row.order_id ? `'${row.order_id}'` : 'NULL';
+//                     const o_time = row.order_create_time ? `'${row.order_create_time}'` : 'NULL';
+//                     const o_amt = row.order_total_amount !== null ? row.order_total_amount : 'NULL';
+                    
+//                     // Escape single quotes in strings to prevent SQL syntax errors
+//                     const t_type = row.transaction_type ? `'${row.transaction_type.replace(/'/g, "\\'")}'` : 'NULL';
+
+//                     return `(${w_id}, ${w_time}, ${w_amt}, ${e_id}, ${e_time}, ${t_id}, ${o_id}, ${o_time}, ${o_amt}, ${t_type})`;
+//                 }).join(',');
+
+//                 // Push through the Query Engine, bypassing the Streaming API completely
+//                 const insertQuery = `
+//                     INSERT INTO \`${bigquery.projectId}.${datasetId}.${tableName}\`
+//                     (withdrawal_id, withdrawal_create_time, withdrawal_total_amount, earnings_id, earnings_create_time, transaction_id, order_id, order_create_time, order_total_amount, transaction_type)
+//                     VALUES ${valuesString}
+//                 `;
+
+//                 await bigquery.query({ query: insertQuery });
+//                 console.log(`[${brand}] Successfully inserted batch using SQL DML.`);
+//             }
+
+//             // ADDED: Handle the updates dynamically using a CASE statement for batch efficiency
+//             if (dataToUpdate.length > 0) {
+//                 const cases = dataToUpdate.map(row => 
+//                     `WHEN '${row.transaction_id}' THEN '${row.earnings_create_time}'`
+//                 ).join(' ');
+                
+//                 const updateIds = dataToUpdate.map(row => `'${row.transaction_id}'`).join(",");
+
+//                 const updateQuery = `
+//                     UPDATE \`${bigquery.projectId}.${datasetId}.${tableName}\`
+//                     SET earnings_create_time = CASE transaction_id
+//                         ${cases}
+//                     END
+//                     WHERE transaction_id IN (${updateIds})
+//                 `;
+
+//                 await bigquery.query({ query: updateQuery });
+//                 console.log(`[${brand}] Successfully updated batch for missing earnings_create_time.`);
+//             }
+//         }
+        
+//     } catch (e) {
+//         console.log("[TIKTOK-FINANCE] Error merging wallet trx tiktok on brand: ", brand);
+//         console.log(e.response);
+//     }
+// }
 
 async function mergeFinanceTiktok(brand, data) {
     try {
-        // const datasetId = "tiktok_api_us";
-        // const tableName = brandTables[brand];
-        // const bigquery = new BigQuery();
-
-        // console.log(`[${brand}] Processing ${data.length} rows...`);
-        // if (data.length === 0) return;
-
-        // // --- STEP 1: GLOBAL CLEANUP VIA CTAS ---
-        // console.log(`[${brand}] Rebuilding table to drop old unwithdrawn rows...`);
-        // const allTxIds = data.map(row => `'${row.transaction_id}'`).join(",");
-
-        // // We use CREATE OR REPLACE to rebuild the table from itself, 
-        // // deliberately leaving behind the rows we want to "delete".
-        // const ctasQuery = `
-        //     CREATE OR REPLACE TABLE \`${bigquery.projectId}.${datasetId}.${tableName}\` AS
-        //     SELECT * FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
-        //     WHERE NOT (
-        //         transaction_id IN (${allTxIds}) 
-        //         AND withdrawal_id IS NULL
-        //     )
-        // `;
-        
-        // await bigquery.query({ query: ctasQuery });
-        // console.log(`[${brand}] Table rebuilt successfully.`);
-
-        // // --- STEP 2: BATCH INSERTS ---
-        // let batchSize = 1000;
-        // for(let i=0; i<data.length; i+=batchSize) {
-        //     const batchData = data.slice(i, i+batchSize);
-        //     const batchIds = batchData.map(row => `'${row.transaction_id}'`).join(",");
-
-        //     // Check what is already in the database
-        //     const checkQuery = `
-        //         SELECT transaction_id
-        //         FROM  \`${bigquery.projectId}.${datasetId}.${tableName}\`
-        //         WHERE transaction_id IN (${batchIds})
-        //     `;
-        //     const [existingRows] = await bigquery.query(checkQuery);
-        //     const existingTxIds = new Set(existingRows.map(row => row.transaction_id));
-            
-        //     // Filter out rows we already have
-        //     const dataToInsert = batchData.filter(row => !existingTxIds.has(row.transaction_id));
-            
-        //     console.log(`[${brand}] Data to insert this batch: ${dataToInsert.length}`);
-
-        //     if(dataToInsert.length > 0) {
-        //         await bigquery.dataset(datasetId).table(tableName).insert(dataToInsert);
-        //         console.log(`[${brand}] Successfully inserted batch.`);
-        //     }
-        // }
         const datasetId = "tiktok_api_us";
         const tableName = brandTables[brand];
         const bigquery = new BigQuery();
 
-        console.log(`[${brand}] Processing ${data.length} rows...`);
         if (data.length === 0) return;
 
-        // --- STEP 1: GLOBAL CLEANUP VIA CTAS ---
-        console.log(`[${brand}] Rebuilding table to drop old unwithdrawn rows...`);
         const allTxIds = data.map(row => `'${row.transaction_id}'`).join(",");
 
         const ctasQuery = `
@@ -510,61 +595,95 @@ async function mergeFinanceTiktok(brand, data) {
         `;
         
         await bigquery.query({ query: ctasQuery });
-        console.log(`[${brand}] Table rebuilt successfully.`);
 
-        // --- STEP 2: BATCH INSERTS VIA SQL (NO STREAMING API) ---
         let batchSize = 1000;
-        for(let i=0; i<data.length; i+=batchSize) {
-            const batchData = data.slice(i, i+batchSize);
+        for(let i = 0; i < data.length; i += batchSize) {
+            const batchData = data.slice(i, i + batchSize);
+            console.log("Processing ", batchData.length, " rows on table: ", tableName);
             const batchIds = batchData.map(row => `'${row.transaction_id}'`).join(",");
 
-            // Check what is already in the database
             const checkQuery = `
-                SELECT transaction_id
+                SELECT transaction_id, earnings_create_time, withdrawal_id
                 FROM  \`${bigquery.projectId}.${datasetId}.${tableName}\`
                 WHERE transaction_id IN (${batchIds})
             `;
             const [existingRows] = await bigquery.query(checkQuery);
-            const existingTxIds = new Set(existingRows.map(row => row.transaction_id));
             
-            // Filter out rows we already have
-            const dataToInsert = batchData.filter(row => !existingTxIds.has(row.transaction_id));
+            const existingRowsMap = new Map();
+            existingRows.forEach(row => existingRowsMap.set(row.transaction_id, row));
             
-            console.log(`[${brand}] Data to insert this batch: ${dataToInsert.length}`);
+            const dataToInsert = batchData.filter(row => !existingRowsMap.has(row.transaction_id));
+            
+            const dataToUpdate = batchData.filter(row => {
+                const dbRow = existingRowsMap.get(row.transaction_id);
+                if (!dbRow) return false;
+                
+                const needsTimeUpdate = !dbRow.earnings_create_time && row.earnings_create_time;
+                const needsWithdrawalUpdate = dbRow.withdrawal_id !== row.withdrawal_id && row.withdrawal_id !== null;
+                
+                return needsTimeUpdate || needsWithdrawalUpdate;
+            });
 
             if(dataToInsert.length > 0) {
-                // Construct a raw SQL INSERT INTO query
                 const valuesString = dataToInsert.map(row => {
                     const w_id = row.withdrawal_id ? `'${row.withdrawal_id}'` : 'NULL';
                     const w_time = row.withdrawal_create_time ? `'${row.withdrawal_create_time}'` : 'NULL';
                     const w_amt = row.withdrawal_total_amount !== null ? row.withdrawal_total_amount : 'NULL';
                     const e_id = row.earnings_id ? `'${row.earnings_id}'` : 'NULL';
+                    const e_time = row.earnings_create_time ? `'${row.earnings_create_time}'` : 'NULL';
                     const t_id = row.transaction_id ? `'${row.transaction_id}'` : 'NULL';
                     const o_id = row.order_id ? `'${row.order_id}'` : 'NULL';
                     const o_time = row.order_create_time ? `'${row.order_create_time}'` : 'NULL';
                     const o_amt = row.order_total_amount !== null ? row.order_total_amount : 'NULL';
-                    
-                    // Escape single quotes in strings to prevent SQL syntax errors
                     const t_type = row.transaction_type ? `'${row.transaction_type.replace(/'/g, "\\'")}'` : 'NULL';
 
-                    return `(${w_id}, ${w_time}, ${w_amt}, ${e_id}, ${t_id}, ${o_id}, ${o_time}, ${o_amt}, ${t_type})`;
+                    return `(${w_id}, ${w_time}, ${w_amt}, ${e_id}, ${e_time}, ${t_id}, ${o_id}, ${o_time}, ${o_amt}, ${t_type})`;
                 }).join(',');
 
-                // Push through the Query Engine, bypassing the Streaming API completely
                 const insertQuery = `
                     INSERT INTO \`${bigquery.projectId}.${datasetId}.${tableName}\`
-                    (withdrawal_id, withdrawal_create_time, withdrawal_total_amount, earnings_id, transaction_id, order_id, order_create_time, order_total_amount, transaction_type)
+                    (withdrawal_id, withdrawal_create_time, withdrawal_total_amount, earnings_id, earnings_create_time, transaction_id, order_id, order_create_time, order_total_amount, transaction_type)
                     VALUES ${valuesString}
                 `;
 
                 await bigquery.query({ query: insertQuery });
-                console.log(`[${brand}] Successfully inserted batch using SQL DML.`);
+            }
+
+            if (dataToUpdate.length > 0) {
+                const casesEarningsTime = dataToUpdate.map(row => 
+                    `WHEN '${row.transaction_id}' THEN ${row.earnings_create_time ? `'${row.earnings_create_time}'` : 'earnings_create_time'}`
+                ).join(' ');
+
+                const casesWithdrawalId = dataToUpdate.map(row => 
+                    `WHEN '${row.transaction_id}' THEN ${row.withdrawal_id ? `'${row.withdrawal_id}'` : 'withdrawal_id'}`
+                ).join(' ');
+
+                const casesWithdrawalTime = dataToUpdate.map(row => 
+                    `WHEN '${row.transaction_id}' THEN ${row.withdrawal_create_time ? `'${row.withdrawal_create_time}'` : 'withdrawal_create_time'}`
+                ).join(' ');
+
+                const casesWithdrawalAmount = dataToUpdate.map(row => 
+                    `WHEN '${row.transaction_id}' THEN ${row.withdrawal_total_amount !== null ? row.withdrawal_total_amount : 'withdrawal_total_amount'}`
+                ).join(' ');
+                
+                const updateIds = dataToUpdate.map(row => `'${row.transaction_id}'`).join(",");
+
+                const updateQuery = `
+                    UPDATE \`${bigquery.projectId}.${datasetId}.${tableName}\`
+                    SET 
+                        earnings_create_time = CASE transaction_id ${casesEarningsTime} END,
+                        withdrawal_id = CASE transaction_id ${casesWithdrawalId} END,
+                        withdrawal_create_time = CASE transaction_id ${casesWithdrawalTime} END,
+                        withdrawal_total_amount = CASE transaction_id ${casesWithdrawalAmount} END
+                    WHERE transaction_id IN (${updateIds})
+                `;
+
+                await bigquery.query({ query: updateQuery });
             }
         }
         
     } catch (e) {
-        console.log("[TIKTOK-FINANCE] Error merging wallet trx tiktok on brand: ", brand);
-        console.log(e.response);
+        console.log(e);
     }
 }
 

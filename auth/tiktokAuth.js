@@ -4,18 +4,30 @@ import axios from 'axios';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 const secretClient = new SecretManagerServiceClient();
 
-const secondInternalBrands = [
-    "Mirae",
-    "Swissvita",
-    "G-Belle",
-    "Past Nine",
-    "Nutri & Beyond",
-    "Ivy & Lily",
-    "Naruko",
-    "Relove",
-    "Joey & Roo",
-    "Rocketindo Shop"
-]
+const brandsInternalApp = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "Miss Daisy": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Rocketindo Shop": 2,
+    "Enchante": 3,
+}
 
 const tiktokSecrets = {
     "Eileen Grace": "projects/231801348950/secrets/eg-tiktok-tokens",
@@ -98,12 +110,15 @@ export async function refreshTokens(brand, refreshToken) {
     let appKey;
     let appSecret;
 
-    if(!secondInternalBrands.includes(brand)) {
+    if(brandsInternalApp[brand] === 1) {
         appKey = "6j6u4kmpdda19"
         appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+    } else if(brandsInternalApp[brand] === 2) {
+        appKey = "6j7inu4s9dkfq"
+        appSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
     } else {
-        appKey = "6j7inu4s9dkfq";
-        appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+        appKey = "6jbrll2ed26dp";
+        appSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92"
     }
 
     const refreshUrl = "https://auth.tiktok-shops.com/api/v2/token/refresh";
@@ -136,12 +151,15 @@ export async function getShopCipher(brand, accessToken) {
         let appKey;
         let appSecret;
 
-        if(!secondInternalBrands.includes(brand)) {
+        if(brandsInternalApp[brand] === 1) {
             appKey = "6j6u4kmpdda19"
             appSecret = "c4680b9ff6797160adb92104a77e2e1aa085c733"
+        } else if(brandsInternalApp[brand] === 2) {
+            appKey = "6j7inu4s9dkfq"
+            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0"
         } else {
-            appKey = "6j7inu4s9dkfq";
-            appSecret = "3493907831adc26d58c74262f709b48a2205a2d0";
+            appKey = "6jbrll2ed26dp";
+            appSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92"
         }
         
         const timestamp = Math.floor(Date.now() / 1000);
