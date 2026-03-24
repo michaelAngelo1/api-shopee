@@ -93,6 +93,10 @@ let storeIdAcc = {
     "enchante": {
         store_id: "7494271538671289804",
         table_name: "enchante_pgmax"
+    },
+    "m2": {
+        store_id: "7494397672846624005",
+        table_name: "m2_pgmax"
     }
 }    
 

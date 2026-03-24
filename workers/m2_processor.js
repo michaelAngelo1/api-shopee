@@ -3,6 +3,11 @@ import crypto from 'crypto';
 import 'dotenv/config';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
+import { fetchTiktokBasicAds } from '../functions/fetchTiktokBasicAds.js';
+import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
+import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
+import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
+import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 
 const secretClient = new SecretManagerServiceClient();
 export const PARTNER_ID = parseInt(process.env.PARTNER_ID);
@@ -113,6 +118,15 @@ export async function mainM2() {
     REFRESH_TOKEN = loadedTokens.refreshToken;
 
     await refreshToken();
+
+    let advIdM2 = "7618550122112729095";
+    const basicAdsData = await fetchTiktokBasicAds(brand, advIdM2);
+    const pgmvMaxData = await fetchProductGMVMax(brand, advIdM2);
+    const lgmvMaxData = await fetchLiveGMVMax(brand, advIdM2);
+
+    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    await fetchPGMVMaxBreakdown(brand, advIdM2);
+
     // M2
     // await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);

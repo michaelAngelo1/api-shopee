@@ -47,7 +47,8 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
         "rocketindoshop": "7495827950440450460",
         "relove": "7494271470068139382",
         "joeyroo": "7494266461991830655",
-        "enchante": "7494271538671289804"
+        "enchante": "7494271538671289804",
+        "m2": "7494397672846624005",
     }
 
     let success = false;

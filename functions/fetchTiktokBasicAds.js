@@ -243,6 +243,9 @@ function processData(brandName, resData1, resData2) {
         case "naruko":
             campaignPrefixes = ["Naruko"];
             break;
+        case "m2": 
+            campaignPrefixes = ["M2"];
+            break;
         default:
             console.warn(`No specific campaign prefix defined for brand: ${brandName}`);
             return [];
