@@ -97,7 +97,7 @@ async function saveTokensToSecret(tokens) {
         }
         console.log("[DRJOU] Successfully saved tokens to DRJOU Secret Manager: ", parent);
     } catch (e) {
-        console.error("[DRJOU] Error saving tokens to Secret Manager: ", e);
+        console.error("[DRJOU] Error saving tokens to Secret Manager: ");
     }
 }
 
@@ -113,7 +113,7 @@ async function loadTokensFromSecret() {
         console.log("Tokens loaded from Secret Manager: ", tokens);
         return tokens;
     } catch (e) {
-        console.error("[DRJOU] Error loading tokens from Secret Manager: ", e);
+        console.error("[DRJOU] Error loading tokens from Secret Manager: ");
     }
 }
 
@@ -128,30 +128,30 @@ export async function fetchAndProcessOrdersDRJOU() {
 
     await refreshToken();
 
-    await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
-    await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID)
-    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
+    // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
+    // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID)
+    // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
 
-    await fetchAffiliateData(brand, SHOP_ID, 6000);
+    // await fetchAffiliateData(brand, SHOP_ID, 6000);
 
     // For backfilling
-    let advIdEvoke = "7374337917889953808"
+    // let advIdEvoke = "7374337917889953808"
     
-    let advIdDrJou = "7431385339190820880"
-    let advertiserId = advIdDrJou;
+    // let advIdDrJou = "7431385339190820880"
+    // let advertiserId = advIdDrJou;
 
-    const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
-    const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
-    const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
+    // const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
+    // const pgmvMaxData = await fetchProductGMVMax(brandTT, advertiserId);
+    // const lgmvMaxData = await fetchLiveGMVMax(brandTT, advertiserId);
     
-    console.log("[DRJOU] All data on: ", brand);
-    console.log(basicAdsData);
-    console.log(pgmvMaxData);
-    console.log(lgmvMaxData);
-    console.log("\n");
+    // console.log("[DRJOU] All data on: ", brand);
+    // console.log(basicAdsData);
+    // console.log(pgmvMaxData);
+    // console.log(lgmvMaxData);
+    // console.log("\n");
 
-    await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
-    await fetchPGMVMaxBreakdown(brandTT, advertiserId);
+    // await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
+    // await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }
 
 await fetchAndProcessOrdersDRJOU();
