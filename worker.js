@@ -14,6 +14,7 @@ import { fetchAndProcessOrdersGB } from './workers/gb_processor.js';
 import { fetchAndProcessOrdersPN } from './workers/pn_processor.js';
 import { fetchAndProcessOrdersNB } from './workers/nb_processor.js';
 import { fetchAndProcessOrdersIL } from './workers/il_processor.js';
+
 import { mainTiktokFinance } from './functions/handleFinance.js';
 import 'dotenv/config';
 import express from 'express';
