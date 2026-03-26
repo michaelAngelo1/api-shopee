@@ -30,7 +30,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 workerApp.get('/', (req, res) => res.status(200).send("Worker is healthy"));
 
-workerApp.get('/process/transactions-breakdown', async (req, res) => {
+workerApp.post('/process/transactions-breakdown', async (req, res) => {
     res.status(200).send("Transactions Breakdown is running in the background");
     try {
         await mainTransactionsBreakdown();

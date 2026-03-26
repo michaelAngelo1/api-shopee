@@ -573,7 +573,9 @@ async function mergeTransactionBreakdown(brand, data) {
 export async function mainTransactionsBreakdown() {
     const currentDate = new Date().toISOString();
     const targetMonth = currentDate.slice(0, 7);
-    console.log("Current month: ", targetMonth);
+
+    // const targetMonth = "2025-12";
+    // console.log("Current month: ", targetMonth);
 
     await handleTransactionsBreakdown("Eileen Grace", targetMonth);
     await handleTransactionsBreakdown("Mamaway", targetMonth);
