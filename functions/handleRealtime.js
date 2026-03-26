@@ -90,7 +90,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
 
     } catch (e) {
         console.log("[REALTIME-SALES] Error get order list on brand: ", brand);
-        console.log(e.response.data.message);
+        console.log(e);
     }
 
     return [...new Set(allOrderSns)];
@@ -257,7 +257,7 @@ async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_ke
             })
         }
     } catch (e) {
-        console.log("Error getting escrow detail batch: ", e.response.data.message);
+        console.log("Error getting escrow detail batch: ", e);
     }
 
     return voucherFromSellerTotal;
