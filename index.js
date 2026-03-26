@@ -32,7 +32,7 @@ app.get('/trigger-daily-sync', async (req, res) => {
         // This process will take ~16 minutes total.
         await fetch(`${WORKER_URL}/process/daily-sync`, { method: 'POST' });
         
-        res.status(200).send("Successfully completed daily sync job sequence");
+        res.status(200).send("Successfully triggered daily sync job sequence");
     } catch (e) {
         console.error("Failed to trigger daily job: ", e);
         res.status(500).send("Failed to trigger job");

@@ -3,6 +3,8 @@ import { formatToDDMMYYYY } from './fetchGMVMaxSpending.js';
 import { BigQuery } from '@google-cloud/bigquery';
 const bigquery = new BigQuery();
 
+// import 'dotenv/config';
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }

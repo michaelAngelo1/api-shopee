@@ -50,6 +50,7 @@ workerApp.post('/process/orders', async (req, res) => {
 });
 
 workerApp.post('/process/daily-sync', async (req, res) => {
+    res.status(200).send("Daily sync acknowledged and starting in background.");
     try {
         const tasks = [
             { name: 'Eileen Grace', fn: fetchAndProcessOrders },
@@ -81,8 +82,6 @@ workerApp.post('/process/daily-sync', async (req, res) => {
                 await delay(DELAY_MS);
             }
         }
-
-        res.status(200).send("Daily sync executed.");
     } catch (e) {
         console.error("Critical error in daily sync pipeline:", e);
         if (!res.headersSent) res.status(500).send("Pipeline failed");

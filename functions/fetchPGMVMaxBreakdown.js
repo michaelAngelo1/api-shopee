@@ -2,6 +2,7 @@ import axios from 'axios';
 import { BigQuery } from '@google-cloud/bigquery';
 import { isRedisCluster } from 'bullmq';
 import { backfillEndDate, backfillStartDate } from './fetchTiktokBasicAds.js';
+// import 'dotenv/config';
 const bigquery = new BigQuery();
 let access_token = process.env.TIKTOK_MARKETING_ACCESS_TOKEN;
 

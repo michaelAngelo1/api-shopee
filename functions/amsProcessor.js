@@ -322,44 +322,46 @@ async function mergeData(data, brand, data_date) {
     const bigquery = new BigQuery();
     const datasetId = 'shopee_api';
 
-    try {
-        const query = `
-            SELECT date
-            FROM \`${datasetId}.${tableName}\`
-            WHERE date = @date
-        `;
+    if(data.est_commission !== '0') {
+        try {
+            const query = `
+                SELECT date
+                FROM \`${datasetId}.${tableName}\`
+                WHERE date = @date
+            `;
 
-        const options = {
-            query,
-            params: {
-                date: data_date
+            const options = {
+                query,
+                params: {
+                    date: data_date
+                }
             }
+
+            const [rows] = await bigquery.query(options);
+
+            if(rows.length > 0) {
+                console.log("[AMS] Row already exists");
+                return;
+            }
+
+            await bigquery 
+                .dataset(datasetId)
+                .table(tableName)
+                .insert({
+                    date: data_date,
+                    sales: data.sales,
+                    gross_item_sold: data.gross_item_sold,
+                    orders: data.orders,
+                    clicks: data.clicks,
+                    est_commission: data.est_commission,
+                    roi: data.roi,
+                    total_buyers: data.total_buyers,
+                    new_buyers: data.new_buyers,
+                    process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
+                });
+            console.log(`[AMS] Merged to table ${tableName}`);
+        } catch (e) {
+            console.error(`Error inserting AMS data on ${brand}: ${e}`);
         }
-
-        const [rows] = await bigquery.query(options);
-
-        if(rows.length > 0) {
-            console.log("[AMS] Row already exists");
-            return;
-        }
-
-        await bigquery 
-            .dataset(datasetId)
-            .table(tableName)
-            .insert({
-                date: data_date,
-                sales: data.sales,
-                gross_item_sold: data.gross_item_sold,
-                orders: data.orders,
-                clicks: data.clicks,
-                est_commission: data.est_commission,
-                roi: data.roi,
-                total_buyers: data.total_buyers,
-                new_buyers: data.new_buyers,
-                process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
-            });
-        console.log(`[AMS] Merged to table ${tableName}`);
-    } catch (e) {
-        console.error(`Error inserting AMS data on ${brand}: ${e}`);
     }
 }

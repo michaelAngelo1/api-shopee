@@ -4,6 +4,8 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { backfillEndDate, backfillStartDate } from './fetchTiktokBasicAds.js';
 const bigquery = new BigQuery();
 
+// import 'dotenv/config';
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }

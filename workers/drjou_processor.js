@@ -10,6 +10,7 @@ import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
 import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
+import 'dotenv/config';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -133,11 +134,10 @@ export async function fetchAndProcessOrdersDRJOU() {
 
     await fetchAffiliateData(brand, SHOP_ID, 6000);
 
-    let advIdDrJou = "7431385339190820880"
-    
     // For backfilling
     let advIdEvoke = "7374337917889953808"
-
+    
+    let advIdDrJou = "7431385339190820880"
     let advertiserId = advIdDrJou;
 
     const basicAdsData = await fetchTiktokBasicAds(brandTT, advertiserId);
@@ -151,7 +151,7 @@ export async function fetchAndProcessOrdersDRJOU() {
     console.log("\n");
 
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
-
-    // For backfilling
     await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }
+
+await fetchAndProcessOrdersDRJOU();

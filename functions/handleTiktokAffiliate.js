@@ -107,18 +107,21 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
             );
 
             // console.log("[TIKTOK-AFFILIATE] Affiliate raw response orders: ", response.data.data.orders);
-            if(response.data && response.data.data.orders.length > 0) {
+            if(response.data.data && response.data.data.orders) {
                 rawAffiliateOrders.push(...response.data.data.orders);
                 rawAffiliateOrdersLength += response.data.data.orders.length;   
-            }
 
-            const nextPageToken = response.data.data.next_page_token;
-
-            if(nextPageToken && nextPageToken.length > 0) {
-                currPageToken = nextPageToken;
+                const nextPageToken = response.data.data.next_page_token;
+    
+                if(nextPageToken && nextPageToken.length > 0) {
+                    currPageToken = nextPageToken;
+                } else {
+                    keepFetching = false;
+                }
             } else {
                 keepFetching = false;
             }
+
         }
 
         console.log("Affiliate orders qty: ", rawAffiliateOrdersLength);
@@ -248,29 +251,73 @@ export async function handleTiktokAffiliate(brand) {
     affiliateOrders.sort((a, b) => a.create_time - b.create_time);
 
     await mergeTiktokAffiliate(affiliateOrders, brand);
+
+    // setTimeout(() => {}, 3000);
 }
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function mainTiktokAffiliate() {
-    await handleTiktokAffiliate("Eileen Grace")
+    await handleTiktokAffiliate("Eileen Grace");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Mamaway");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("SHRD");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Miss Daisy");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Polynia");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("CHESS");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Cléviant");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Mossèru");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Evoke");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Dr Jou");
-    await handleTiktokAffiliate("Mirae")
+    await delay(3000); 
+    
+    await handleTiktokAffiliate("Mirae");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Swissvita");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("G-Belle");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Past Nine");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Nutri & Beyond");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Ivy & Lily");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Naruko");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Relove");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Joey & Roo");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("Rocketindo Shop");
+    await delay(3000); 
+    
     await handleTiktokAffiliate("M2");
 }
 
