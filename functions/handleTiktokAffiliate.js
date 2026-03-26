@@ -107,8 +107,10 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
             );
 
             // console.log("[TIKTOK-AFFILIATE] Affiliate raw response orders: ", response.data.data.orders);
-            rawAffiliateOrders.push(...response.data.data.orders);
-            rawAffiliateOrdersLength += response.data.data.orders.length;   
+            if(response.data && response.data.data.orders.length > 0) {
+                rawAffiliateOrders.push(...response.data.data.orders);
+                rawAffiliateOrdersLength += response.data.data.orders.length;   
+            }
 
             const nextPageToken = response.data.data.next_page_token;
 
