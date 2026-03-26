@@ -167,4 +167,4 @@ export async function fetchAndProcessOrdersDRJOU() {
     // await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }
 
-await fetchAndProcessOrdersDRJOU();
+// await fetchAndProcessOrdersDRJOU();
