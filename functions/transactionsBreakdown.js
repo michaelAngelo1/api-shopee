@@ -1,0 +1,603 @@
+import crypto from 'crypto';
+import axios from 'axios';
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuthTransaction.js";
+import { BigQuery } from '@google-cloud/bigquery';
+
+// Transaction breakdown on main
+const secretClient = new SecretManagerServiceClient();
+
+const secondTransactionBrands = [
+    "Mirae",
+    "Swissvita",
+    "G-Belle",
+    "Past Nine",
+    "Nutri & Beyond",
+    "Ivy & Lily",
+    "Naruko",
+    "Relove",
+    "Joey & Roo",
+    "Enchante",
+    "Rocketindo Shop"
+];
+
+const brandsTransactionApp = {
+    "Eileen Grace": 1,
+    "Mamaway": 1,
+    "SHRD": 1,
+    "Miss Daisy": 1,
+    "CHESS": 1,
+    "Polynia": 1,
+    "CHESS": 1,
+    "Cléviant": 1,
+    "Mossèru": 1,
+    "Evoke": 1,
+    "Dr Jou": 1,
+    "Mirae": 2,
+    "Swissvita": 2,
+    "G-Belle": 2,
+    "Past Nine": 2,
+    "Nutri & Beyond": 2,
+    "Ivy & Lily": 2,
+    "Naruko": 2,
+    "Relove": 2,
+    "Joey & Roo": 2, 
+    "Enchante": 2,
+    "M2": 3,
+    "Rocketindo Shop": 3,
+}
+
+export async function loadCredentials() {
+    const secretName = "projects/231801348950/secrets/realtime-service-account/versions/latest";
+
+    try {
+        const [version] = await secretClient.accessSecretVersion({
+            name: secretName
+        });
+        const data = version.payload.data.toString('UTF-8');
+        const creds = JSON.parse(data);
+
+        return creds;
+    } catch (e) {
+        console.error("[MERGE-REALTIME] Error getting service account credentials: ", e);
+    }
+}
+
+function generateDateRanges(targetMonthStr) {
+    const [yearStr, monthStr] = targetMonthStr.split('-');
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10); 
+
+    function getMonthRange(y, m) {
+        const startDate = new Date(Date.UTC(y, m - 1, 1));
+        const endDate = new Date(Date.UTC(y, m, 0));
+        return {
+            start: startDate.toISOString().split('T')[0],
+            end: endDate.toISOString().split('T')[0]
+        };
+    }
+
+    function getNextMonthBuffer(y, m) {
+        const startDate = new Date(Date.UTC(y, m, 1));
+        const endDate = new Date(Date.UTC(y, m, 7));
+        return {
+            start: startDate.toISOString().split('T')[0],
+            end: endDate.toISOString().split('T')[0]
+        };
+    }
+
+    return {
+        targetMonth: targetMonthStr,
+        withdrawalMonths: [
+            getMonthRange(year, month - 1), 
+            getMonthRange(year, month)      
+        ],
+        statementMonths: [
+            getMonthRange(year, month - 2), 
+            getMonthRange(year, month - 1), 
+            getMonthRange(year, month),     
+            getNextMonthBuffer(year, month) 
+        ]
+    };
+}
+
+function convertTimestampJakarta(orderCreatedTime) {
+    const date = new Date(orderCreatedTime * 1000);
+    const utc7Date = new Date(date.getTime() + (7 * 60 * 60 * 1000)); 
+    return utc7Date.toISOString().replace('T', ' ').substring(0, 19);
+}
+
+async function getWithdrawals(brand, shopCipher, accessToken, monthsToFetch) {
+    try {
+        let appKey;
+        let appSecret;
+        
+        if(brandsTransactionApp[brand] === 1) {
+            appKey = "6jalpvras8n00"
+            appSecret = "608e7a9c85afc968d0baa47f6f93258d3ab51949"
+        } else if(brandsTransactionApp[brand] === 2) {
+            appKey = "6jbdera7i5q9b"
+            appSecret = "7955bd57fa190f1d6ea27514f45b884192e474f0"
+        } else {
+            appKey = "6jh02dvv0quds";
+            appSecret = "44fa9a765f37f3c56151a000abeb4b1fc9d26f05"
+        }
+        
+        const path = "/finance/202309/withdrawals";
+        const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
+        let rawWithdrawals = [];
+
+        for (const month of monthsToFetch) {
+            const createTimeFrom = Math.floor(new Date(`${month.start}T00:00:00+07:00`).getTime() / 1000);
+            const createTimeTo = Math.floor(new Date(`${month.end}T23:59:59+07:00`).getTime() / 1000);
+            
+            let keepFetching = true;
+            let currPageToken = "";
+            
+            while(keepFetching) {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const queryParams = {   
+                    app_key: appKey,
+                    create_time_ge: createTimeFrom,
+                    create_time_lt: createTimeTo,
+                    types: ["WITHDRAW", "SETTLE", "TRANSFER", "REVERSE"].join(','),
+                    page_size: 100,
+                    timestamp: timestamp,
+                    shop_cipher: shopCipher
+                };  
+                if(currPageToken) queryParams.page_token = currPageToken;
+                
+                const sortedKeys = Object.keys(queryParams).sort();
+                let result = appSecret + path;
+                for(const key of sortedKeys) result += key + queryParams[key];
+                result += appSecret;
+
+                queryParams.sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
+                
+                const response = await axios.get(baseUrl + new URLSearchParams(queryParams).toString(), {
+                    headers: { 'content-type': 'application/json', 'x-tts-access-token': accessToken }
+                });
+
+                if(response.data.data && response.data.data.withdrawals) {
+                    rawWithdrawals.push(...response.data.data.withdrawals);
+                }
+                const nextPageToken = response.data.data?.next_page_token;
+                currPageToken = (nextPageToken && nextPageToken.length > 0) ? nextPageToken : "";
+                if(!currPageToken) keepFetching = false;
+            }
+        }
+
+        return rawWithdrawals.map(r => ({
+            withdrawal_id: r.id,
+            create_time: convertTimestampJakarta(r.create_time),
+            status: r.status,
+            type: r.type
+        }));
+    } catch (e) {
+        console.log("[TIKTOK-FINANCE] Error getting withdrawals", e?.response?.data || e);
+        return [];
+    }
+}
+
+async function getStatements(brand, shopCipher, accessToken, monthsToFetch) {
+    try {
+        let appKey;
+        let appSecret;
+
+        if(brandsTransactionApp[brand] === 1) {
+            appKey = "6jalpvras8n00"
+            appSecret = "608e7a9c85afc968d0baa47f6f93258d3ab51949"
+        } else if(brandsTransactionApp[brand] === 2) {
+            appKey = "6jbdera7i5q9b"
+            appSecret = "7955bd57fa190f1d6ea27514f45b884192e474f0"
+        } else {
+            appKey = "6jh02dvv0quds";
+            appSecret = "44fa9a765f37f3c56151a000abeb4b1fc9d26f05"
+        }
+        
+        const path = "/finance/202309/statements";
+        const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
+        let rawStatements = [];
+        
+        for (const month of monthsToFetch) {
+            const statementTimeFrom = Math.floor(new Date(`${month.start}T00:00:00+07:00`).getTime() / 1000);
+            const statementTimeTo = Math.floor(new Date(`${month.end}T23:59:59+07:00`).getTime() / 1000);
+            
+            let keepFetching = true;
+            let currPageToken = "";
+
+            while(keepFetching) {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const queryParams = {   
+                    app_key: appKey,
+                    statement_time_ge: statementTimeFrom,
+                    statement_time_lt: statementTimeTo,
+                    sort_field: "statement_time",
+                    sort_order: "DESC",
+                    page_size: 100,
+                    timestamp: timestamp,
+                    shop_cipher: shopCipher
+                };  
+                if(currPageToken) queryParams.page_token = currPageToken;
+                
+                const sortedKeys = Object.keys(queryParams).sort();
+                let result = appSecret + path;
+                for(const key of sortedKeys) result += key + queryParams[key];
+                result += appSecret;
+
+                queryParams.sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
+                
+                const response = await axios.get(baseUrl + new URLSearchParams(queryParams).toString(), {
+                    headers: { 'content-type': 'application/json', 'x-tts-access-token': accessToken }
+                });
+
+                if(response.data.data && response.data.data.statements) {
+                    rawStatements.push(...response.data.data.statements);
+                }
+                const nextPageToken = response.data.data?.next_page_token;
+                currPageToken = (nextPageToken && nextPageToken.length > 0) ? nextPageToken : "";
+                if(!currPageToken) keepFetching = false;
+            }
+        }
+
+        return rawStatements.map(r => ({
+            statement_id: r.id,
+            withdrawal_id: r.payment_id
+        }));
+    } catch (e) {
+        console.log("[TIKTOK-FINANCE] Error getting statements", e?.response?.data || e);
+        return [];
+    }
+}
+
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function fetchTransactionsByStatement(brand, statementId, shopCipher, accessToken) {
+    let appKey;
+    let appSecret;
+
+    if(brandsTransactionApp[brand] === 1) {
+        appKey = "6jalpvras8n00"
+        appSecret = "608e7a9c85afc968d0baa47f6f93258d3ab51949"
+    } else if(brandsTransactionApp[brand] === 2) {
+        appKey = "6jbdera7i5q9b"
+        appSecret = "7955bd57fa190f1d6ea27514f45b884192e474f0"
+    } else {
+        appKey = "6jh02dvv0quds";
+        appSecret = "44fa9a765f37f3c56151a000abeb4b1fc9d26f05"
+    }
+    
+    const path = `/finance/202501/statements/${statementId}/statement_transactions`;
+    const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
+    
+    let keepFetching = true;
+    let currPageToken = "";
+    let rawTransactions = [];
+
+    while(keepFetching) {
+        let attempt = 0;
+        let success = false;
+        let response;
+
+        while (!success && attempt < 5) {
+            try {
+                const timestamp = Math.floor(Date.now() / 1000);
+                const queryParams = {   
+                    app_key: appKey,
+                    sort_field: "order_create_time",
+                    sort_order: "DESC",
+                    page_size: 100,
+                    timestamp: timestamp,
+                    shop_cipher: shopCipher
+                };  
+                if(currPageToken) queryParams.page_token = currPageToken;
+                
+                const sortedKeys = Object.keys(queryParams).sort();
+                let result = appSecret + path;
+                for(const key of sortedKeys) result += key + queryParams[key];
+                result += appSecret;
+
+                queryParams.sign = crypto.createHmac('sha256', appSecret).update(result).digest('hex');
+                
+                response = await axios.get(baseUrl + new URLSearchParams(queryParams).toString(), {
+                    headers: { 'content-type': 'application/json', 'x-tts-access-token': accessToken }
+                });
+                
+                success = true; 
+
+            } catch (e) {
+                const isRateLimit = e?.response?.status === 429 || e?.response?.data?.message?.includes('Too many requests');
+                if (isRateLimit) {
+                    attempt++;
+                    const backoffTime = Math.pow(2, attempt) * 1000; 
+                    console.log(`[RATE LIMIT] Statement ${statementId}. Retrying in ${backoffTime/1000}s (Attempt ${attempt}/5)`);
+                    await wait(backoffTime);
+                } else {
+                    console.log(`[TIKTOK-TRANSACTION] Error on statement ${statementId}`, e?.response?.data?.message || e.message);
+                    return rawTransactions; 
+                }
+            }
+        }
+
+        if (!success) {
+            console.log(`[FAILED] Statement ${statementId} failed after 5 retries.`);
+            return rawTransactions;
+        }
+
+        if(response.data.data && response.data.data.transactions) {
+            rawTransactions.push(...response.data.data.transactions.map(t => ({ ...t, statement_id: statementId })));
+        }
+        
+        const nextPageToken = response.data.data?.next_page_token;
+        currPageToken = (nextPageToken && nextPageToken.length > 0) ? nextPageToken : "";
+        if(!currPageToken) keepFetching = false;
+    }
+
+    return rawTransactions;
+}
+
+function mapToSQLSchema(brand, trx) {
+    const val = (path) => Number(path || 0);
+
+    const ssp = val(trx.revenue_breakdown?.subtotal_before_discount_amount);
+    const sellerDiscount = val(trx.revenue_breakdown?.seller_discount_amount);
+
+    // if (trx.order_id === '581613468706899197' || trx.adjustment_id === '581613468706899197' || trx.associated_order_id === '581613468706899197') {
+    //     console.log("\n--- LIVE FEES FOR 581613468706899197 ---");
+    //     const fees = trx.fee_tax_breakdown?.fee || {};
+    //     for (const [key, value] of Object.entries(fees)) {
+    //         if (Number(value) !== 0) console.log(`${key}: ${value}`);
+    //     }
+    //     console.log("----------------------------------------\n");
+    // }
+
+    return {
+        Transaction_ID: trx.id ? String(trx.id) : null,
+        Order_adjustment_ID: trx.type === "ORDER" ? trx.order_id : trx.adjustment_id,
+        Related_order_ID: trx.type === "ORDER" ? trx.order_id : trx.adjustment_order_id,
+        Type: trx.type ? String(trx.type) : null,
+        Order_created_time_UTC: convertTimestampJakarta(val(trx.order_create_time)),
+
+        Subtotal_before_discounts: ssp,
+        Seller_discounts: sellerDiscount,
+        Subtotal_after_seller_discounts: ssp + sellerDiscount,
+
+        Total_fees: val(trx.fee_tax_amount) + val(trx.shipping_cost_amount),
+        Platform_commission_fee: val(trx.fee_tax_breakdown?.fee?.platform_commission_amount),
+        Flat_fee: val(trx.fee_tax_breakdown?.fee?.fee_per_item_sold_amount),
+        Sales_fee: val(trx.fee_tax_breakdown?.fee?.referral_fee_amount),
+        Pre_Order_Service_Fee: val(trx.fee_tax_breakdown?.fee?.pre_order_service_fee_amount),
+        Mall_service_fee: val(trx.fee_tax_breakdown?.fee?.mall_service_fee_amount),
+        Payment_fee: val(trx.fee_tax_breakdown?.fee?.transaction_fee_amount) || val(trx.fee_tax_breakdown?.fee?.credit_card_handling_fee_amount),
+        
+        Shipping_cost: val(trx.shipping_cost_amount),
+        Shipping_costs_passed_on_to_the_logistics_provider: val(trx.shipping_cost_breakdown?.actual_shipping_fee_amount),
+        Replacement_shipping_fee_passed_on_to_the_customer: val(trx.shipping_cost_breakdown?.replacement_shipping_fee_amount),
+        Exchange_shipping_fee_passed_on_to_the_customer: val(trx.shipping_cost_breakdown?.exchange_shipping_fee_amount),
+        Shipping_cost_borne_by_the_platform: val(trx.shipping_cost_breakdown?.supplementary_component?.platform_shipping_fee_discount_amount),
+        Shipping_cost_paid_by_the_customer: val(trx.shipping_cost_breakdown?.customer_paid_shipping_fee_amount),
+        Refunded_shipping_cost_paid_by_the_customer: val(trx.shipping_cost_breakdown?.supplementary_component?.refunded_customer_shipping_fee_amount),
+        Return_shipping_costs_passed_on_to_the_customer: val(trx.shipping_cost_breakdown?.return_shipping_fee_amount),
+        Shipping_cost_subsidy: val(trx.shipping_cost_breakdown?.supplementary_component?.shipping_fee_subsidy_amount),
+        
+        Affiliate_commission: val(trx.fee_tax_breakdown?.fee?.affiliate_commission_amount),
+        Affiliate_partner_commission: val(trx.fee_tax_breakdown?.fee?.affiliate_partner_commission_amount),
+        Affiliate_Shop_Ads_commission: val(trx.fee_tax_breakdown?.fee?.affiliate_ads_commission_amount),
+
+        // This should be 0
+        Affiliate_Shop_Ads_commission_before_PIT: val(trx.fee_tax_breakdown?.fee?.affiliate_commission_amount_before_pit),
+        
+        Personal_income_tax_withheld_from_affiliate_Shop_Ads_commission: val(trx.fee_tax_breakdown?.tax?.pit_amount),
+        Affiliate_Partner_shop_ads_commission: val(trx.fee_tax_breakdown?.fee?.tap_shop_ads_commission),
+        
+        Shipping_Fee_Program_service_fee: val(trx.fee_tax_breakdown?.fee?.sfp_service_fee_amount),
+        Dynamic_Commission: val(trx.fee_tax_breakdown?.fee?.dynamic_commission_amount),
+        Bonus_cashback_service_fee: val(trx.fee_tax_breakdown?.fee?.bonus_cashback_service_fee_amount),
+        LIVE_Specials_Service_Fee: val(trx.fee_tax_breakdown?.fee?.live_specials_fee_amount),
+        Voucher_Xtra_Service_Fee: val(trx.fee_tax_breakdown?.fee?.voucher_xtra_service_fee_amount),
+        Order_processing_fee: val(trx.fee_tax_breakdown?.fee?.vn_fix_infrastructure_fee),
+        EAMS_Program_service_fee: val(trx.fee_tax_breakdown?.fee?.external_affiliate_marketing_fee_amount),
+        Brands_Crazy_Deals_Flash_Sale_service_fee: val(trx.fee_tax_breakdown?.fee?.flash_sales_service_fee_amount),
+        Dilayani_Tokopedia_fee: val(trx.fee_tax_breakdown?.fee?.tsp_commission_amount),
+        Dilayani_Tokopedia_handling_fee: val(trx.fee_tax_breakdown?.fee?.dt_handling_fee_amount),
+        PayLater_program_fee: val(trx.fee_tax_breakdown?.fee?.seller_paylater_handling_fee_amount),
+        Campaign_resource_fee: val(trx.fee_tax_breakdown?.fee?.campaign_resource_fee),
+        Installation_service_fee: val(trx.fee_tax_breakdown?.fee?.installation_service_fee),
+        Ajustment_amount: val(trx.adjustment_amount)
+    };
+}
+
+async function handleTransactionsBreakdown(brand, targetMonth) {
+    const tokens = await loadTokens(brand);
+    let accessToken = tokens.accessToken;
+    let refreshToken = tokens.refreshToken;
+
+    await refreshTokens(brand, refreshToken);
+    const shopCipher = await getShopCipher(brand, accessToken);
+    
+    const dates = generateDateRanges(targetMonth);
+
+    const rawWithdrawals = await getWithdrawals(brand, shopCipher, accessToken, dates.withdrawalMonths);
+    const settleEventMap = new Map();
+    rawWithdrawals.filter(w => w.type === 'SETTLE').forEach(w => {
+        settleEventMap.set(String(w.withdrawal_id), w.create_time);
+    });
+
+    const rawStatements = await getStatements(brand, shopCipher, accessToken, dates.statementMonths);
+    const statementToEarningsMap = new Map();
+    rawStatements.forEach(stmt => {
+        statementToEarningsMap.set(String(stmt.statement_id), String(stmt.withdrawal_id));
+    });
+
+    const statementIds = rawStatements.map(s => s.statement_id);
+    console.log(`Total Statements to fetch transactions for: ${statementIds.length}`);
+
+    let allRawTransactions = [];
+    const CHUNK_SIZE = 10; 
+    
+    for (let i = 0; i < statementIds.length; i += CHUNK_SIZE) {
+        console.log(`Processing Statement batch ${i} to ${i + CHUNK_SIZE}...`);
+        
+        const chunk = statementIds.slice(i, i + CHUNK_SIZE);
+        const chunkPromises = chunk.map(stmtId => 
+            fetchTransactionsByStatement(brand, stmtId, shopCipher, accessToken)
+        );
+
+        const chunkResults = await Promise.all(chunkPromises);
+        
+        chunkResults.forEach(res => {
+            if (res && res.length > 0) allRawTransactions.push(...res);
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 1500)); 
+    }
+
+    const transactionBreakdownList = [];
+
+    allRawTransactions.forEach(trx => {
+        const earningsId = statementToEarningsMap.get(String(trx.statement_id));
+        const settleTime = settleEventMap.get(earningsId);
+
+        if (settleTime && settleTime.startsWith(targetMonth)) {
+            const sqlMappedData = mapToSQLSchema(brand, trx);
+            transactionBreakdownList.push(sqlMappedData);
+        }
+    });
+
+    console.log("Transaction Breakdown List length: ", transactionBreakdownList.length);
+    // console.log("First three: ");
+    // console.log(transactionBreakdownList.filter(o => o.Type !== "ORDER").slice(0, 3));
+
+    console.log("Orders where Adjustment are not 0");
+    console.log(transactionBreakdownList
+        .filter(o => 
+            o.Ajustment_amount > 0 
+            // && o.Related_order_ID === "582003981771769556"
+        )
+        .map(o => {
+            let mapped = {
+                Order_adjustment_ID: o.Order_adjustment_ID,
+                Order_created_time_UTC: o.Order_created_time_UTC,
+                Related_order_ID: o.Related_order_ID,
+                Adjustment_amount: o.Ajustment_amount
+            }
+            return mapped;
+        })
+    );
+    console.log("Sum of Adjustment Amount: ");
+    console.log(transactionBreakdownList.reduce((i, t) => i + t.Ajustment_amount, 0));
+    console.log("Finished Processing.");    
+    
+    // console.log("Specific order adjustment ID");
+    // console.log(transactionBreakdownList.filter(o => o.Related_order_ID === "582003981771769556"));
+    await mergeTransactionBreakdown(brand, transactionBreakdownList);
+}
+
+const brandTransactionTables = {
+    "Eileen Grace": "eileen_grace_income",
+    "Mamaway": "mamaway_income",
+    "SHRD": "shrd_income",
+    "Miss Daisy": "miss_daisy_income",
+    "Polynia": "polynia_income",
+    "CHESS": "chess_income",
+    "Cléviant": "cleviant_income",
+    "Mossèru": "mosseru_income",
+    "Evoke": "evoke_income",
+    "Dr Jou": "dr_jou_income",
+    "Mirae": "mirae_income",
+    "Swissvita": "swissvita_income",
+    "G-Belle": "gbelle_income",
+    "Past Nine": "past_nine_income",
+    "Nutri & Beyond": "nutri_beyond_income",
+    "Ivy & Lily": "ivy_lily_income",
+    "Naruko": "naruko_income",
+    "Relove": "relove_income",
+    "Joey & Roo": "joey_roo_income",
+    "Enchante": "enchante_income",
+    "Rocketindo Shop": "pinkrocket_income",
+    "M2": "m2_income"
+}
+
+async function mergeTransactionBreakdown(brand, data) {
+    console.log("Transaction Breakdown data on brand: ", brand);
+    console.log(data.slice(0, 1));
+
+    try {
+        const datasetId = "tiktok_api_us";
+        const tableName = brandTransactionTables[brand];
+        const bigquery = new BigQuery();
+
+        // Deduplication with Transaction_ID
+
+        let batchSize = 1000;
+        for(let i=0; i<data.length; i+=batchSize) {
+            const batchData = data.slice(i, i+batchSize);
+
+            const incomingTransactionIds = batchData.map(row => `'${row.Transaction_ID}'`).join(",");
+
+            if(!incomingTransactionIds) continue;
+
+            const query = `
+                SELECT Transaction_ID
+                FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
+                WHERE Transaction_ID in (${incomingTransactionIds})
+            `;
+
+            const [existingRows] = await bigquery.query(query);
+            const existingIds = new Set(existingRows.map(row => row.Transaction_ID));
+            console.log("[TIKTOK-TRANSACTION-BREAKDOWN] Found: ", existingIds.size, " duplicates in table: ", tableName);
+
+            const dataToInsert = batchData.filter(row => !existingIds.has(row.Transaction_ID));
+
+            if(dataToInsert.length === 0) {
+                console.log("[TIKTOK-TRANSACTION-BREAKDOWN] All data already exists. Skipping inserts.");
+                continue;
+            };
+
+            console.log("[TIKTOK-TRANSACTION-BREAKDOWN] Inserting: ", dataToInsert.length, " new rows to: ", tableName);
+
+            await bigquery
+                .dataset(datasetId)
+                .table(tableName)
+                .insert(dataToInsert)
+            
+            console.log("[TIKTOK-TRANSACTION-BREAKDOWN] Merged to table: ", tableName);
+        }
+
+    } catch (e) {
+        console.log("[TIKTOK-TRANSACTION-BREAKDOWN] Error merge transaction breakdown on brand: ", brand);
+        console.log(e);
+    }
+}
+
+export async function mainTransactionsBreakdown() {
+    const currentDate = new Date().toISOString();
+    const targetMonth = currentDate.slice(0, 7);
+    console.log("Current month: ", targetMonth);
+
+    await handleTransactionsBreakdown("Eileen Grace", targetMonth);
+    await handleTransactionsBreakdown("Mamaway", targetMonth);
+    await handleTransactionsBreakdown("SHRD", targetMonth);
+    await handleTransactionsBreakdown("Miss Daisy", targetMonth);
+    await handleTransactionsBreakdown("Polynia", targetMonth);
+    await handleTransactionsBreakdown("CHESS", targetMonth);
+    await handleTransactionsBreakdown("Cléviant", targetMonth);
+    await handleTransactionsBreakdown("Mossèru", targetMonth);
+    await handleTransactionsBreakdown("Evoke", targetMonth);
+    await handleTransactionsBreakdown("Dr Jou", targetMonth);
+    await handleTransactionsBreakdown("Mirae", targetMonth);
+    await handleTransactionsBreakdown("Swissvita", targetMonth);
+    await handleTransactionsBreakdown("G-Belle", targetMonth);
+    await handleTransactionsBreakdown("Past Nine", targetMonth);
+    await handleTransactionsBreakdown("Nutri & Beyond", targetMonth);
+    await handleTransactionsBreakdown("Ivy & Lily", targetMonth);
+    await handleTransactionsBreakdown("Naruko", targetMonth);
+    await handleTransactionsBreakdown("Relove", targetMonth);
+    await handleTransactionsBreakdown("Joey & Roo", targetMonth);
+    await handleTransactionsBreakdown("Enchante", targetMonth);
+    await handleTransactionsBreakdown("M2", targetMonth);
+    await handleTransactionsBreakdown("Rocketindo Shop", targetMonth);
+}
+
+// Comment out in deployment.
+// mainTransactionsBreakdown();

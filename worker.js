@@ -18,6 +18,7 @@ import { fetchAndProcessOrdersIL } from './workers/il_processor.js';
 import { mainTiktokFinance } from './functions/handleFinance.js';
 import 'dotenv/config';
 import express from 'express';
+import { mainTransactionsBreakdown } from './functions/transactionsBreakdown.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -29,10 +30,22 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 workerApp.get('/', (req, res) => res.status(200).send("Worker is healthy"));
 
+workerApp.get('/process/transactions-breakdown', async (req, res) => {
+    res.status(200).send("Transactions Breakdown is running in the background");
+    try {
+        await mainTransactionsBreakdown();
+        res.status(200).send("Transactions Breakdown Completed")
+    } catch (e) {
+        console.log("[transactions-breakdown] Failed: ", e);
+        res.status(500).send("Failed");
+    }
+});
+
 workerApp.post('/process/tiktok-withdrawal', async (req, res) => {
+    res.status(200).send("Tiktok Withdrawal is starting in background.");
     try {
         await mainTiktokFinance();
-        res.status(200).send("Completed");
+        res.status(200).send("Tiktok Withdrawal Completed");
     } catch (err) {
         console.error('[tiktok-withdrawal] Failed:', err);
         res.status(500).send("Failed");

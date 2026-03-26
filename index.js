@@ -6,6 +6,20 @@ const port = process.env.PORT || 8080;
 // Make sure this is set in your GCP Cloud Run Environment Variables!
 const WORKER_URL = "https://shopee-worker-231801348950.asia-southeast2.run.app";
 
+app.get('/transactions-breakdown', async (req, res) => {
+    if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
+        console.warn("Unauthorized attempt to trigger daily sync");
+        return res.status(403).send('Forbidden');
+    }
+    try {
+        await fetch(`${WORKER_URL}/process/transactions-breakdown`, { method: 'POST' });
+        res.status(200).send("Transactions Breakdown has been triggered");
+    } catch (e) {
+        console.error("Failed Transactions Breakdown: ", e);
+        res.status(500).send("Failed to trigger Transactions Breakdown");
+    }
+});
+
 app.get('/tiktok-withdrawal', async (req, res) => {
     if(req.header('X-Cloud-Scheduler-Job') !== 'true') {
         console.warn("Unauthorized attempt to trigger daily sync");
@@ -14,7 +28,7 @@ app.get('/tiktok-withdrawal', async (req, res) => {
     try {
         // We await the fetch to ensure Cloud Run doesn't spin down the container
         await fetch(`${WORKER_URL}/process/tiktok-withdrawal`, { method: 'POST' });
-        res.status(200).send("Tiktok Withdrawal has successfully completed");
+        res.status(200).send("Tiktok Withdrawal has been triggered");
     } catch (e) {
         console.error("Failed Tiktok Withdrawal: ", e);
         res.status(500).send("Failed to trigger Tiktok Withdrawal");
