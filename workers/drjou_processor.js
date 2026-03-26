@@ -12,7 +12,6 @@ import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 import { mainRealtime } from '../functions/handleRealtime.js';
-
 const secretClient = new SecretManagerServiceClient();
 
 export const PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
@@ -25,43 +24,50 @@ export let DRJOU_ACCESS_TOKEN;
 let DRJOU_REFRESH_TOKEN;
 
 async function refreshToken() {
-    const path = "/api/v2/auth/access_token/get";
-    const timestamp = Math.floor(Date.now() / 1000);
-    const baseString = `${PARTNER_ID}${path}${timestamp}`;
-    const sign = crypto.createHmac('sha256', PARTNER_KEY)
-        .update(baseString)
-        .digest('hex');
+
+    console.log("Refresh token: ", DRJOU_REFRESH_TOKEN);
+    console.log("Shop ID: ", SHOP_ID);
+    try {
+        const path = "/api/v2/auth/access_token/get";
+        const timestamp = Math.floor(Date.now() / 1000);
+        const baseString = `${PARTNER_ID}${path}${timestamp}`;
+        const sign = crypto.createHmac('sha256', PARTNER_KEY)
+            .update(baseString)
+            .digest('hex');
+        
+        const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
     
-    const fullUrl = `${REFRESH_ACCESS_TOKEN_URL}?partner_id=${PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
-
-    const body = {
-        refresh_token: DRJOU_REFRESH_TOKEN,
-        partner_id: PARTNER_ID,
-        shop_id: SHOP_ID
-    }
-
-    // console.log("Hitting Refresh Token endpoint DRJOU: ", fullUrl);
-
-    const response = await axios.post(fullUrl, body, {
-        headers: {
-            'Content-Type': 'application/json'
+        const body = {
+            refresh_token: DRJOU_REFRESH_TOKEN,
+            partner_id: PARTNER_ID,
+            shop_id: SHOP_ID
         }
-    })
-
-    const newAccessToken = response.data.access_token;
-    const newRefreshToken = response.data.refresh_token;
-
-    if(newAccessToken && newRefreshToken) {
-        DRJOU_ACCESS_TOKEN = newAccessToken;
-        DRJOU_REFRESH_TOKEN = newRefreshToken;
-
-        saveTokensToSecret({
-            accessToken: DRJOU_ACCESS_TOKEN,
-            refreshToken: DRJOU_REFRESH_TOKEN
-        });
-    } else {
-        console.log("[DRJOU] token refresh not found :(")
-        throw new Error("Tokens dont exist");
+    
+        // console.log("Hitting Refresh Token endpoint DRJOU: ", fullUrl);
+    
+        const response = await axios.post(fullUrl, body, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+    
+        const newAccessToken = response.data.access_token;
+        const newRefreshToken = response.data.refresh_token;
+    
+        if(newAccessToken && newRefreshToken) {
+            DRJOU_ACCESS_TOKEN = newAccessToken;
+            DRJOU_REFRESH_TOKEN = newRefreshToken;
+    
+            saveTokensToSecret({
+                accessToken: DRJOU_ACCESS_TOKEN,
+                refreshToken: DRJOU_REFRESH_TOKEN
+            });
+        } else {
+            console.log("[DRJOU] token refresh not found :(")
+            throw new Error("Tokens dont exist");
+        }
+    } catch (e) {
+        console.log("Error refreshing token: ", e.response.data.message);
     }
 }
 
@@ -127,6 +133,8 @@ export async function fetchAndProcessOrdersDRJOU() {
     DRJOU_ACCESS_TOKEN = loadedTokens.accessToken;
     DRJOU_REFRESH_TOKEN = loadedTokens.refreshToken;
 
+    console.log("Loaded tokens: ", loadedTokens);
+
     await refreshToken();
 
     await mainRealtime(brandTT, PARTNER_ID, PARTNER_KEY, DRJOU_ACCESS_TOKEN, SHOP_ID);
@@ -158,3 +166,5 @@ export async function fetchAndProcessOrdersDRJOU() {
     // // For backfilling
     // await fetchPGMVMaxBreakdown(brandTT, advertiserId);
 }
+
+await fetchAndProcessOrdersDRJOU();
