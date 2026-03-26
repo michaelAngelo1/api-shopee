@@ -19,6 +19,8 @@ import { fetchAndProcessOrdersMIRAE } from './workers/mirae_processor.js';
 import { fetchAndProcessOrdersPOLY } from './workers/poly_processor.js';
 import { mainTiktokFinance } from './functions/handleFinance.js';
 
+// Latest worker.js before revamp.
+
 const workerApp = express();
 const port = process.env.PORT || 8080;
 
