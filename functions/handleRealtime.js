@@ -4,7 +4,22 @@ import { handleMergeRealtime } from './handleMergeRealtime.js';
 import 'dotenv/config';
 import { mainM2 } from '../workers/m2_processor.js';
 
-async function getOrderList(brand, partner_id, partner_key, access_token, shop_id) {
+const cancelledOrders = [
+    "260404U6KDPMBA",
+    "260404U7UK5GFK",
+    "260404U8BHESQK",
+    "260404UAYMPPCN",
+    "260404UN3BGPK4",
+    "260404V6WYG2CV",
+    "260404V7JQ7QMP",
+    "260404VD9BBMKX",
+    "260404VE2SU3HE",
+    "260404VEBXK8WX",
+    "260404VNECK9FB",
+    "260404VSDPNVKU"
+];
+
+async function getOrderList(brand, partner_id, partner_key, access_token, shop_id, JAKARTA_MIDNIGHT_TODAY, nowSeconds) {
     console.log("[REALTIME-SALES] Handle realtime get order list on brand: ", brand);
     let allOrderSns = [];
     const HOST = "https://partner.shopeemobile.com";
@@ -23,15 +38,15 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     try {
         // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
         // Jakarta is UTC+7 (25200 seconds)
-        const nowSeconds = Math.floor(Date.now() / 1000);
-        const jakartaOffset = 25200; 
-        const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-        const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
+        // const nowSeconds = Math.floor(Date.now() / 1000);
+        // const jakartaOffset = 25200; 
+        // const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+        // const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
         // Use the Jakarta Midnight timestamp we calculated
-        const time_from = JAKARTA_MIDNIGHT_TS;
+        const time_from = JAKARTA_MIDNIGHT_TODAY;
         const time_to = nowSeconds; 
 
-        // FOR DEBUGGING / TESTING. COMMENT LATER
+        // // FOR DEBUGGING / TESTING. COMMENT LATER
         // const time_from = JAKARTA_MIDNIGHT_TS - 86400; 
         // const time_to = nowSeconds;
 
@@ -97,7 +112,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
     // return allOrderSns
 }
 
-async function getOrderDetail(brand, batch, partner_id, partner_key, access_token, shop_id) {
+async function getOrderDetail(brand, batch, partner_id, partner_key, access_token, shop_id, JAKARTA_MIDNIGHT_TODAY) {
     let totalGMV = 0;
     let orderSnForEscrow = [];
     const HOST = "https://partner.shopeemobile.com";
@@ -106,10 +121,10 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
     try {
         // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
         // Jakarta is UTC+7 (25200 seconds)
-        const nowSeconds = Math.floor(Date.now() / 1000);
-        const jakartaOffset = 25200; 
-        const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-        const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
+        // const nowSeconds = Math.floor(Date.now() / 1000);
+        // const jakartaOffset = 25200; 
+        // const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+        // const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
         const JAKARTA_MIDNIGHT_YESTERDAY = JAKARTA_MIDNIGHT_TODAY - 86400;
 
         const order_sn_list = batch.join(',');
@@ -151,6 +166,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 //         isTargetDate = true;
                 //     }
                 // }
+                
                 // Production
                 if (order.payment_method !== 'Cash on Delivery') {
                     // Non-COD must be PAID today
@@ -174,8 +190,8 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                         let price = parseFloat(item.model_discounted_price || 0);
                         // console.log("Item model discounted price: ", price, " for brand: ", brand);
                         
-                        // if (price === 0) {
-                        //     console.log("Order Sn where price is 0: ", order.order_sn);
+                        // if (cancelledOrders.includes(order.order_sn)) {
+                        //     console.log("Order Sn cancelled: ", order.order_sn);
                         //     console.log(item);                       
                         // }
                         
@@ -183,14 +199,16 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                         let itemTotal = (price * qty);
                         // console.log("Item Subtotal: ", itemTotal)
                         
-                        if (order.order_status === 'CANCELLED') {
-                            console.log(`[GHOST CAUGHT] Cancelled Order added to GMV: ${order.order_sn} | Value: Rp ${itemTotal} | COD: ${order.payment_method === 'Cash on Delivery'}`);
-                        }
+                        // if (order.order_status === 'CANCELLED') {
+                        //     console.log(`[GHOST CAUGHT] Cancelled Order added to GMV: ${order.order_sn} | Value: Rp ${itemTotal} | COD: ${order.payment_method === 'Cash on Delivery'}`);
+                        // }
+
+
                         
                         orderTotal += itemTotal;
                         // console.log("Total GMV running total: ", totalGMV, " for brand: ", brand);
-                        orderSnForEscrow.push(order.order_sn);
                     });
+                    orderSnForEscrow.push(order.order_sn);
                     // console.log("Order sn: ", order.order_sn, " order status: ", order.order_status, " order value: ", orderTotal, " payment method: ", order.payment_method);
                     totalGMV += orderTotal;
                 }
@@ -201,19 +219,19 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         console.log(`[REALTIME-SALES] Detail Error (${brand}): ${e.message}`);
     }
 
-    let voucherFromSellerTotal = 0;
-    let batchSize = 20;
+    // let voucherFromSellerTotal = 0;
+    // let batchSize = 20;
 
-    for(let i=0; i<orderSnForEscrow.length; i+=batchSize) {
-        const batchOrderSns = orderSnForEscrow.slice(i, i+batchSize);
-        const voucherFromSellerBatch = await getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id);
-        voucherFromSellerTotal += voucherFromSellerBatch;
-    }
+    // for(let i=0; i<orderSnForEscrow.length; i+=batchSize) {
+    //     const batchOrderSns = orderSnForEscrow.slice(i, i+batchSize);
+    //     const voucherFromSellerBatch = await getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id);
+    //     voucherFromSellerTotal += voucherFromSellerBatch;
+    // }
 
-    console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
+    // console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
 
-    return totalGMV - voucherFromSellerTotal;
-    // return totalGMV;
+    // return totalGMV - voucherFromSellerTotal;
+    return totalGMV;
 }
 
 async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id) {
@@ -252,7 +270,11 @@ async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_ke
         if(data.response) {
             let escrowDetails = data.response;
             escrowDetails.forEach(e => {
-                // console.log("Voucher from seller: ", e.escrow_detail.order_income.voucher_from_seller);
+                
+                // if(cancelledOrders.includes(e.escrow_detail.order_sn)) {
+                //     console.log("Order sn: ", e.escrow_detail.order_sn)
+                //     console.log("Voucher from seller: ", e.escrow_detail.order_income.voucher_from_seller);
+                // }
                 voucherFromSellerTotal += e.escrow_detail.order_income.voucher_from_seller;
             })
         }
@@ -264,7 +286,12 @@ async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_ke
 }
 
 export async function mainRealtime(brand, partner_id, partner_key, access_token, shop_id) {
-    const allOrderSns = await getOrderList(brand, partner_id, partner_key, access_token, shop_id);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const jakartaOffset = 25200; 
+    const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
+    const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
+
+    const allOrderSns = await getOrderList(brand, partner_id, partner_key, access_token, shop_id, JAKARTA_MIDNIGHT_TODAY, nowSeconds);
     
     console.log(`[REALTIME-SALES] Total ${brand} orders fetched: ${allOrderSns.length}`);
     
@@ -283,7 +310,7 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     
     for(let i = 0; i < allOrderSns.length; i += batchSize) {
         const batchOrderSns = allOrderSns.slice(i, i + batchSize); // Batch order sns here is still unclean. getOrderDetail helps filtering it. 
-        const subTotal = await getOrderDetail(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id); // Should get a clean GMV, after voucher from seller. 
+        const subTotal = await getOrderDetail(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id, JAKARTA_MIDNIGHT_TODAY); // Should get a clean GMV, after voucher from seller. 
         totalSalesBrand += subTotal;
     }
 
@@ -296,25 +323,25 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
 
 // await mainM2();
 
-// async function testbed() {
-//     let partnerId = "2010423";
-//     let partnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278";
-//     let shopId = 332381969;
-//     let accessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogbT5zAYwiszcvAI4AUAB.M6HNQJUFKrVPO1BV44R0xTqOD8NaMHzyUDgK0ppPf0s"
-//     // await mainRealtime("Miss Daisy", partnerId, partnerKey, accessToken, shopId);
+async function testbed() {
 
-//     let shrdPartnerId = "2013428"
-//     let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
-//     let shrdShopId = 167106407
-//     let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASixvfnMBjDihK2TCDgBQAE.39eevJTTSQFJZGn59NJUGy46qpwirDgOJxtWJXQ4UbM"
-//     // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId);
+    // let egPartnerId = "2010478"
+    // let egPartnerKey = "6a5873534a6c6b574a795a734579634a4c5253746c4e66496d6a517a626f5643"
+    // let egShopId = 33221984
+    // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASjMvcPOBjCEoZrAAjgBQAFIBw.gWgusgv9Tv5R5bGZJibuS20pWWa05xrRfVEyChhTf4s"
+    // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
 
-//     let mdPartnerId = "2010423"
-//     let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
-//     let gbShopId = 1354940630
-//     let gbAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGNaBi4YFIAEovr35zAYwmK_5sgE4AUAB.1GxdCjZtv9hJYdgYVYm2Z_w72Huc10MF_80JDGVjcxs"
-//     await mainRealtime("G-Belle", mdPartnerId, mdPartnerKey, gbAccessToken, gbShopId);
+    let mdPartnerId = "2010423"
+    let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
+    let mdShopId = 332381969	
+    let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEo4aTEzgYw6OXkLjgBQAFIBw.JjXSiOZ2bYo7qsFXO_Gz6MufYuzQHgoIIXMMUYeQUBA"
+    await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
 
-// }
+    // let shrdPartnerId = "2013428"
+    // let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
+    // let shrdShopId = 167106407
+    // let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASil_8POBjDsmq2rATgBQAFIBw.qrLaJ1miFFltMkFwcQf3tWh0vkAixzcxWzMlAKkaSso"
+    // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
+}
 
-// await testbed();
+await testbed();
