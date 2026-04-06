@@ -43,11 +43,13 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
         // const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
         // const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
         // Use the Jakarta Midnight timestamp we calculated
+        
+        // Production
         const time_from = JAKARTA_MIDNIGHT_TODAY;
         const time_to = nowSeconds; 
 
         // // FOR DEBUGGING / TESTING. COMMENT LATER
-        // const time_from = JAKARTA_MIDNIGHT_TS - 86400; 
+        // const time_from = JAKARTA_MIDNIGHT_TODAY - (2 * 86400); 
         // const time_to = nowSeconds;
 
         for (const status of statusesToFetch) {
@@ -125,7 +127,8 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         // const jakartaOffset = 25200; 
         // const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
         // const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
-        const JAKARTA_MIDNIGHT_YESTERDAY = JAKARTA_MIDNIGHT_TODAY - 86400;
+        // const JAKARTA_MIDNIGHT_YESTERDAY = JAKARTA_MIDNIGHT_TODAY - (2 * 86400);
+        // const JAKARTA_MIDNIGHT_TODAY_ADJUSTED = JAKARTA_MIDNIGHT_TODAY - 86400;
 
         const order_sn_list = batch.join(',');
         const timestamp = Math.floor(Date.now() / 1000);
@@ -154,20 +157,20 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
             data.response.order_list.forEach(order => {
                 let isTargetDate = false;
 
-                // For debugging: yesterday's orders
+                // // For debugging: yesterday's orders
                 // if (order.payment_method !== 'Cash on Delivery') {
                 //     // Non-COD must be PAID today
-                //     if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.pay_time <= JAKARTA_MIDNIGHT_TODAY) {
+                //     if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.pay_time < JAKARTA_MIDNIGHT_TODAY) {
                 //         isTargetDate = true;
                 //     }
                 // } else {
                 //     // COD must be CREATED today
-                //     if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.create_time <= JAKARTA_MIDNIGHT_TODAY) {
+                //     if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.create_time < JAKARTA_MIDNIGHT_TODAY) {
                 //         isTargetDate = true;
                 //     }
                 // }
                 
-                // Production
+                // // Production
                 if (order.payment_method !== 'Cash on Delivery') {
                     // Non-COD must be PAID today
                     if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_TODAY) {
@@ -297,16 +300,6 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     
     let batchSize = 50;
     let totalSalesBrand = 0;
-
-    // allOrderSns.forEach(a => {
-    //     console.log("order: ", a);
-    // })
-
-    // console.log('Three earliest orders: ');
-    // console.log(allOrderSns.slice(0, 3));
-
-    // console.log("Three latest orders: ");
-    // console.log(allOrderSns.slice(-3));
     
     for(let i = 0; i < allOrderSns.length; i += batchSize) {
         const batchOrderSns = allOrderSns.slice(i, i + batchSize); // Batch order sns here is still unclean. getOrderDetail helps filtering it. 
@@ -323,25 +316,25 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
 
 // await mainM2();
 
-async function testbed() {
+// async function testbed() {
 
-    // let egPartnerId = "2010478"
-    // let egPartnerKey = "6a5873534a6c6b574a795a734579634a4c5253746c4e66496d6a517a626f5643"
-    // let egShopId = 33221984
-    // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASjMvcPOBjCEoZrAAjgBQAFIBw.gWgusgv9Tv5R5bGZJibuS20pWWa05xrRfVEyChhTf4s"
-    // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
+//     // let egPartnerId = "2010478"
+//     // let egPartnerKey = "6a5873534a6c6b574a795a734579634a4c5253746c4e66496d6a517a626f5643"
+//     // let egShopId = 33221984
+//     // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASjMvcPOBjCEoZrAAjgBQAFIBw.gWgusgv9Tv5R5bGZJibuS20pWWa05xrRfVEyChhTf4s"
+//     // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
 
-    let mdPartnerId = "2010423"
-    let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
-    let mdShopId = 332381969	
-    let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEo4aTEzgYw6OXkLjgBQAFIBw.JjXSiOZ2bYo7qsFXO_Gz6MufYuzQHgoIIXMMUYeQUBA"
-    await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
+//     let mdPartnerId = "2010423"
+//     let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
+//     let mdShopId = 332381969	
+//     let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogazMzgYw5qOSwg44AUABSAc.aWtivHpTHxHygeBHvBRgTNPZqY2hj0ClbxuS-BmMX_E"
+//     await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
 
-    // let shrdPartnerId = "2013428"
-    // let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
-    // let shrdShopId = 167106407
-    // let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASil_8POBjDsmq2rATgBQAFIBw.qrLaJ1miFFltMkFwcQf3tWh0vkAixzcxWzMlAKkaSso"
-    // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
-}
+//     // let shrdPartnerId = "2013428"
+//     // let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
+//     // let shrdShopId = 167106407
+//     // let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASil_8POBjDsmq2rATgBQAFIBw.qrLaJ1miFFltMkFwcQf3tWh0vkAixzcxWzMlAKkaSso"
+//     // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
+// }
 
-await testbed();
+// await testbed();
