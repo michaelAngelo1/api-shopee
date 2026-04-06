@@ -2,7 +2,6 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { handleMergeRealtime } from './handleMergeRealtime.js';
 import 'dotenv/config';
-import { mainM2 } from '../workers/m2_processor.js';
 
 const cancelledOrders = [
     "260404U6KDPMBA",
