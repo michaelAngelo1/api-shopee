@@ -19,7 +19,7 @@ export async function loadCredentials() {
     }
 }
 
-export async function handleMergeRealtime(brand, marketplace, sales_value) {
+export async function handleMergeRealtime(brand, marketplace, sales_value, orders_count) {
 
     if(marketplace == "TikTok" || marketplace == "Tokopedia") {
         if(brand == "Cléviant") brand = "Cleviant";
@@ -61,10 +61,11 @@ export async function handleMergeRealtime(brand, marketplace, sales_value) {
             
             row.assign({
                 'GMV': sales_value,
+                'Orders': orders_count,
                 'Timestamp': formattedTimestamp,
             });
     
-            if (row._rawData.length > 4) {
+            if (row._rawData.length > 5) {
                 row._rawData = row._rawData.slice(0, 4);
             }
     

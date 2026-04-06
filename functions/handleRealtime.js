@@ -118,6 +118,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
     let orderSnForEscrow = [];
     const HOST = "https://partner.shopeemobile.com";
     const PATH = "/api/v2/order/get_order_detail";
+    let orderCount = 0;
 
     try {
         // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
@@ -128,7 +129,6 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         // const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
         // const JAKARTA_MIDNIGHT_YESTERDAY = JAKARTA_MIDNIGHT_TODAY - (2 * 86400);
         // const JAKARTA_MIDNIGHT_TODAY_ADJUSTED = JAKARTA_MIDNIGHT_TODAY - 86400;
-
         const order_sn_list = batch.join(',');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
@@ -213,6 +213,8 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                     orderSnForEscrow.push(order.order_sn);
                     // console.log("Order sn: ", order.order_sn, " order status: ", order.order_status, " order value: ", orderTotal, " payment method: ", order.payment_method);
                     totalGMV += orderTotal;
+
+                    orderCount += 1;
                 }
             });
         }
@@ -233,7 +235,12 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
     // console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
 
     // return totalGMV - voucherFromSellerTotal;
-    return totalGMV;
+    // console.log("Order count: ", orderCount);
+
+    return { 
+        gmv: totalGMV, 
+        count: orderCount 
+    }
 }
 
 async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id) {
@@ -299,18 +306,21 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     
     let batchSize = 50;
     let totalSalesBrand = 0;
-    
+    let totalSalesCount = 0;
+
     for(let i = 0; i < allOrderSns.length; i += batchSize) {
         const batchOrderSns = allOrderSns.slice(i, i + batchSize); // Batch order sns here is still unclean. getOrderDetail helps filtering it. 
-        const subTotal = await getOrderDetail(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id, JAKARTA_MIDNIGHT_TODAY); // Should get a clean GMV, after voucher from seller. 
-        totalSalesBrand += subTotal;
+        const { gmv, count } = await getOrderDetail(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id, JAKARTA_MIDNIGHT_TODAY); // Should get a clean GMV, after voucher from seller. 
+        totalSalesBrand += gmv;
+        totalSalesCount += count;
     }
 
     console.log("[REALTIME-SALES] Total GMV on brand: ", brand);
     console.log(totalSalesBrand.toLocaleString('id-ID'));
+    console.log(totalSalesCount, " orders");
 
     let marketplace = "Shopee";
-    await handleMergeRealtime(brand, marketplace, totalSalesBrand);
+    await handleMergeRealtime(brand, marketplace, totalSalesBrand, totalSalesCount);
 }
 
 // await mainM2();
@@ -323,17 +333,17 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
 //     // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASjMvcPOBjCEoZrAAjgBQAFIBw.gWgusgv9Tv5R5bGZJibuS20pWWa05xrRfVEyChhTf4s"
 //     // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
 
-//     let mdPartnerId = "2010423"
-//     let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
-//     let mdShopId = 332381969	
-//     let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogazMzgYw5qOSwg44AUABSAc.aWtivHpTHxHygeBHvBRgTNPZqY2hj0ClbxuS-BmMX_E"
-//     await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
+//     // let mdPartnerId = "2010423"
+//     // let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
+//     // let mdShopId = 332381969	
+//     // let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogazMzgYw5qOSwg44AUABSAc.aWtivHpTHxHygeBHvBRgTNPZqY2hj0ClbxuS-BmMX_E"
+//     // await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
 
-//     // let shrdPartnerId = "2013428"
-//     // let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
-//     // let shrdShopId = 167106407
-//     // let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASil_8POBjDsmq2rATgBQAFIBw.qrLaJ1miFFltMkFwcQf3tWh0vkAixzcxWzMlAKkaSso"
-//     // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
+//     let shrdPartnerId = "2013428"
+//     let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
+//     let shrdShopId = 167106407
+//     let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASim5MzOBjCklpz0DDgBQAFIBw.852t6wfLVZRcQZd1gy3SFnbkDR5RMweNfznXIxK0b9k"
+//     await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
 // }
 
 // await testbed();

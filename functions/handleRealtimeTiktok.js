@@ -156,7 +156,7 @@ async function processOrdersGMV(brand, orders, commerce) {
     console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
     
     let marketplace = commerce == "TIKTOK_SHOP" ? "TikTok" : "Tokopedia";
-    await handleMergeRealtime(brand, marketplace, totalAmount)
+    await handleMergeRealtime(brand, marketplace, totalAmount, totalCleanedOrders.length)
 }
 
 async function mainRealtimeTiktok(brand) {
@@ -196,4 +196,4 @@ export async function parentRealtimeTiktok() {
     await mainRealtimeTiktok("M2");
 }
 
-await parentRealtimeTiktok();
+// await parentRealtimeTiktok();
