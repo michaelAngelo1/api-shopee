@@ -46,11 +46,39 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
     const doc = new GoogleSpreadsheet(prodSheetId, saAuth);
     await doc.loadInfo();
 
-    const sheet = doc.sheetsByIndex[0];
+    const sheetRawData = doc.sheetsByIndex[0];
+    const sheetSalesCount = doc.sheetsByIndex[1];
     
-    const rows = await sheet.getRows();
+    const rowsRawData = await sheetRawData.getRows();
+    const rowsSalesCount = await sheetSalesCount.getRows();
 
-    for(const row of rows) {
+    for(const row of rowsRawData) {
+        const rowBrand = row.get('Brand');
+        const rowPlatform = row.get('Platform');
+
+        if(rowBrand == brand && rowPlatform == marketplace) {
+            const now = new Date();
+            const utc7Time = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+            const formattedTimestamp = utc7Time.toISOString().replace('T', ' ').substring(0, 19);
+            
+            row.assign({
+                'GMV': sales_value,
+                'Timestamp': formattedTimestamp,
+            });
+    
+            if (row._rawData.length > 4) {
+                row._rawData = row._rawData.slice(0, 4);
+            }
+    
+            await row.save();
+
+            setTimeout(() => {
+            }, 3000)
+        }
+
+    }
+
+    for(const row of rowsSalesCount) {
         const rowBrand = row.get('Brand');
         const rowPlatform = row.get('Platform');
 
