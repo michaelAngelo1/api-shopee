@@ -151,7 +151,7 @@ async function processOrdersGMV(brand, orders, commerce) {
 
     let totalAmount = 0;
     totalCleanedOrders.forEach(o => {
-        totalAmount += parseFloat(o.payment.total_amount);
+        totalAmount += parseFloat(o.payment.sub_total) + parseFloat(o.payment.platform_discount);
     });
     console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
     
