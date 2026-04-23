@@ -52,7 +52,7 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
     
     const rowsRawData = await sheetRawData.getRows();
     const rowsSalesCount = await sheetSalesCount.getRows();
-    const rowsLastUpdated = await sheetSalesCount.getRows();
+    const rowsLastUpdated = await sheetLastUpdated.getRows();
 
     for(const row of rowsRawData) {
         const rowBrand = row.get('Brand');
