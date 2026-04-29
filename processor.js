@@ -262,6 +262,7 @@ async function refreshTokenNewBrands(brand, shop_id) {
     // console.log("Refreshing token for brand: ", brand);
     let partnerId = DRJOU_PARTNER_ID;
     let partnerKey = DRJOU_PARTNER_KEY;
+
     if(brand == "Naruko") {
         partnerId = MOSS_PARTNER_ID;
         partnerKey = MOSS_PARTNER_KEY;
@@ -269,6 +270,13 @@ async function refreshTokenNewBrands(brand, shop_id) {
         partnerId = SHRD_PARTNER_ID;
         partnerKey = SHRD_PARTNER_KEY;
     }
+
+    console.log("\n");
+    console.log("Brand: ", brand);
+    console.log("Partner ID: ", partnerId);
+    console.log("Partner key: ", partnerKey);
+    console.log("\n");
+    
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
     const baseString = `${partnerId}${path}${timestamp}`;
