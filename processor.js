@@ -248,24 +248,39 @@ export async function fetchAndProcessOrders() {
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
 export const DRJOU_PARTNER_KEY = process.env.DRJOU_PARTNER_KEY;
+
+export const MOSS_PARTNER_ID = parseInt(process.env.MOSS_PARTNER_ID);
+export const MOSS_PARTNER_KEY = process.env.MOSS_PARTNER_KEY;
+
+export const SHRD_PARTNER_ID = parseInt(process.env.SHRD_PARTNER_ID);
+export const SHRD_PARTNER_KEY = process.env.SHRD_PARTNER_KEY;
+
 const NEW_BRANDS_REFRESH_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
 let NEW_BRANDS_ACCESS_TOKEN, NEW_BRANDS_REFRESH_TOKEN;
 
 async function refreshTokenNewBrands(brand, shop_id) {
     // console.log("Refreshing token for brand: ", brand);
-
+    let partnerId = DRJOU_PARTNER_ID;
+    let partnerKey = DRJOU_PARTNER_KEY;
+    if(brand == "Naruko") {
+        partnerId = MOSS_PARTNER_ID;
+        partnerKey = MOSS_PARTNER_KEY;
+    } else if(brand == "Relove") {
+        partnerId = SHRD_PARTNER_ID;
+        partnerKey = SHRD_PARTNER_KEY;
+    }
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
-    const baseString = `${DRJOU_PARTNER_ID}${path}${timestamp}`;
-    const sign = crypto.createHmac('sha256', DRJOU_PARTNER_KEY)
+    const baseString = `${partnerId}${path}${timestamp}`;
+    const sign = crypto.createHmac('sha256', partnerKey)
         .update(baseString)
         .digest('hex');
     
-    const fullUrl = `${NEW_BRANDS_REFRESH_URL}?partner_id=${DRJOU_PARTNER_ID}&timestamp=${timestamp}&sign=${sign}`;
+    const fullUrl = `${NEW_BRANDS_REFRESH_URL}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`;
 
     const body = {
         refresh_token: NEW_BRANDS_REFRESH_TOKEN,
-        partner_id: DRJOU_PARTNER_ID,
+        partner_id: partnerId,
         shop_id: shop_id
     }
 
@@ -376,7 +391,7 @@ async function handleNaruko() {
 
     await refreshTokenNewBrands(brand, shopId)
 
-    await mainRealtime(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
+    await mainRealtime(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     // await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
 }
