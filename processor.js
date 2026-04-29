@@ -201,6 +201,11 @@ export async function fetchAndProcessOrders() {
     await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await mainM2();
 
+    await handleNaruko();
+    await handleRelove();
+    await handleJR();
+    await handleRocketindoShop();
+
     await parentRealtimeTiktok();
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
@@ -240,10 +245,6 @@ export async function fetchAndProcessOrders() {
     // await fetchPGMVMaxBreakdown(brandRshop, advIdRshop)
 
     // Naruko, Relove, JR
-    await handleNaruko();
-    await handleRelove();
-    await handleJR();
-    await handleRocketindoShop();
 }
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
@@ -276,7 +277,7 @@ async function refreshTokenNewBrands(brand, shop_id) {
     console.log("Partner ID: ", partnerId);
     console.log("Partner key: ", partnerKey);
     console.log("\n");
-    
+
     const path = "/api/v2/auth/access_token/get";
     const timestamp = Math.floor(Date.now() / 1000);
     const baseString = `${partnerId}${path}${timestamp}`;
