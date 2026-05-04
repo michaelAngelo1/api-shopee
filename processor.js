@@ -245,6 +245,8 @@ export async function fetchAndProcessOrders() {
     await mainM2();
 }
 
+await fetchAndProcessOrders();
+
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
 export const DRJOU_PARTNER_KEY = process.env.DRJOU_PARTNER_KEY;
 const NEW_BRANDS_REFRESH_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";

@@ -102,7 +102,11 @@ async function mergeTiktokAdsData(data, tableName, brand) {
         for(const d of data) {
             // --- NEW: DUPLICATION CHECK ---
             // Check if this date already exists in the table
-            const checkQuery = `SELECT date FROM \`${datasetId}.${tableName}\` WHERE date = '${d.date}'`;
+            const checkQuery = `
+                SELECT date 
+                FROM \`${datasetId}.${tableName}\` 
+                WHERE date = '${d.date}'
+            `;
             const [existingRows] = await bigquery.query({ query: checkQuery });
 
             if (existingRows.length > 0) {

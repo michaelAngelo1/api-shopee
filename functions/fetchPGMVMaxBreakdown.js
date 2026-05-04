@@ -213,7 +213,7 @@ export async function fetchPGMVMaxBreakdown(brand, advertiser_id) {
 
                             // let sumCost = 0;
                             let productLevelList = response.data.data.list;
-                            
+                            console.log("Response data data list: ", response.data.data.list);
                             productLevelList.forEach(p => {
                                 if(p.metrics.cost !== "0") {
                                     let obj = {
