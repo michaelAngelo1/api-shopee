@@ -202,10 +202,7 @@ export async function fetchAndProcessOrders() {
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID)
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    // await fetchDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    // await fetchAdsProductLevel(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-
-
+    
     await fetchAffiliateData(brand, SHOP_ID, 1000);
 
     let newAdvIdEG = "7613595763196706833";
@@ -244,8 +241,6 @@ export async function fetchAndProcessOrders() {
     await handleRocketindoShop();
     await mainM2();
 }
-
-await fetchAndProcessOrders();
 
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
 export const DRJOU_PARTNER_KEY = process.env.DRJOU_PARTNER_KEY;
