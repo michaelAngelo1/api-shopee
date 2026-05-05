@@ -1,8 +1,82 @@
 import 'dotenv/config';
-import crypto from 'crypto';
+import crypto, { randomBytes } from 'crypto';
 import axios from 'axios';
 import { BigQuery } from '@google-cloud/bigquery';
+import { Storage } from '@google-cloud/storage';  
 import { loadTokens, refreshTokens, getShopCipher } from '../auth/tiktokAuthAffiliate.js';
+
+const affiliateSchema = {
+    fields: [
+        { name: 'id', type: 'STRING' },
+        { name: 'delivery_time', type: 'STRING' },
+        { name: 'create_time', type: 'STRING' },
+        { name: 'status', type: 'STRING' },
+        { name: 'skus', type: 'RECORD', mode: 'REPEATED', fields: [
+            { name: 'sku_id', type: 'STRING' },
+            { name: 'settlement_status', type: 'STRING' },
+            { name: 'open_collaboration_id', type: 'STRING' },
+            { name: 'target_collaboration_id', type: 'STRING' },
+            { name: 'campaign_id', type: 'STRING' },
+            { name: 'creator_username', type: 'STRING' },
+            { name: 'price', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'quantity', type: 'INTEGER' },
+            { name: 'content_type', type: 'STRING' },
+            { name: 'content_id', type: 'STRING' },
+            { name: 'product_id', type: 'STRING' },
+            { name: 'commission_model', type: 'STRING' },
+            { name: 'commission_tier_setting', type: 'STRING' },
+            { name: 'commission_rate', type: 'NUMERIC' },
+            { name: 'partner_commission_rate', type: 'NUMERIC' },
+            { name: 'shop_ads_commission_rate', type: 'NUMERIC' },
+            { name: 'estimated_commission_base', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'estimated_paid_shop_ads_commission', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'estimated_paid_commission', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'estimated_paid_partner_commission', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'actual_commission_base', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'actual_paid_commission', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'actual_paid_partner_commission', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'actual_paid_shop_ads_commission', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'estimated_cofunded_creator_bonus_amount', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'actual_cofunded_creator_bonus_amount', type: 'RECORD', fields: [
+                { name: 'amount', type: 'NUMERIC' },
+                { name: 'currency', type: 'STRING' },
+            ]},
+            { name: 'refunded_quantity', type: 'INTEGER' },
+            { name: 'returned_quantity', type: 'INTEGER' },
+            { name: 'fully_return', type: 'STRING' },
+        ]},
+    ]
+};
 
 const affiliateAppBrands = {
     "Eileen Grace": 1,
@@ -58,19 +132,22 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         // // const createTimeFrom = 1767200458;
         // const createTimeTo = Math.floor(new Date("2026-03-02T23:59:59+07:00").getTime() / 1000);
 
-        const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
-        const startTime = "2026-04-01"
-        const endTime = "2026-04-14"
-        const createTimeFrom = Math.floor(new Date(`${yesterday}T00:00:00+07:00`).getTime() / 1000);
-        const createTimeTo = Math.floor(new Date(`${yesterday}T23:59:59+07:00`).getTime() / 1000);
+        const yesterdayDate = new Date(Date.now() - 86400000)
+            .toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
+
+        const startTime = Math.floor(new Date(`${yesterdayDate}T00:00:00+07:00`).getTime() / 1000) - (29 * 86400);
+        const endTime = Math.floor(new Date(`${yesterdayDate}T23:59:59+07:00`).getTime() / 1000);
+
+        // const createTimeFrom = Math.floor(new Date(`${yesterday}T00:00:00+07:00`).getTime() / 1000);
+        // const createTimeTo = Math.floor(new Date(`${yesterday}T23:59:59+07:00`).getTime() / 1000);
 
         let rawAffiliateOrders = [];
         let rawAffiliateOrdersLength = 0;
         
         while(keepFetching) {
             const requestBody = {
-                create_time_ge: createTimeFrom,
-                create_time_lt: createTimeTo
+                create_time_ge: startTime,
+                create_time_lt: endTime
             }
 
             const timestamp = Math.floor(Date.now() / 1000);
@@ -145,7 +222,11 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         //     }
         // }
 
-        return rawAffiliateOrders;
+        return {
+            rawAffiliateOrders,
+            startTime,
+            endTime
+        };
 
     } catch (e) {
         console.log("[TIKTOK-AFFILIATE] Error get affiliate info: ", e);
@@ -186,63 +267,63 @@ const brandAffiliateTables = {
 
 async function mergeTiktokAffiliate(orders, brand) {
     try {
-        console.log("Merging tiktok affiliate orders on brand: ", brand);
         const datasetId = "tiktok_api_us";
         const bigquery = new BigQuery();
+        const storage = new Storage();
         const tableName = brandAffiliateTables[brand];
+        const projectId = bigquery.projectId;
+        const bucketName = "donotdelete-tiktokaffiliate"; 
+        const fileName = `tiktok_affiliate_temp/${brand}_${Date.now()}.ndjson`;
 
-        let batchSize = 1000;
-        for(let i=0; i<orders.length; i+=batchSize) {
-            const batchData = orders.slice(i, i+batchSize);
+        const formattedData = orders.map(d => JSON.stringify({
+            ...d,
+            create_time: convertTimestamp(d.create_time),
+            delivery_time: convertTimestamp(d.delivery_time),
+        })).join('\n');
 
-            const incomingOrderIds = batchData.map(row => `'${row.id}'`).join(",");
+        const bucket = storage.bucket(bucketName);
+        const file = bucket.file(fileName);
+        await file.save(formattedData, { contentType: 'application/json' });
+        console.log(`[TIKTOK-AFFILIATE] Uploaded to GCS: ${fileName}`);
 
-            if(!incomingOrderIds) continue;
-
-            const query = `
-                SELECT id
-                FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
-                WHERE id IN (${incomingOrderIds})
-            `
-            const [existingRows] = await bigquery.query(query);
-            const existingIds = new Set(existingRows.map(row => row.id));
-            console.log("[TIKTOK-AFFILIATE] Found: ", existingIds.size, " duplicates in table: ", brandAffiliateTables[brand]);
-
-            const dataToInsert = batchData.filter(row => !existingIds.has(row.id));
-
-            if(dataToInsert.length === 0) {
-                console.log("[TIKTOK-AFFILIATE] All data already exists. Skipping inserts.");
-                continue;
-            }
-
-            console.log("[TIKTOK-AFFILIATE] Inserting ", dataToInsert.length, " new rows");
-
-            const formattedData = dataToInsert.map(d => {
-                return {
-                    ...d,
-                    create_time: convertTimestamp(d.create_time),
-                    delivery_time: convertTimestamp(d.delivery_time),
-                }
-            });
-
-            // console.log("Formatted data: ", formattedData.filter(d => d.Order_ID === "582076478813930834"))
-
-            await bigquery
+        try {
+            const [job] = await bigquery
                 .dataset(datasetId)
                 .table(tableName)
-                .insert(formattedData);
-            
-            console.log("[TIKTOK-AFFILIATE] Successfully inserted rows on: ", brandAffiliateTables[brand]);
+                .load(file, {
+                    sourceFormat: 'NEWLINE_DELIMITED_JSON',
+                    writeDisposition: 'WRITE_APPEND',
+                    autodetect: false, 
+                    schema: affiliateSchema,
+                });
+            const errors = job.status?.errors;
+            if (errors && errors.length > 0) {
+                throw new Error(`Load job failed: ${JSON.stringify(errors)}`);
+            }
+            console.log(`[TIKTOK-AFFILIATE] Load job ${job.id} completed`);
+    
+            const dedupeQuery = `
+                CREATE OR REPLACE TABLE \`${projectId}.${datasetId}.${tableName}\` AS
+                SELECT * EXCEPT(row_num) FROM (
+                    SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY create_time DESC) AS row_num
+                    FROM \`${projectId}.${datasetId}.${tableName}\`
+                )
+                WHERE row_num = 1
+            `;
+            await bigquery.query(dedupeQuery);
+            console.log(`[TIKTOK-AFFILIATE] Deduplicated ${tableName}`);
+    
+            await file.delete();
+            console.log(`[TIKTOK-AFFILIATE] Cleaned up GCS temp file`);
+        } catch (e) {
+            console.log("[TIKTOK-AFFILIATE] Error deduping and cleaning: ", e);
+            await file.delete().catch(e => console.log('GCS cleanup failed:', e));
         }
+
     } catch (e) {
-        if (e.name === 'PartialFailureError') {
-            console.log("Partial errors:", JSON.stringify(e.errors, null, 2));
-        } else {
-            console.log("Regular error: ");
-            console.log(e);
-        }
+        console.log("[TIKTOK-AFFILIATE] Error merging tiktok affiliate: ", e);
     }
-} 
+}
 
 export async function handleTiktokAffiliate(brand) {
     const tokens = await loadTokens(brand);
@@ -254,12 +335,22 @@ export async function handleTiktokAffiliate(brand) {
     const shopCipher = await getShopCipher(brand, accessToken);
     console.log("Shop cipher: ", shopCipher);
 
-    const affiliateOrders = await handleAffiliate(brand, shopCipher, accessToken);
-    affiliateOrders.sort((a, b) => a.create_time - b.create_time);
+    const { rawAffiliateOrders, startTime, endTime } = await handleAffiliate(brand, shopCipher, accessToken);
 
-    await mergeTiktokAffiliate(affiliateOrders, brand);
+    if(rawAffiliateOrders && rawAffiliateOrders.length > 0) {
+        rawAffiliateOrders.sort((a, b) => a.create_time - b.create_time);
+    
+        let startTimeOnData = convertTimestamp(rawAffiliateOrders[0].create_time);
+        let endTimeOnData = convertTimestamp(rawAffiliateOrders[rawAffiliateOrders.length - 1].create_time);
+    
+        // Validate against bigquery
+        console.log("Start time on data: ", startTimeOnData);
+        console.log("End time on data: ", endTimeOnData);
 
-    // setTimeout(() => {}, 3000);
+        await mergeTiktokAffiliate(rawAffiliateOrders, brand);
+    
+        // setTimeout(() => {}, 3000);
+    }
 }
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
