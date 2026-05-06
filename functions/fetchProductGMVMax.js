@@ -86,14 +86,12 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
                 let processedCostList = [];
 
                 costList.forEach(c => {
-                    if(c.metrics.cost !== "0") {
-                        let costElement = {
-                            "date": c.dimensions.stat_time_day,
-                            "pgmax_cost": parseInt(c.metrics.cost),
-                            "pgmax_gmv": parseInt(c.metrics.gross_revenue)
-                        }
-                        processedCostList.push(costElement);
+                    let costElement = {
+                        "date": c.dimensions.stat_time_day,
+                        "pgmax_cost": parseInt(c.metrics.cost),
+                        "pgmax_gmv": parseInt(c.metrics.gross_revenue)
                     }
+                    processedCostList.push(costElement);
                 });
 
                 if(processedCostList) {

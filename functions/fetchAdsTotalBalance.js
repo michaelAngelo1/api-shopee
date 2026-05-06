@@ -58,9 +58,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
 
                 let responseList = response.data.response;
                 responseList.forEach(r => {
-                    if(r.expense > 0) {
-                        totalExpense.push(r);
-                    }
+                    totalExpense.push(r);
                 })
                 // return totalExpense;
                 // await submitData(brand, response.data.response[0].expense, response.data.response[0].date);

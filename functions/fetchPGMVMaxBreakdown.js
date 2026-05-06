@@ -215,19 +215,17 @@ export async function fetchPGMVMaxBreakdown(brand, advertiser_id) {
                             let productLevelList = response.data.data.list;
                             console.log("Response data data list: ", response.data.data.list);
                             productLevelList.forEach(p => {
-                                if(p.metrics.cost !== "0") {
-                                    let obj = {
-                                        date: p.dimensions.stat_time_day.substring(0, 10),
-                                        campaign_name: c.campaign_name,
-                                        prod_id: p.metrics.item_group_id,
-                                        prod_name: p.metrics.product_name,
-                                        cost: parseInt(p.metrics.cost),
-                                        gmv: parseInt(p.metrics.gross_revenue),
-                                        process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
-                                    }
-                                    // sumCost += p.metrics.cost;
-                                    breakdownCostList.push(obj);
+                                let obj = {
+                                    date: p.dimensions.stat_time_day.substring(0, 10),
+                                    campaign_name: c.campaign_name,
+                                    prod_id: p.metrics.item_group_id,
+                                    prod_name: p.metrics.product_name,
+                                    cost: parseInt(p.metrics.cost),
+                                    gmv: parseInt(p.metrics.gross_revenue),
+                                    process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)
                                 }
+                                // sumCost += p.metrics.cost;
+                                breakdownCostList.push(obj);
                             });
                         } else {
                             retries -= 1;

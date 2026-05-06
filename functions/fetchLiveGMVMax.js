@@ -88,14 +88,12 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
                 let processedCostList = [];
 
                 costList.forEach(c => {
-                    if(c.metrics.cost !== "0") {
-                        let costElement = {
-                            "date": c.dimensions.stat_time_day,
-                            "lgmax_cost": parseInt(c.metrics.cost),
-                            "lgmax_gmv": parseInt(c.metrics.gross_revenue)
-                        }
-                        processedCostList.push(costElement);
+                    let costElement = {
+                        "date": c.dimensions.stat_time_day,
+                        "lgmax_cost": parseInt(c.metrics.cost),
+                        "lgmax_gmv": parseInt(c.metrics.gross_revenue)
                     }
+                    processedCostList.push(costElement);
                 });
 
                 if(processedCostList) {

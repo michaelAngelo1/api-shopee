@@ -171,13 +171,11 @@ export async function fetchTiktokBasicAds(brand, advertiser_id, sleepValue=3000)
                     let singleCostList = [];
 
                     costList.forEach(c => {
-                        if(c.metrics.spend !== "0") {
-                            let costElement = {
-                                "date": c.dimensions.stat_time_day,
-                                "basic_cost": parseInt(c.metrics.spend),
-                            }
-                            singleCostList.push(costElement);
+                        let costElement = {
+                            "date": c.dimensions.stat_time_day,
+                            "basic_cost": parseInt(c.metrics.spend),
                         }
+                        singleCostList.push(costElement);
                     });
 
                     if(singleCostList) {
@@ -277,12 +275,10 @@ function processData(brandName, resData1, resData2) {
                 
                 // console.log("CAMPAIGN NAME: ", campaignName, "SPENDING: ", spending);
     
-                if(spending > 0) {
-                    filteredSpending.push({
-                        "date": dateStr,
-                        "basic_cost": spending,
-                    });
-                }
+                filteredSpending.push({
+                    "date": dateStr,
+                    "basic_cost": spending,
+                });
             }
         }
     });
