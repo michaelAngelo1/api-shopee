@@ -4,7 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node scripts/fix-deps.cjs",
+    "refetch": "node scripts/fix-deps.cjs && node functions/refetchAll.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,9 +15,10 @@
     "@google-cloud/bigquery": "^8.1.1",
     "@google-cloud/secret-manager": "^6.1.1",
     "@google-cloud/storage": "^7.19.0",
-    "axios": "^1.12.2",
+    "axios": "^1.16.0",
     "bottleneck": "^2.19.5",
     "bullmq": "^5.58.9",
+    "data-uri-to-buffer": "^4.0.1",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "ioredis": "^5.8.2"
