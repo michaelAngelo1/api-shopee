@@ -53,6 +53,33 @@ function isIncomplete(pkgDir, meta) {
   return false;
 }
 
+// Nested packages that npm drops when reorganizing — must be explicitly managed.
+// Format: { pkg: 'parent-package', nested: { name, version } }
+const NESTED_PACKAGES = [
+  { parent: 'google-auth-library', name: 'gaxios',     version: '7.1.4' },
+  { parent: 'google-auth-library', name: 'node-fetch', version: '3.3.2' },
+];
+
+function ensureNestedPackages() {
+  for (const { parent, name, version } of NESTED_PACKAGES) {
+    const pkgDir = join(nm, parent, 'node_modules', name);
+    const pkgJson = join(pkgDir, 'package.json');
+    let needsRestore = false;
+    if (!existsSync(pkgJson)) {
+      needsRestore = true;
+    } else {
+      try {
+        const meta = JSON.parse(readFileSync(pkgJson, 'utf8'));
+        if (isIncomplete(pkgDir, meta)) needsRestore = true;
+      } catch (_) { needsRestore = true; }
+    }
+    if (needsRestore) {
+      mkdirSync(pkgDir, { recursive: true });
+      restore(pkgDir, name, version);
+    }
+  }
+}
+
 function getPackageDirs() {
   const dirs = [];
   for (const entry of readdirSync(nm)) {
@@ -101,6 +128,8 @@ for (const pkgDir of getPackageDirs()) {
     else failed.push(`${meta.name}@${meta.version}`);
   }
 }
+
+ensureNestedPackages();
 
 if (fixed === 0 && failed.length === 0) {
   console.log('[postinstall] All packages OK.');
