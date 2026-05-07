@@ -29,6 +29,27 @@ function isIncomplete(pkgDir, meta) {
       return true;
     }
   }
+
+  // Also scan the main file for broken first-level internal requires
+  // (e.g. protobufjs/index.js does `require('./src/index')` but src/ is missing)
+  // Only flag if the main file IS at the package root (otherwise relative refs are fine)
+  const mainRaw = meta.main;
+  if (mainRaw && !mainRaw.includes('/')) {
+    const mainFile = resolve(pkgDir, mainRaw.endsWith('.js') ? mainRaw : mainRaw + '.js');
+    if (existsSync(mainFile)) {
+      try {
+        const src = readFileSync(mainFile, 'utf8').slice(0, 2000);
+        const refs = [...src.matchAll(/require\(['"](\.[^'"]+)['"]\)/g)];
+        for (const [, ref] of refs) {
+          const full = resolve(pkgDir, ref);
+          if (!existsSync(full) && !existsSync(full + '.js') && !existsSync(full + '.cjs') && !existsSync(full + '.json')) {
+            return true;
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
   return false;
 }
 
