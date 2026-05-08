@@ -126,6 +126,10 @@ async function loadTokensFromSecret(brand) {
         "Past Nine": "projects/231801348950/secrets/pn-ams-shopee-tokens/versions/latest",
         "Nutri & Beyond": "projects/231801348950/secrets/nb-ams-shopee-tokens/versions/latest",
         "Ivy & Lily": "projects/231801348950/secrets/il-ams-shopee-tokens/versions/latest",
+        "Naruko": "",
+        "Relove": "",
+        "Joey & Roo": "",
+        "Rocketindo Shop": ""
     }
     const secretName = brandSecretName[brand];
     console.log("SECRET NAME: ", secretName);
@@ -298,7 +302,6 @@ const brandTables = {
     "Evoke": "evoke_ams",
     "G-Belle": "gbelle_ams",
     "Ivy & Lily": "ivy_lily_ams",
-    "Naruko": "naruko_ams",
     "Miss Daisy": "miss_daisy_ams",
     "Mirae": "mirae_ams",
     "Mamaway": "mamaway_ams",
@@ -309,9 +312,9 @@ const brandTables = {
     "SH-RD": "shrd_ams",
     "Swissvita": "swissvita_ams",
     "Eileen Grace": "eileen_grace_ams",
+    "Naruko": "naruko_ams",
     "Relove": "relove_ams",
     "Joey & Roo": "joey_roo_ams",
-    "Enchante": "enchante_ams",
     "Rocketindo Shop": "rocketindo_shop_ams",
 }
 

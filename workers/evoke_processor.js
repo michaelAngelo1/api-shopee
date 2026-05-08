@@ -124,12 +124,11 @@ export async function fetchAndProcessOrdersEVOKE() {
     EVOKE_ACCESS_TOKEN = loadedTokens.accessToken;
     EVOKE_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, EVOKE_ACCESS_TOKEN, SHOP_ID);
-
     await fetchAffiliateData(brand, SHOP_ID, 5500);
 
     let advIdEvoke = "7374337917889953808"

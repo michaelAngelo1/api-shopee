@@ -125,12 +125,11 @@ export async function fetchAndProcessOrdersGB() {
     GB_ACCESS_TOKEN = loadedTokens.accessToken;
     GB_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID)
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, GB_ACCESS_TOKEN, SHOP_ID);
-
     await fetchAffiliateData(brand, SHOP_ID, 7500);
     
     let advIdGbelle = "7329483707528691714";

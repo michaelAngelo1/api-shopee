@@ -135,11 +135,13 @@ export async function handleAffiliate(brand, shopCipher, accessToken) {
         const yesterdayDate = new Date(Date.now() - 86400000)
             .toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' });
 
+        // Production
         const startTime = Math.floor(new Date(`${yesterdayDate}T00:00:00+07:00`).getTime() / 1000) - (29 * 86400);
         const endTime = Math.floor(new Date(`${yesterdayDate}T23:59:59+07:00`).getTime() / 1000);
 
-        // const createTimeFrom = Math.floor(new Date(`${yesterday}T00:00:00+07:00`).getTime() / 1000);
-        // const createTimeTo = Math.floor(new Date(`${yesterday}T23:59:59+07:00`).getTime() / 1000);
+        // Testing
+        // const startTime = Math.floor(new Date(`2026-04-01T00:00:00+07:00`).getTime() / 1000);
+        // const endTime = Math.floor(new Date(`2026-04-30T23:59:59+07:00`).getTime() / 1000);
 
         let rawAffiliateOrders = [];
         let rawAffiliateOrdersLength = 0;
@@ -418,6 +420,10 @@ export async function mainTiktokAffiliate() {
     await handleTiktokAffiliate("Rocketindo Shop");
     await delay(3000); 
     
+    await handleTiktokAffiliate("M2");
+}
+
+export async function testAffiliateM2() {
     await handleTiktokAffiliate("M2");
 }
 

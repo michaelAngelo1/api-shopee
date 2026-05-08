@@ -31,7 +31,7 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         access_token: accessToken,
         shop_id: shop_id,
         sign,
-        start_date: yesterdayString,
+        start_date: yesterdayString, // 1 to 30 first. then 30 - 31. For every month.
         end_date: yesterdayString
     });
 
@@ -114,10 +114,14 @@ async function submitData(brand, expenses) {
         tableName = "naruko_ads_spending";
     } else if(brand == "Relove") {
         tableName = "relove_ads_spending";
-    } else if(brand == "Joey Roo") {
+    } else if(brand == "Joey & Roo") {
         tableName = "joey_roo_ads_spending";
     } else if(brand == "Enchante") {
         tableName = "enchante_ads_spending";
+    } else if(brand == "M2") {
+        tableName = "m2_ads_spending";
+    } else if(brand == "Rocketindo Shop") {
+        tableName = "rocketindo_shop_ads_spending";
     }
  
     const datasetId = 'shopee_api';

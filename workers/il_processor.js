@@ -132,7 +132,6 @@ export async function fetchAndProcessOrdersIL() {
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, IL_ACCESS_TOKEN, SHOP_ID);
-
     await fetchAffiliateData(brand, SHOP_ID, 9000);
     
     // For backfilling
@@ -149,22 +148,8 @@ export async function fetchAndProcessOrdersIL() {
     console.log(lgmvMaxData);
     console.log("\n");
 
-    let advIdNaruko = "7392579089489608720"
-    const basicAdsDataNaruko = await fetchTiktokBasicAds(brandNaruko, advIdNaruko, 19000);
-    const pgmvMaxDataNaruko = await fetchProductGMVMax(brandNaruko, advIdNaruko, 20000);
-    const lgmvMaxDataNaruko = await fetchLiveGMVMax(brandNaruko, advIdNaruko, 21000);
-    
-    console.log("[NARUKO] All data on: ", brandNaruko);
-    console.log(basicAdsDataNaruko);
-    console.log(pgmvMaxDataNaruko);
-    console.log(lgmvMaxDataNaruko);
-    console.log("\n");
-
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
-
-    await handleTiktokAdsData(basicAdsDataNaruko, pgmvMaxDataNaruko, lgmvMaxDataNaruko, brandNaruko);
 
     // For backfilling
     await fetchPGMVMaxBreakdown(brandTT, advIdIvyLily);
-    await fetchPGMVMaxBreakdown(brandNaruko, advIdNaruko);
 }

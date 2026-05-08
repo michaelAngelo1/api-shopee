@@ -125,7 +125,7 @@ export async function fetchAndProcessOrdersMOSS() {
     MOSS_ACCESS_TOKEN = loadedTokens.accessToken;
     MOSS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MOSS_ACCESS_TOKEN, SHOP_ID);

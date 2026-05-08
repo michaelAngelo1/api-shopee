@@ -5,7 +5,7 @@
  */
 const { execSync } = require('child_process');
 const { existsSync, readdirSync, readFileSync, mkdirSync, rmSync } = require('fs');
-const { resolve, join, extname } = require('path');
+const { resolve, join } = require('path');
 const os = require('os');
 
 const nm = resolve(__dirname, '../node_modules');
@@ -20,8 +20,15 @@ function isIncomplete(pkgDir, meta) {
   collectEntryPoints(meta.main);
   collectEntryPoints(meta.exports);
 
-  // No entry points declared — assume OK
-  if (checks.size === 0) return false;
+  // Determine which root-level file to scan for broken requires
+  // Priority: declared main → fallback to index.js (Node's default resolution)
+  const mainRaw = meta.main;
+  const rootFileToScan = mainRaw && !mainRaw.includes('/')
+    ? (mainRaw.endsWith('.js') ? mainRaw : mainRaw + '.js')
+    : (!mainRaw && existsSync(resolve(pkgDir, 'index.js')) ? 'index.js' : null);
+
+  // No entry points declared and no index.js — assume OK
+  if (checks.size === 0 && !rootFileToScan) return false;
 
   for (const ref of checks) {
     const full = resolve(pkgDir, ref);
@@ -30,12 +37,11 @@ function isIncomplete(pkgDir, meta) {
     }
   }
 
-  // Also scan the main file for broken first-level internal requires
-  // (e.g. protobufjs/index.js does `require('./src/index')` but src/ is missing)
-  // Only flag if the main file IS at the package root (otherwise relative refs are fine)
-  const mainRaw = meta.main;
-  if (mainRaw && !mainRaw.includes('/')) {
-    const mainFile = resolve(pkgDir, mainRaw.endsWith('.js') ? mainRaw : mainRaw + '.js');
+  // Scan root-level entry file for broken first-level internal requires
+  // (e.g. protobufjs/index.js requires './src/index' but src/ missing;
+  //  router/index.js requires './lib/layer' but lib/ missing — no main declared)
+  if (rootFileToScan) {
+    const mainFile = resolve(pkgDir, rootFileToScan);
     if (existsSync(mainFile)) {
       try {
         const src = readFileSync(mainFile, 'utf8').slice(0, 2000);

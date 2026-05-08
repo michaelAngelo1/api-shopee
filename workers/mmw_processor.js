@@ -123,13 +123,11 @@ export async function fetchAndProcessOrdersMMW() {
     const loadedTokens = await loadTokensFromSecret();
     MMW_ACCESS_TOKEN = loadedTokens.accessToken;
     MMW_REFRESH_TOKEN = loadedTokens.refreshToken;
-
-    await refreshToken();
+    // await refreshToken();
 
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID)
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, MMW_ACCESS_TOKEN, SHOP_ID);
-
     await fetchAffiliateData(brand, SHOP_ID, 1500);
     
     let advIdMamaway = "7306800699382251521";

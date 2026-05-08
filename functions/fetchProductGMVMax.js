@@ -62,7 +62,7 @@ export async function fetchProductGMVMax(brand, advertiser_id, sleepValue=5000) 
                 advertiser_id: advertiser_id,
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
                 start_date: yesterdayStr,
-                end_date: yesterdayStr,
+                end_date: yesterdayStr, 
                 dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
                 metrics: JSON.stringify(["cost", "orders", "net_cost", "gross_revenue"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["PRODUCT"] }),

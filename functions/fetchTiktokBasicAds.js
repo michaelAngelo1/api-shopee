@@ -17,8 +17,8 @@ const dd = String(yesterday.getDate()).padStart(2, '0');
 const yesterdayStr = `${yyyy}-${mm}-${dd}`;
 
 // For backfill only. Not for production.
-export let backfillStartDate = "2025-09-01";
-export let backfillEndDate = "2025-09-26";
+export let backfillStartDate = "2026-05-01";
+export let backfillEndDate = "2026-05-06";
 
 // export let backfillStartDate = yesterdayStr;
 // export let backfillEndDate = yesterdayStr;

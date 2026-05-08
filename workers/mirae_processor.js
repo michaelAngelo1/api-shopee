@@ -125,7 +125,7 @@ export async function fetchAndProcessOrdersMIRAE() {
     MIRAE_ACCESS_TOKEN = loadedTokens.accessToken;
     MIRAE_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, MIRAE_ACCESS_TOKEN, SHOP_ID);

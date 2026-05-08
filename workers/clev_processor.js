@@ -127,21 +127,18 @@ export async function fetchAndProcessOrdersCLEV() {
     CLEV_ACCESS_TOKEN = loadedTokens.accessToken;
     CLEV_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, CLEV_ACCESS_TOKEN, SHOP_ID);
-
     await fetchAffiliateData(brand, SHOP_ID, 4000);
 
     let advIdClev = "7553576714043965448";
-    
     // For backfill
     let advIdMirae = "7306798768821387265";
 
     let advertiserId = advIdClev;
-
     const basicAdsData = await fetchTiktokBasicAds(brand, advertiserId);
     const pgmvMaxData = await fetchProductGMVMax(brand, advertiserId);
     const lgmvMaxData = await fetchLiveGMVMax(brand, advertiserId);

@@ -14,11 +14,14 @@ import { fetchAndProcessOrdersGB } from './workers/gb_processor.js';
 import { fetchAndProcessOrdersPN } from './workers/pn_processor.js';
 import { fetchAndProcessOrdersNB } from './workers/nb_processor.js';
 import { fetchAndProcessOrdersIL } from './workers/il_processor.js';
+import { mainM2 } from "./workers/m2_processor.js";
 
 import { mainTiktokFinance } from './functions/handleFinance.js';
 import 'dotenv/config';
 import express from 'express';
 import { mainTransactionsBreakdown } from './functions/transactionsBreakdown.js';
+import { mainTiktokAffiliate } from './functions/handleTiktokAffiliate.js';
+import { fetchNewBrands } from './workers/newBrandsProcessor.js';
 
 const workerApp = express();
 const port = process.env.PORT || 8080;
@@ -82,6 +85,9 @@ workerApp.post('/process/daily-sync', async (req, res) => {
             { name: 'Past Nine', fn: fetchAndProcessOrdersPN },
             { name: 'Nutri & Beyond', fn: fetchAndProcessOrdersNB },
             { name: 'Ivy & Lily', fn: fetchAndProcessOrdersIL },
+            { name: "M2", fn: mainM2 },
+            { name: "New Brands w/o M2", fn: fetchNewBrands },
+            { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
         ];
 
         for (const task of tasks) {

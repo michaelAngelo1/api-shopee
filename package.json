@@ -15,7 +15,7 @@
     "@google-cloud/bigquery": "^8.1.1",
     "@google-cloud/secret-manager": "^6.1.1",
     "@google-cloud/storage": "^7.19.0",
-    "axios": "^1.16.0",
+    "axios": "^1.12.2",
     "bottleneck": "^2.19.5",
     "bullmq": "^5.58.9",
     "data-uri-to-buffer": "^4.0.1",

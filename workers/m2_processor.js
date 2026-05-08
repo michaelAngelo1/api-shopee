@@ -8,6 +8,7 @@ import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
+import { fetchAdsTotalBalance } from '../functions/fetchAdsTotalBalance.js';
 
 const secretClient = new SecretManagerServiceClient();
 export const PARTNER_ID = parseInt(process.env.PARTNER_ID);
@@ -117,7 +118,7 @@ export async function mainM2() {
     ACCESS_TOKEN = loadedTokens.accessToken;
     REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
     let advIdM2 = "7618550122112729095";
     const basicAdsData = await fetchTiktokBasicAds(brand, advIdM2);
@@ -127,5 +128,6 @@ export async function mainM2() {
     await handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand);
     await fetchPGMVMaxBreakdown(brand, advIdM2);
 
+    await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
 }
