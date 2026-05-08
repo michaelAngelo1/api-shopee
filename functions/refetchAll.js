@@ -25,11 +25,11 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function refetchAll() {
     try {
         const tasks = [
-            { name: 'Eileen Grace', fn: fetchAndProcessOrders },
-            { name: 'Mamaway', fn: fetchAndProcessOrdersMMW },
-            { name: 'SHRD', fn: fetchAndProcessOrdersSHRD },
-            { name: 'Miss Daisy', fn: fetchAndProcessOrdersMD },
-            { name: 'CHESS', fn: fetchAndProcessOrdersCHESS },
+            // { name: 'Eileen Grace', fn: fetchAndProcessOrders },
+            // { name: 'Mamaway', fn: fetchAndProcessOrdersMMW },
+            // { name: 'SHRD', fn: fetchAndProcessOrdersSHRD },
+            // { name: 'Miss Daisy', fn: fetchAndProcessOrdersMD },
+            // { name: 'CHESS', fn: fetchAndProcessOrdersCHESS },
             { name: 'Polynia', fn: fetchAndProcessOrdersPOLY },
             { name: 'Cléviant', fn: fetchAndProcessOrdersCLEV },
             { name: 'Mossèru', fn: fetchAndProcessOrdersMOSS },
