@@ -10,6 +10,7 @@ import { fetchProductGMVMax } from '../functions/fetchProductGMVMax.js';
 import { fetchLiveGMVMax } from '../functions/fetchLiveGMVMax.js';
 import { handleTiktokAdsData } from '../functions/handleTiktokAdsData.js';
 import { fetchPGMVMaxBreakdown } from '../functions/fetchPGMVMaxBreakdown.js';
+import { fetchAffiliateData } from '../functions/amsProcessor.js';
 
 const secretClient = new SecretManagerServiceClient();
 export const DRJOU_PARTNER_ID = parseInt(process.env.DRJOU_PARTNER_ID);
@@ -175,6 +176,7 @@ async function handleNaruko() {
 
     // await refreshTokenNewBrands(brand, shopId)
 
+    await fetchAffiliateData(brand, shopId);
     await mainDanaDilepas(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await fetchAdsTotalBalance(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     await handleWalletTransactions(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
@@ -198,6 +200,7 @@ async function handleRelove() {
 
     // await refreshTokenNewBrands(brand, shopId);
 
+    await fetchAffiliateData(brand, shopId);
     await mainDanaDilepas(brand, SHRD_PARTNER_ID, SHRD_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await fetchAdsTotalBalance(brand, SHRD_PARTNER_ID, SHRD_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     await handleWalletTransactions(brand, SHRD_PARTNER_ID, SHRD_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
@@ -219,9 +222,10 @@ async function handleJR() {
     const loadedTokens = await loadTokensNewBrands(brand);
     NEW_BRANDS_ACCESS_TOKEN = loadedTokens.accessToken;
     NEW_BRANDS_REFRESH_TOKEN = loadedTokens.refreshToken;
-
+    
     // await refreshTokenNewBrands(brand, shopId);
-
+    
+    await fetchAffiliateData(brand, shopId);
     await mainDanaDilepas(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await fetchAdsTotalBalance(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     await handleWalletTransactions(brand, DRJOU_PARTNER_ID, DRJOU_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);

@@ -29,68 +29,71 @@ let tableNameMap = {
 
 export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData, brand) {
     console.log(`Handle Tiktok Ads Brand ${brand}`);
-    if(basicAdsData && pgmvMaxData && lgmvMaxData) {
 
-        const yesterday = new Date();
-
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        const yyyy = yesterday.getFullYear();
-        const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
-        const dd = String(yesterday.getDate()).padStart(2, '0');
-        const yesterdayStr = `${yyyy}-${mm}-${dd}`;
-
-        let dataTiktokAds = [];
-        
-        let currentDate = new Date(yesterdayStr);
-        let endDate = new Date(yesterdayStr);
-
-        // let currentDate = new Date(yesterdayStr);
-        // let endDate = new Date(yesterdayStr);
-
-        while(currentDate <= endDate) {
-            let tiktokAds = {
-                "date": currentDate.toISOString().substring(0, 10),
-                "basic_cost": 0,
-                "pgmax_cost": 0,
-                "lgmax_cost": 0,
-                "pgmax_gmv": 0,
-                "lgmax_gmv": 0,
-            }
-            dataTiktokAds.push(tiktokAds);
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        // Process basicAdsData
-        dataTiktokAds.forEach((d) => {
-            const match = basicAdsData.find((b) => b.date.substring(0, 10) === d.date);
-            if(match) {
-                d.basic_cost = match.basic_cost;
-            }
-        });
-
-        // Process pgmvMaxData
-        dataTiktokAds.forEach((d) => {
-            const match = pgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
-            if(match) {
-                d.pgmax_cost = match.pgmax_cost;
-                d.pgmax_gmv = match.pgmax_gmv;
-            }
-        });
-
-        // Process lgmvMaxData
-        dataTiktokAds.forEach((d) => {
-            const match = lgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
-            if(match) {
-                d.lgmax_cost = match.lgmax_cost;
-                d.lgmax_gmv = match.lgmax_gmv;
-            }
-        });
-
-        console.log("TO MERGE - Data Tiktok Ads: ", brand);
-        // Added 'brand' to arguments so logging works
-        await mergeTiktokAdsData(dataTiktokAds, tableNameMap[brand], brand);
+    if(basicAdsData === undefined || pgmvMaxData === undefined || lgmvMaxData === undefined) {
+        console.log("[TIKTOK-ADS] Merge aborted due to missing or undefined data. On: ", brand);
+        throw new Error(`[TIKTOK-ADS] Merge aborted due to missing or undefined data. On: ${brand}`)
     }
+
+    const yesterday = new Date();
+
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const yyyy = yesterday.getFullYear();
+    const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const dd = String(yesterday.getDate()).padStart(2, '0');
+    const yesterdayStr = `${yyyy}-${mm}-${dd}`;
+
+    let dataTiktokAds = [];
+    
+    let currentDate = new Date(yesterdayStr);
+    let endDate = new Date(yesterdayStr);
+
+    // let currentDate = new Date(yesterdayStr);
+    // let endDate = new Date(yesterdayStr);
+
+    while(currentDate <= endDate) {
+        let tiktokAds = {
+            "date": currentDate.toISOString().substring(0, 10),
+            "basic_cost": 0,
+            "pgmax_cost": 0,
+            "lgmax_cost": 0,
+            "pgmax_gmv": 0,
+            "lgmax_gmv": 0,
+        }
+        dataTiktokAds.push(tiktokAds);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Process basicAdsData
+    dataTiktokAds.forEach((d) => {
+        const match = basicAdsData.find((b) => b.date.substring(0, 10) === d.date);
+        if(match) {
+            d.basic_cost = match.basic_cost;
+        }
+    });
+
+    // Process pgmvMaxData
+    dataTiktokAds.forEach((d) => {
+        const match = pgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
+        if(match) {
+            d.pgmax_cost = match.pgmax_cost;
+            d.pgmax_gmv = match.pgmax_gmv;
+        }
+    });
+
+    // Process lgmvMaxData
+    dataTiktokAds.forEach((d) => {
+        const match = lgmvMaxData.find((b) => b.date.substring(0, 10) === d.date);
+        if(match) {
+            d.lgmax_cost = match.lgmax_cost;
+            d.lgmax_gmv = match.lgmax_gmv;
+        }
+    });
+
+    console.log("TO MERGE - Data Tiktok Ads: ", brand);
+    // Added 'brand' to arguments so logging works
+    await mergeTiktokAdsData(dataTiktokAds, tableNameMap[brand], brand);
 }
 
 async function mergeTiktokAdsData(data, tableName, brand) {

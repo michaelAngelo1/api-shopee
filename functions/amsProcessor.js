@@ -69,6 +69,11 @@ let brandSecret = {
     "Past Nine": "projects/231801348950/secrets/pn-ams-shopee-tokens",
     "Nutri & Beyond": "projects/231801348950/secrets/nb-ams-shopee-tokens",
     "Ivy & Lily": "projects/231801348950/secrets/il-ams-shopee-tokens",
+    "Naruko": "projects/231801348950/secrets/naruko-ams-shopee-tokens",
+    "Relove": "projects/231801348950/secrets/relove-ams-shopee-tokens",
+    "Joey & Roo": "projects/231801348950/secrets/joey-roo-ams-shopee-tokens",
+    "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-ams-shopee-tokens",
+    // "M2": ""
 }
 
 async function saveTokensToSecret(brand, tokens) {
@@ -126,10 +131,11 @@ async function loadTokensFromSecret(brand) {
         "Past Nine": "projects/231801348950/secrets/pn-ams-shopee-tokens/versions/latest",
         "Nutri & Beyond": "projects/231801348950/secrets/nb-ams-shopee-tokens/versions/latest",
         "Ivy & Lily": "projects/231801348950/secrets/il-ams-shopee-tokens/versions/latest",
-        "Naruko": "",
-        "Relove": "",
-        "Joey & Roo": "",
-        "Rocketindo Shop": ""
+        "Naruko": "projects/231801348950/secrets/naruko-ams-shopee-tokens/versions/latest",
+        "Relove": "projects/231801348950/secrets/relove-ams-shopee-tokens/versions/latest",
+        "Joey & Roo": "projects/231801348950/secrets/joey-roo-ams-shopee-tokens/versions/latest",
+        "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-ams-shopee-tokens/versions/latest",
+        // "M2": "projects/231801348950/secrets/m2-ams-shopee-tokens/versions/latest"
     }
     const secretName = brandSecretName[brand];
     console.log("SECRET NAME: ", secretName);
@@ -312,10 +318,12 @@ const brandTables = {
     "SH-RD": "shrd_ams",
     "Swissvita": "swissvita_ams",
     "Eileen Grace": "eileen_grace_ams",
+    // new brands
     "Naruko": "naruko_ams",
     "Relove": "relove_ams",
     "Joey & Roo": "joey_roo_ams",
     "Rocketindo Shop": "rocketindo_shop_ams",
+    "m2": "m2_ams"
 }
 
 async function mergeData(data, brand, data_date) {
@@ -356,7 +364,7 @@ async function mergeData(data, brand, data_date) {
                 orders: data.orders,
                 clicks: data.clicks,
                 est_commission: data.est_commission,
-                roi: data.roi,
+                roi: data.roi == "--" ? null : data.roi,
                 total_buyers: data.total_buyers,
                 new_buyers: data.new_buyers,
                 process_dttm: new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().replace('T', ' ').substring(0, 19)

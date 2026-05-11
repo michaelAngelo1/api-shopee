@@ -30,20 +30,20 @@ async function refetchAll() {
             // { name: 'SHRD', fn: fetchAndProcessOrdersSHRD },
             // { name: 'Miss Daisy', fn: fetchAndProcessOrdersMD },
             // { name: 'CHESS', fn: fetchAndProcessOrdersCHESS },
-            { name: 'Polynia', fn: fetchAndProcessOrdersPOLY },
-            { name: 'Cléviant', fn: fetchAndProcessOrdersCLEV },
-            { name: 'Mossèru', fn: fetchAndProcessOrdersMOSS },
-            { name: 'Evoke', fn: fetchAndProcessOrdersEVOKE },
-            { name: 'Dr Jou', fn: fetchAndProcessOrdersDRJOU },
-            { name: 'Mirae', fn: fetchAndProcessOrdersMIRAE },
-            { name: 'Swissvita', fn: fetchAndProcessOrdersSV },
-            { name: 'G-Belle', fn: fetchAndProcessOrdersGB },
-            { name: 'Past Nine', fn: fetchAndProcessOrdersPN },
-            { name: 'Nutri & Beyond', fn: fetchAndProcessOrdersNB },
-            { name: 'Ivy & Lily', fn: fetchAndProcessOrdersIL },
-            { name: "M2", fn: mainM2 },
+            // { name: 'Polynia', fn: fetchAndProcessOrdersPOLY },
+            // { name: 'Cléviant', fn: fetchAndProcessOrdersCLEV },
+            // { name: 'Mossèru', fn: fetchAndProcessOrdersMOSS },
+            // { name: 'Evoke', fn: fetchAndProcessOrdersEVOKE },
+            // { name: 'Dr Jou', fn: fetchAndProcessOrdersDRJOU },
+            // { name: 'Mirae', fn: fetchAndProcessOrdersMIRAE },
+            // { name: 'Swissvita', fn: fetchAndProcessOrdersSV },
+            // { name: 'G-Belle', fn: fetchAndProcessOrdersGB },
+            // { name: 'Past Nine', fn: fetchAndProcessOrdersPN },
+            // { name: 'Nutri & Beyond', fn: fetchAndProcessOrdersNB },
+            // { name: 'Ivy & Lily', fn: fetchAndProcessOrdersIL },
+            // { name: "M2", fn: mainM2 },
             { name: "New Brands w/o M2", fn: fetchNewBrands },
-            { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
+            // { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
         ];
 
         for (const task of tasks) {
@@ -62,11 +62,11 @@ async function refetchAll() {
     }
 }
 
-// await refetchAll();
+await refetchAll();
 
-// Second run. Expected result: 
+// Third run. Expected result: 
 // 1. May 1 - 6 Tiktok ads data & PGMV Max breakdown data done
-// 2. Jan 30 - 31 of Shopee ads. Next: Feb 1 - 28. Later: March 1 - 30 and March 30 - 31. 
+// 2. Shopee ads: March 1 - 30. 
 
 // After run, do not forget to:
 // 1. Change back start and end date
