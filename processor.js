@@ -191,10 +191,10 @@ export async function fetchAndProcessOrders() {
     await refreshToken();
 
     // wallet_trx, finance, and ads shopee
+    await fetchAffiliateData(brand, SHOP_ID, 1000);
     await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
     await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID)
     await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await fetchAffiliateData(brand, SHOP_ID, 1000);
 
     let newAdvIdEG = "7613595763196706833";
     let oldAdvIdEG = "6899326735087566850"

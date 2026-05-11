@@ -2,6 +2,7 @@ import { BigQuery } from '@google-cloud/bigquery';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import axios from 'axios';
 import crypto from 'crypto';
+import dataUriToBuffer from 'data-uri-to-buffer';
 
 export const PARTNER_ID = parseInt(process.env.AMS_PARTNER_ID);
 export const PARTNER_KEY = process.env.AMS_PARTNER_KEY;
@@ -189,6 +190,104 @@ async function getPerformanceUpdateTime(brand, shop_id) {
     }
 }
 
+// export async function fetchAffiliateData(brand, shop_id, sleepValue) {
+    
+//     function sleep(ms) {
+//         return new Promise(resolve => setTimeout(resolve, ms));
+//     }
+    
+//     await sleep(sleepValue);
+
+    
+//     console.log('Fetch affiliate data on brand: ', brand);
+    
+//     const loadedTokens = await loadTokensFromSecret(brand);
+//     AMS_ACCESS_TOKEN = loadedTokens.accessToken;
+//     AMS_REFRESH_TOKEN = loadedTokens.refreshToken;
+    
+//     await refreshToken(brand, shop_id);
+    
+//     const updateTime = await getPerformanceUpdateTime(brand, shop_id);
+//     if(updateTime) {
+//         console.log(`Performance Update Time for ${brand} is ${updateTime}`);
+//     }
+//     // Fetch affiliate data per shop_id
+
+//     const startDateUpdateTime = new Date(updateTime);
+//     // const startDateUpdateTime = new Date("2026-01-17");
+//     const startY = startDateUpdateTime.getFullYear();
+//     const startM = String(startDateUpdateTime.getMonth() + 1).padStart(2, '0');
+//     const startD = String(startDateUpdateTime.getDate()).padStart(2, '0');
+//     const startStr = `${startY}${startM}${startD}`;
+//     const startForData = `${startY}-${startM}-${startD}`;
+    
+//     let success = false;
+//     let retries = 5;
+//     let data;
+    
+//     while(!success && retries > 0) {
+//         try {
+            
+//             let path = "/api/v2/ams/get_shop_performance";
+            
+//             const timestamp = Math.floor(Date.now() / 1000);
+//             const baseString = `${PARTNER_ID}${path}${timestamp}${AMS_ACCESS_TOKEN}${shop_id}`;
+//             const sign = crypto.createHmac('sha256', PARTNER_KEY)
+//                 .update(baseString)
+//                 .digest('hex');
+            
+
+//             const params = new URLSearchParams({
+//                 partner_id: PARTNER_ID, 
+//                 timestamp,
+//                 access_token: AMS_ACCESS_TOKEN,
+//                 shop_id: shop_id,
+//                 sign,
+//                 period_type: 'Day',
+//                 start_date: startStr,
+//                 end_date: startStr,
+//                 order_type: 'ConfirmedOrder',
+//                 channel: 'AllChannel',
+//             });
+            
+//             const fullUrl = `${HOST}${path}?${params.toString()}`;
+//             console.log(`[AMS] Hitting Affiliate Spending for ${brand}`);
+//             console.log(fullUrl);
+            
+//             const response = await axios.get(fullUrl, {
+//                 headers: {
+//                     'Content-Type': 'application/json'
+//                 }
+//             })
+    
+//             if(response && response.data && response.data.response) {
+//                 success = true;
+//                 console.log(`[AMS] res AMS data on brand: ${brand}`);
+//                 data = response.data.response;
+//             } else {
+//                 success = true;
+//                 console.log("Non-retryable error.");
+//                 console.log(response);
+//             }
+//         } catch (e) {
+//             console.error("[AMS] Error fetching AMS data on brand: ", brand);
+//             if(e.response?.status == 429) {
+//                 console.log("Rate limit error");
+//                 retries -= 1;
+//                 await sleep(sleepValue * 1.5)
+//             } else {
+//                 success = true;
+//                 console.log("Non-rate-limit error: ");
+//                 console.log(e.response);
+//             }
+//         }
+//     }
+//     console.log('Data before mergeData\n');
+//     console.log(data);
+
+//     await mergeData(data, brand, startForData);
+// }
+
 export async function fetchAffiliateData(brand, shop_id, sleepValue) {
     
     function sleep(ms) {
@@ -197,7 +296,6 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
     
     await sleep(sleepValue);
 
-    
     console.log('Fetch affiliate data on brand: ', brand);
     
     const loadedTokens = await loadTokensFromSecret(brand);
@@ -209,96 +307,93 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
     const updateTime = await getPerformanceUpdateTime(brand, shop_id);
     if(updateTime) {
         console.log(`Performance Update Time for ${brand} is ${updateTime}`);
+    } else {
+        console.log(`No update time found for ${brand}, exiting.`);
+        return;
     }
-    // Fetch affiliate data per shop_id
 
-    const startDateUpdateTime = new Date(updateTime);
-    // const startDateUpdateTime = new Date("2026-01-17");
-    const startY = startDateUpdateTime.getFullYear();
-    const startM = String(startDateUpdateTime.getMonth() + 1).padStart(2, '0');
-    const startD = String(startDateUpdateTime.getDate()).padStart(2, '0');
-    const startStr = `${startY}${startM}${startD}`;
-    const startForData = `${startY}-${startM}-${startD}`;
+    // set both to updateTime later. 
+    const currentDate = new Date(updateTime); 
+    const endDate = new Date(updateTime);
     
-    let success = false;
-    let retries = 5;
-    let data;
-    
-    const yesterday = new Date("2026-01-02");
-    yesterday.setDate(yesterday.getDate());
-    const yyyy = yesterday.getFullYear();
-    const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
-    const dd = String(yesterday.getDate()).padStart(2, '0');
-    const yesterdayStr = `${yyyy}${mm}${dd}`;
-    const yesterdayForData = `${yyyy}-${mm}-${dd}`;
+    console.log(`[AMS] Starting backfill from ${currentDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`);
 
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-    const day = String(yesterday.getDate()).padStart(2, '0');
-    const todayStr = `${year}${month}${day}`;
-    
-    while(!success && retries > 0) {
-        try {
-            
-            let path = "/api/v2/ams/get_shop_performance";
-            
-            const timestamp = Math.floor(Date.now() / 1000);
-            const baseString = `${PARTNER_ID}${path}${timestamp}${AMS_ACCESS_TOKEN}${shop_id}`;
-            const sign = crypto.createHmac('sha256', PARTNER_KEY)
-                .update(baseString)
-                .digest('hex');
-            
+    // Loop day by day
+    while (currentDate <= endDate) {
+        const startY = currentDate.getFullYear();
+        const startM = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const startD = String(currentDate.getDate()).padStart(2, '0');
+        
+        const startStr = `${startY}${startM}${startD}`;
+        const startForData = `${startY}-${startM}-${startD}`;
+        
+        let success = false;
+        let retries = 5;
+        let data = null;
+        
+        while(!success && retries > 0) {
+            try {
+                let path = "/api/v2/ams/get_shop_performance";
+                
+                const timestamp = Math.floor(Date.now() / 1000);
+                const baseString = `${PARTNER_ID}${path}${timestamp}${AMS_ACCESS_TOKEN}${shop_id}`;
+                const sign = crypto.createHmac('sha256', PARTNER_KEY)
+                    .update(baseString)
+                    .digest('hex');
 
-            const params = new URLSearchParams({
-                partner_id: PARTNER_ID, 
-                timestamp,
-                access_token: AMS_ACCESS_TOKEN,
-                shop_id: shop_id,
-                sign,
-                period_type: 'Day',
-                start_date: startStr,
-                end_date: startStr,
-                order_type: 'ConfirmedOrder',
-                channel: 'AllChannel',
-            });
-            
-            const fullUrl = `${HOST}${path}?${params.toString()}`;
-            console.log(`[AMS] Hitting Affiliate Spending for ${brand}`);
-            console.log(fullUrl);
-            
-            const response = await axios.get(fullUrl, {
-                headers: {
-                    'Content-Type': 'application/json'
+                const params = new URLSearchParams({
+                    partner_id: PARTNER_ID, 
+                    timestamp,
+                    access_token: AMS_ACCESS_TOKEN,
+                    shop_id: shop_id,
+                    sign,
+                    period_type: 'Day',
+                    start_date: startStr,
+                    end_date: startStr,
+                    order_type: 'ConfirmedOrder',
+                    channel: 'AllChannel',
+                });
+                
+                const fullUrl = `${HOST}${path}?${params.toString()}`;
+                console.log(`[AMS] Hitting Affiliate Spending for ${brand} on ${startForData}`);
+                
+                const response = await axios.get(fullUrl, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+        
+                if(response && response.data && response.data.response) {
+                    success = true;
+                    data = response.data.response;
+                } else {
+                    success = true;
+                    console.log(`Non-retryable error or no data for ${startForData}.`);
+                    console.log(response);
                 }
-            })
-    
-            if(response && response.data && response.data.response) {
-                success = true;
-                console.log(`[AMS] res AMS data on brand: ${brand}`);
-                data = response.data.response;
-            } else {
-                success = true;
-                console.log("Non-retryable error.");
-                console.log(response);
-            }
-        } catch (e) {
-            console.error("[AMS] Error fetching AMS data on brand: ", brand);
-            if(e.response?.status == 429) {
-                console.log("Rate limit error");
-                retries -= 1;
-                await sleep(sleepValue * 1.5)
-            } else {
-                success = true;
-                console.log("Non-rate-limit error: ");
-                console.log(e.response);
+            } catch (e) {
+                if(e.response?.status == 429) {
+                    console.log(`Rate limit error on ${startForData}, retries left: ${retries - 1}`);
+                    retries -= 1;
+                    await sleep(sleepValue * 1.5);
+                } else {
+                    success = true;
+                    console.error(`[AMS] Non-rate-limit error fetching data on brand: ${brand} for date ${startForData}`);
+                    console.log(e.response?.data || e.message);
+                }
             }
         }
-    }
-    console.log('Data before mergeData\n');
-    console.log(data);
 
-    await mergeData(data, brand, startForData);
+        if (data) {
+            await mergeData(data, brand, startForData);
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+
+        await sleep(sleepValue);
+    }
+
+    console.log(`[AMS] Backfill completed for ${brand}`);
 }
 
 const brandTables = {
