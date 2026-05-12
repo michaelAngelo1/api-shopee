@@ -31,8 +31,8 @@ export async function fetchAdsTotalBalance(brand, partner_id, partner_key, acces
         access_token: accessToken,
         shop_id: shop_id,
         sign,
-        start_date: "01-05-2026", // 1 to 30 first. then 30 - 31. For every month.
-        end_date: "07-05-2026"
+        start_date: yesterdayString, // 1 to 30 first. then 30 - 31. For every month.
+        end_date: yesterdayString
     });
 
     const fullUrl = `${HOST}${PATH}?${params.toString()}`;
