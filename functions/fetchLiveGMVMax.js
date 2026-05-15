@@ -26,7 +26,9 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
     const yyyy = yesterday.getFullYear();
     const mm = String(yesterday.getMonth() + 1).padStart(2, '0');
     const dd = String(yesterday.getDate()).padStart(2, '0');
+    // UNCOMMENT LATER. 
     const yesterdayStr = `${yyyy}-${mm}-${dd}`;
+    // const yesterdayStr = "2026-05-12";
 
     let storeIdAcc = {
         "eileengrace": "7494055813163943155",
@@ -63,7 +65,7 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
                 store_ids: JSON.stringify([storeIdAcc[brandName]]),
                 start_date: yesterdayStr,
                 end_date: yesterdayStr,
-                dimensions: JSON.stringify(["advertiser_id", "stat_time_day"]),
+                dimensions: JSON.stringify(["campaign_id", "stat_time_day"]),
                 metrics: JSON.stringify(["cost", "orders", "net_cost", "gross_revenue"]),
                 filtering: JSON.stringify({ gmv_max_promotion_types: ["LIVE"] }),
                 page: 1,
@@ -79,21 +81,22 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
             });
 
             console.log(`[LIVE] response on brand ${brandName}`);
-            // console.log(response.data);
+            console.log(response.data.data.list);
 
             if(response && response.data && response.data.data && response.data.data.list) {
                 success = true;
                 const costList = response.data.data.list;
                 let processedCostList = [];
 
+                const costMap = {};
                 costList.forEach(c => {
-                    let costElement = {
-                        "date": c.dimensions.stat_time_day,
-                        "lgmax_cost": parseInt(c.metrics.cost),
-                        "lgmax_gmv": parseInt(c.metrics.gross_revenue)
-                    }
-                    processedCostList.push(costElement);
+                    const date = c.dimensions.stat_time_day;
+                    if (!date || date === '-') return;
+                    if (!costMap[date]) costMap[date] = { lgmax_cost: 0, lgmax_gmv: 0 };
+                    costMap[date].lgmax_cost += parseInt(c.metrics.cost) || 0;
+                    costMap[date].lgmax_gmv += parseInt(c.metrics.gross_revenue) || 0;
                 });
+                processedCostList = Object.entries(costMap).map(([date, vals]) => ({ date, ...vals }));
 
                 if(processedCostList) {
                     console.log(`[LIVE] ${brandName} PROCESSEDCOSTLIST EXISTS`);
@@ -127,11 +130,10 @@ export async function fetchLiveGMVMax(brand, advertiser_id, sleepValue=4000) {
     }
 }
 
-async function mergeProductGMVMax(brand, costList) {
-    const datasetId = "tiktok_api_us";
+// async function test() {
+//     console.log("Test Live GMV Max");
+//     const res = await fetchLiveGMVMax("Eileen Grace", "6899326735087566850");
+//     console.log(res);
+// }
 
-    console.log("\n");
-    console.log("[LGMVMAX] Data: ", brand);
-    console.log("Data: ", costList);
-    console.log("\n");
-}
+// await test();

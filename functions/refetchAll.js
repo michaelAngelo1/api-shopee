@@ -44,7 +44,7 @@ async function refetchAll() {
             { name: 'Ivy & Lily', fn: fetchAndProcessOrdersIL },
             { name: "M2", fn: mainM2 },
             { name: "New Brands w/o M2", fn: fetchNewBrands },
-            // { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
+            { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
         ];
 
         for (const task of tasks) {
@@ -95,13 +95,6 @@ export async function fetchAllAffiliateShopee() {
     }
 }
 
-// await fetchAllAffiliateShopee();
+// Backfill 2026-05-12 to 2026-05-14 due to changing API requirements
+// Later: change all 2026-05-12 and 2026-05-12 to yesterdayStr or similar, before deploying again. 
 // await refetchAll();
-
-// Third run. Expected result: 
-// 1. May 1 - 6 Tiktok ads data & PGMV Max breakdown data done
-// 2. Shopee ads: March 1 - 30. 
-
-// After run, do not forget to:
-// 1. Change back start and end date
-// 2. Check credentials in Cloud Run
