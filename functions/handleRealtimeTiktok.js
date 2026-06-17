@@ -28,7 +28,7 @@ const internalAppBrands = {
     "M2": 3,
 }
 
-async function getOrderList(brand, shopCipher, accessToken) {
+export async function getOrderList(brand, shopCipher, accessToken) {
 
     try {
         let tiktokAppKey;
@@ -60,8 +60,12 @@ async function getOrderList(brand, shopCipher, accessToken) {
         const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
         const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
 
-        const createTimeFrom = JAKARTA_MIDNIGHT_TS;
-        const createTimeTo = nowSeconds;
+        // const createTimeFrom = JAKARTA_MIDNIGHT_TS;
+        // const createTimeTo = nowSeconds;
+
+        const createTimeFrom = Math.floor(new Date("2026-04-01").getTime() / 1000);
+        const createTimeTo = Math.floor(new Date("2026-04-30").getTime() / 1000);
+        
         let orderTotal = 0;
         let orders = [];
 
@@ -127,9 +131,10 @@ async function getOrderList(brand, shopCipher, accessToken) {
         // If is_cod = true, then pay_time can be empty
         // If is_cod = false, then pay_time can not be empty.
         console.log("Order total on brand: ", brand, " length: ", orderTotal);
-
         await processOrdersGMV(brand, orders, "TIKTOK_SHOP");
         await processOrdersGMV(brand, orders, "TOKOPEDIA");
+        
+        return orders;
     } catch (e) {
         console.log("[TIKTOK-REALTIME] Error getting realtime tiktok data on brand: ", brand);
         console.log(e.response.data.message);
@@ -156,7 +161,7 @@ async function processOrdersGMV(brand, orders, commerce) {
     console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
     
     let marketplace = commerce == "TIKTOK_SHOP" ? "TikTok" : "Tokopedia";
-    await handleMergeRealtime(brand, marketplace, totalAmount, totalCleanedOrders.length)
+    // await handleMergeRealtime(brand, marketplace, totalAmount, totalCleanedOrders.length)
 }
 
 async function mainRealtimeTiktok(brand) {

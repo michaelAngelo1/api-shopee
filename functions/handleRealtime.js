@@ -47,6 +47,9 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
         const time_from = JAKARTA_MIDNIGHT_TODAY;
         const time_to = nowSeconds; 
 
+        // const time_from = Math.floor(new Date("2026-04-01").getTime() / 1000);
+        // const time_to = Math.floor(new Date("2026-04-15").getTime() / 1000);
+
         // // FOR DEBUGGING / TESTING. COMMENT LATER
         // const time_from = JAKARTA_MIDNIGHT_TODAY - (2 * 86400); 
         // const time_to = nowSeconds;
@@ -69,7 +72,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         access_token,
                         timestamp,
                         sign,
-                        time_range_field: 'update_time',
+                        time_range_field: 'create_time', // change to update_time later.
                         time_from: time_from,
                         time_to: time_to,
                         page_size: 100,
@@ -87,7 +90,9 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                 const responseData = data.response;
                 if (responseData && responseData.order_list) {
                     responseData.order_list.forEach(order => {
-                        // console.log("order: ", order)
+                        if(order.order_sn == "260409BRTUH5M9") {
+                            console.log("Found order: ", order.order_sn)
+                        }
                         allOrderSns.push(order.order_sn);
                         // let obj = {
                         //     'order_sn': order.order_sn,
@@ -169,7 +174,7 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 //     }
                 // }
                 
-                // // Production
+                // // Production. Uncomment if commented. 
                 if (order.payment_method !== 'Cash on Delivery') {
                     // Non-COD must be PAID today
                     if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_TODAY) {
@@ -211,7 +216,9 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                         // console.log("Total GMV running total: ", totalGMV, " for brand: ", brand);
                     });
                     orderSnForEscrow.push(order.order_sn);
-                    // console.log("Order sn: ", order.order_sn, " order status: ", order.order_status, " order value: ", orderTotal, " payment method: ", order.payment_method);
+                    
+                    console.log("Order sn: ", JSON.stringify(order, 0, 2));
+                    
                     totalGMV += orderTotal;
 
                     orderCount += 1;
@@ -320,30 +327,37 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
     console.log(totalSalesCount, " orders");
 
     let marketplace = "Shopee";
-    await handleMergeRealtime(brand, marketplace, totalSalesBrand, totalSalesCount);
+
+    // await handleMergeRealtime(brand, marketplace, totalSalesBrand, totalSalesCount);
 }
 
 // await mainM2();
 
-// async function testbed() {
+async function testbed() {
 
-//     // let egPartnerId = "2010478"
-//     // let egPartnerKey = "6a5873534a6c6b574a795a734579634a4c5253746c4e66496d6a517a626f5643"
-//     // let egShopId = 33221984
-//     // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASjMvcPOBjCEoZrAAjgBQAFIBw.gWgusgv9Tv5R5bGZJibuS20pWWa05xrRfVEyChhTf4s"
-//     // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
+    // let egPartnerId = "2010478"
+    // let egPartnerKey = "6a5873534a6c6b574a795a734579634a4c5253746c4e66496d6a517a626f5643"
+    // let egShopId = 33221984
+    // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASj10dDQBjDbqLqGAjgBQAFIBw.WSC7pCBk8wtxsC5KQbtl5INDUKxfzXkaut1MuzAbuKA"
+    // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
 
-//     // let mdPartnerId = "2010423"
-//     // let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
-//     // let mdShopId = 332381969	
-//     // let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogazMzgYw5qOSwg44AUABSAc.aWtivHpTHxHygeBHvBRgTNPZqY2hj0ClbxuS-BmMX_E"
-//     // await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
+    // let mdPartnerId = "2010423"
+    // let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
+    // let mdShopId = 332381969	
+    // let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogazMzgYw5qOSwg44AUABSAc.aWtivHpTHxHygeBHvBRgTNPZqY2hj0ClbxuS-BmMX_E"
+    // await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
 
-//     let shrdPartnerId = "2013428"
-//     let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
-//     let shrdShopId = 167106407
-//     let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASim5MzOBjCklpz0DDgBQAFIBw.852t6wfLVZRcQZd1gy3SFnbkDR5RMweNfznXIxK0b9k"
-//     await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
-// }
+    // let shrdPartnerId = "2013428"
+    // let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
+    // let shrdShopId = 167106407
+    // let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASim5MzOBjCklpz0DDgBQAFIBw.852t6wfLVZRcQZd1gy3SFnbkDR5RMweNfznXIxK0b9k"
+    // await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
 
-// await testbed();
+    let clevPartnerId = "2013514"
+    let clevPartnerKey = "shpk5a636b6c4645755a4258644772636a4a534945536a6b5a474e5841517757"
+    let clevShopId = 1073691990
+    let clevAccessToken = "eyJhbGciOiJIUzI1NiJ9.CMryehABGNb6_P8DIAEo7tfQ0AYw96yXwAQ4AUABSAc.GN708QmePhv898_nqqpbkdGLQ3LVnVpfCBq1lPDgo9A"
+    await mainRealtime("Cleviant", clevPartnerId, clevPartnerKey, clevAccessToken, clevShopId);
+}
+
+await testbed();
