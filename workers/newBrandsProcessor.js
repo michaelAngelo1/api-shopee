@@ -176,7 +176,7 @@ async function handleNaruko() {
 
     // await refreshTokenNewBrands(brand, shopId)
 
-    await fetchAffiliateData(brand, shopId);
+    await fetchAffiliateData(brand, shopId); // ams processor
     await mainDanaDilepas(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);
     await fetchAdsTotalBalance(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId)
     await handleWalletTransactions(brand, MOSS_PARTNER_ID, MOSS_PARTNER_KEY, NEW_BRANDS_ACCESS_TOKEN, shopId);

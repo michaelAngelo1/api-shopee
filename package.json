@@ -13,7 +13,7 @@
   "dependencies": {
     "@google-cloud/bigquery": "^8.1.1",
     "@google-cloud/secret-manager": "^6.1.1",
-    "@google-cloud/storage": "^7.19.0",
+    "@google-cloud/storage": "^7.21.0",
     "axios": "^1.12.2",
     "bottleneck": "^2.19.5",
     "bullmq": "^5.76.6",

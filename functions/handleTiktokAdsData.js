@@ -46,11 +46,11 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
 
     let dataTiktokAds = [];
     
+    // let currentDate = new Date("2026-06-10");
+    // let endDate = new Date("2026-06-20");
+
     let currentDate = new Date(yesterdayStr);
     let endDate = new Date(yesterdayStr);
-
-    // let currentDate = new Date(yesterdayStr);
-    // let endDate = new Date(yesterdayStr);
 
     while(currentDate <= endDate) {
         let tiktokAds = {

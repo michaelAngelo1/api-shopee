@@ -312,6 +312,10 @@ export async function fetchAffiliateData(brand, shop_id, sleepValue) {
         return;
     }
 
+    // debug
+    // const currentDate = new Date("2026-06-10");
+    // const endDate = new Date("2026-06-20");
+
     // set both to updateTime later. 
     const currentDate = new Date(updateTime); 
     const endDate = new Date(updateTime);

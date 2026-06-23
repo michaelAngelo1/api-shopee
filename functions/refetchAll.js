@@ -44,7 +44,7 @@ async function refetchAll() {
             { name: 'Ivy & Lily', fn: fetchAndProcessOrdersIL },
             { name: "M2", fn: mainM2 },
             { name: "New Brands w/o M2", fn: fetchNewBrands },
-            { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
+            // { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
         ];
 
         for (const task of tasks) {
@@ -95,6 +95,5 @@ export async function fetchAllAffiliateShopee() {
     }
 }
 
-// Backfill 2026-05-12 to 2026-05-14 due to changing API requirements
-// Later: change all 2026-05-12 and 2026-05-12 to yesterdayStr or similar, before deploying again. 
+// Uncomment later.
 // await refetchAll();
