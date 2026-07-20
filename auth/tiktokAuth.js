@@ -25,7 +25,8 @@ const tiktokSecrets = {
     "Relove": "projects/231801348950/secrets/relove-tiktok-tokens",
     "Joey & Roo": "projects/231801348950/secrets/joey-roo-tiktok-tokens",
     "Rocketindo Shop": "projects/231801348950/secrets/rocketindo-shop-tiktok-tokens",
-    "M2": "projects/231801348950/secrets/m2-tiktok-tokens"
+    "M2": "projects/231801348950/secrets/m2-tiktok-tokens",
+    "PAZZO": "projects/231801348950/secrets/pazzo-tiktok-tokens"
 }
 
 export async function loadTokens(brand) {
@@ -107,6 +108,7 @@ const internalAppBrands = {
     "Joey & Roo": 2, 
     "Rocketindo Shop": 2,
     "M2": 3,
+    "PAZZO": 3
 }
 
 export async function refreshTokens(brand, refreshToken) {
@@ -213,6 +215,7 @@ export async function getShopCipher(brand, accessToken) {
 
     } catch (e) {
         console.log("Error get shop cipher on brand: ", brand)
-        console.log(e.response.data.message);
+        console.log(e.response?.data?.message || e.message || e);
+        return "";
     }
 }

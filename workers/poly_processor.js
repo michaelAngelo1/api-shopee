@@ -12,6 +12,7 @@ import { fetchAffiliateData } from '../functions/amsProcessor.js';
 import { handleWalletTransactions } from '../functions/walletTransactions.js';
 import { mainDanaDilepas } from '../functions/escrowProcessor.js';
 import { mainRealtime } from '../functions/handleRealtime.js';
+import { mainPazzo } from './pazzo_processor.js';
 
 const secretClient = new SecretManagerServiceClient();
 
@@ -130,6 +131,7 @@ export async function fetchAndProcessOrdersPOLY() {
     await refreshToken();
 
     await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
+    await mainPazzo();
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, POLY_ACCESS_TOKEN, SHOP_ID);

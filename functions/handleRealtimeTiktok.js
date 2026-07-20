@@ -26,9 +26,10 @@ const internalAppBrands = {
     "Joey & Roo": 2, 
     "Rocketindo Shop": 2,
     "M2": 3,
+    "PAZZO": 3
 }
 
-export async function getOrderList(brand, shopCipher, accessToken) {
+async function getOrderList(brand, shopCipher, accessToken) {
 
     try {
         let tiktokAppKey;
@@ -45,7 +46,6 @@ export async function getOrderList(brand, shopCipher, accessToken) {
             tiktokAppSecret = "04679ae180556cdc79b11a3e7cbd8da33f0d6e92";
         }
 
-
         // let tiktokAppKey = process.env.TIKTOK_PARTNER_APP_KEY;
         // let tiktokAppSecret = process.env.TIKTOK_PARTNER_APP_SECRET;
 
@@ -60,12 +60,8 @@ export async function getOrderList(brand, shopCipher, accessToken) {
         const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
         const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
 
-        // const createTimeFrom = JAKARTA_MIDNIGHT_TS;
-        // const createTimeTo = nowSeconds;
-
-        const createTimeFrom = Math.floor(new Date("2026-04-01").getTime() / 1000);
-        const createTimeTo = Math.floor(new Date("2026-04-30").getTime() / 1000);
-        
+        const createTimeFrom = JAKARTA_MIDNIGHT_TS;
+        const createTimeTo = nowSeconds;
         let orderTotal = 0;
         let orders = [];
 
@@ -131,13 +127,12 @@ export async function getOrderList(brand, shopCipher, accessToken) {
         // If is_cod = true, then pay_time can be empty
         // If is_cod = false, then pay_time can not be empty.
         console.log("Order total on brand: ", brand, " length: ", orderTotal);
+
         await processOrdersGMV(brand, orders, "TIKTOK_SHOP");
         await processOrdersGMV(brand, orders, "TOKOPEDIA");
-        
-        return orders;
     } catch (e) {
         console.log("[TIKTOK-REALTIME] Error getting realtime tiktok data on brand: ", brand);
-        console.log(e.response.data.message);
+        console.log(e.response?.data?.message || e.message || e);
     }
 }
 
@@ -161,7 +156,7 @@ async function processOrdersGMV(brand, orders, commerce) {
     console.log("Total amount GMV: ", totalAmount, "on commerce: ", commerce, " brand: ", brand);
     
     let marketplace = commerce == "TIKTOK_SHOP" ? "TikTok" : "Tokopedia";
-    // await handleMergeRealtime(brand, marketplace, totalAmount, totalCleanedOrders.length)
+    await handleMergeRealtime(brand, marketplace, totalAmount, totalCleanedOrders.length)
 }
 
 async function mainRealtimeTiktok(brand) {
@@ -178,27 +173,23 @@ async function mainRealtimeTiktok(brand) {
 }
 
 export async function parentRealtimeTiktok() {
-    await mainRealtimeTiktok("Eileen Grace");
-    await mainRealtimeTiktok("Mamaway");
-    await mainRealtimeTiktok("SHRD");
-    await mainRealtimeTiktok("Miss Daisy");
-    await mainRealtimeTiktok("Polynia");
-    await mainRealtimeTiktok("CHESS");
-    await mainRealtimeTiktok("Cléviant");
-    await mainRealtimeTiktok("Mossèru");
-    await mainRealtimeTiktok("Evoke")
-    await mainRealtimeTiktok("Dr Jou");
-    await mainRealtimeTiktok("Mirae");
-    await mainRealtimeTiktok("Swissvita");
-    await mainRealtimeTiktok("G-Belle");
-    await mainRealtimeTiktok("Past Nine");
-    await mainRealtimeTiktok("Nutri & Beyond");
-    await mainRealtimeTiktok("Ivy & Lily");
-    await mainRealtimeTiktok("Naruko");
-    await mainRealtimeTiktok("Relove");
-    await mainRealtimeTiktok("Joey & Roo");
-    await mainRealtimeTiktok("Rocketindo Shop");
-    await mainRealtimeTiktok("M2");
+    const brands = [
+        "Eileen Grace", "Mamaway", "SHRD", "Miss Daisy", "Polynia", "CHESS",
+        "Cléviant", "Mossèru", "Evoke", "Dr Jou", "Mirae", "Swissvita",
+        "G-Belle", "Past Nine", "Nutri & Beyond", "Ivy & Lily", "Naruko",
+        "Relove", "Joey & Roo", "Rocketindo Shop", "M2", 
+        "PAZZO"
+    ];
+
+    for (const brand of brands) {
+        try {
+            await mainRealtimeTiktok(brand);
+        } catch (e) {
+            console.log(`[TIKTOK-REALTIME] Brand failed, skipping: ${brand}`);
+            console.log(e.response?.data?.message || e.message || e);
+        }
+    }
 }
 
+// Uncomment for production.
 // await parentRealtimeTiktok();

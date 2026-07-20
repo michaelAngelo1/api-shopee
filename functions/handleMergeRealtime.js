@@ -31,8 +31,14 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
 
     console.log(`Start merging to sheets for brand: ${brand} from ${marketplace} with ${sales_value} sales today.`);
 
+    try {
     const saCreds = await loadCredentials();
     // console.log("SA Creds: ", saCreds);
+
+    if (!saCreds) {
+        console.log(`[MERGE-REALTIME] Skipping ${brand}/${marketplace}: no service account credentials`);
+        return;
+    }
 
     const saAuth = new JWT({
         email: saCreds.client_email,
@@ -49,7 +55,7 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
     const sheetRawData = doc.sheetsByIndex[0];
     const sheetSalesCount = doc.sheetsByIndex[1];
     const sheetLastUpdated = doc.sheetsByIndex[2];
-    
+
     const rowsRawData = await sheetRawData.getRows();
     const rowsSalesCount = await sheetSalesCount.getRows();
     const rowsLastUpdated = await sheetLastUpdated.getRows();
@@ -134,5 +140,8 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
             }
         }
 
+    }
+    } catch (e) {
+        console.log(`[MERGE-REALTIME] Error merging to sheets for ${brand}/${marketplace}: `, e.message || e);
     }
 }
