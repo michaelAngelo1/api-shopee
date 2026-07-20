@@ -46,9 +46,10 @@ export async function handleTiktokAdsData(basicAdsData, pgmvMaxData, lgmvMaxData
 
     let dataTiktokAds = [];
     
-    // let currentDate = new Date("2026-06-10");
-    // let endDate = new Date("2026-06-20");
+    // let currentDate = new Date("2026-07-16");
+    // let endDate = new Date("2026-07-19");
 
+    // Uncomment for production.
     let currentDate = new Date(yesterdayStr);
     let endDate = new Date(yesterdayStr);
 

@@ -235,6 +235,7 @@ async function getStatements(brand, shopCipher, accessToken, monthsToFetch) {
     }
 }
 
+// Updated. Needs to be updated in the source code in shopee-worker
 async function getTransactionsByStatement(brand, shopCipher, accessToken, statementId) {
     try {
         let appKey;
@@ -286,12 +287,31 @@ async function getTransactionsByStatement(brand, shopCipher, accessToken, statem
             const querySearchParams = new URLSearchParams(queryParams);
 
             const completeUrl = baseUrl + querySearchParams.toString();
-            const response = await axios.get(completeUrl, {
-                headers: {
-                    'content-type': 'application/json',
-                    'x-tts-access-token': accessToken,
+
+            let response;
+            let attempt = 0;
+            const maxAttempts = 5;
+            while (true) {
+                try {
+                    response = await axios.get(completeUrl, {
+                        headers: {
+                            'content-type': 'application/json',
+                            'x-tts-access-token': accessToken,
+                        }
+                    });
+                    break;
+                } catch (err) {
+                    const message = err.response?.data?.message || '';
+                    attempt++;
+                    if (message.includes('Too many requests') && attempt < maxAttempts) {
+                        const backoffMs = 1000 * 2 ** attempt;
+                        console.log(`[TIKTOK-FINANCE] Rate limited on statement ${statementId}, retrying in ${backoffMs}ms (attempt ${attempt}/${maxAttempts})`);
+                        await new Promise(r => setTimeout(r, backoffMs));
+                        continue;
+                    }
+                    throw err;
                 }
-            });
+            }
 
             // console.log("[TIKTOK-FINANCE] TRX by statement response: ", response.data.data);
 
@@ -583,18 +603,20 @@ async function mergeFinanceTiktok(brand, data) {
 
         if (data.length === 0) return;
 
-        const allTxIds = data.map(row => `'${row.transaction_id}'`).join(",");
+        // Updated. Needs to update in shopee-worker as well.
+        const allTxIds = data.map(row => String(row.transaction_id));
 
         const ctasQuery = `
             CREATE OR REPLACE TABLE \`${bigquery.projectId}.${datasetId}.${tableName}\` AS
             SELECT * FROM \`${bigquery.projectId}.${datasetId}.${tableName}\`
             WHERE NOT (
-                transaction_id IN (${allTxIds}) 
+                transaction_id IN UNNEST(@txIds) 
                 AND withdrawal_id IS NULL
             )
         `;
         
-        await bigquery.query({ query: ctasQuery });
+        await bigquery.query({ query: ctasQuery, params: { txIds: allTxIds } });
+        // End Updated.
 
         let batchSize = 1000;
         for(let i = 0; i < data.length; i += batchSize) {
@@ -771,26 +793,26 @@ export async function mainTiktokFinance() {
 
     console.log("Current month: ", targetMonth);
     await handleFinance("Eileen Grace", targetMonth);
-    await handleFinance("Mamaway", targetMonth);
-    await handleFinance("SHRD", targetMonth);
-    await handleFinance("Miss Daisy", targetMonth);
-    await handleFinance("Polynia", targetMonth);
-    await handleFinance("CHESS", targetMonth);
-    await handleFinance("Cléviant", targetMonth);
-    await handleFinance("Mossèru", targetMonth);
-    await handleFinance("Evoke", targetMonth);
-    await handleFinance("Dr Jou", targetMonth);
-    await handleFinance("Mirae", targetMonth)
-    await handleFinance("Swissvita", targetMonth);
-    await handleFinance("G-Belle", targetMonth);
-    await handleFinance("Past Nine", targetMonth);
-    await handleFinance("Nutri & Beyond", targetMonth);
-    await handleFinance("Ivy & Lily", targetMonth);
-    await handleFinance("Naruko", targetMonth);
-    await handleFinance("Relove", targetMonth);
-    await handleFinance("Joey & Roo", targetMonth);
-    await handleFinance("Rocketindo Shop", targetMonth);
+    // await handleFinance("Mamaway", targetMonth);
+    // await handleFinance("SHRD", targetMonth);
+    // await handleFinance("Miss Daisy", targetMonth);
+    // await handleFinance("Polynia", targetMonth);
+    // await handleFinance("CHESS", targetMonth);
+    // await handleFinance("Cléviant", targetMonth);
+    // await handleFinance("Mossèru", targetMonth);
+    // await handleFinance("Evoke", targetMonth);
+    // await handleFinance("Dr Jou", targetMonth);
+    // await handleFinance("Mirae", targetMonth)
+    // await handleFinance("Swissvita", targetMonth);
+    // await handleFinance("G-Belle", targetMonth);
+    // await handleFinance("Past Nine", targetMonth);
+    // await handleFinance("Nutri & Beyond", targetMonth);
+    // await handleFinance("Ivy & Lily", targetMonth);
+    // await handleFinance("Naruko", targetMonth);
+    // await handleFinance("Relove", targetMonth);
+    // await handleFinance("Joey & Roo", targetMonth);
+    // await handleFinance("Rocketindo Shop", targetMonth);
 }
 
 // October backfill
-// await mainTiktokFinance();
+await mainTiktokFinance();

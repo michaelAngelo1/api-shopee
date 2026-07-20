@@ -26,7 +26,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function refetchAll() {
     try {
         const tasks = [
-            { name: 'Eileen Grace', fn: fetchAndProcessOrders },
+            // { name: 'Eileen Grace', fn: fetchAndProcessOrders },
             { name: 'Mamaway', fn: fetchAndProcessOrdersMMW },
             { name: 'SHRD', fn: fetchAndProcessOrdersSHRD },
             { name: 'Miss Daisy', fn: fetchAndProcessOrdersMD },
@@ -44,7 +44,7 @@ async function refetchAll() {
             { name: 'Ivy & Lily', fn: fetchAndProcessOrdersIL },
             { name: "M2", fn: mainM2 },
             { name: "New Brands w/o M2", fn: fetchNewBrands },
-            // { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
+            { name: "Tiktok Affiliate", fn: mainTiktokAffiliate },
         ];
 
         for (const task of tasks) {

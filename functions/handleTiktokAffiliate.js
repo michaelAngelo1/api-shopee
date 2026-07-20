@@ -427,5 +427,105 @@ export async function testAffiliateM2() {
     await handleTiktokAffiliate("M2");
 }
 
-// Comment out in deployment. 
+export async function testAffiliateMosseruJune30() {
+    const brand = "Mossèru";
+
+    const tokens = await loadTokens(brand);
+    let accessToken = tokens.accessToken;
+    let refreshToken = tokens.refreshToken;
+
+    await refreshTokens(brand, refreshToken);
+
+    const shopCipher = await getShopCipher(brand, accessToken);
+    console.log("[TEST-MOSSERU] Shop cipher: ", shopCipher);
+
+    const tiktokAppKey = "6j7bl3bsi59jh";
+    const tiktokAppSecret = "8e7cc952feb703b4ef22fce29c85721c4e98d443";
+
+    const path = "/affiliate_seller/202410/orders/search";
+    const baseUrl = "https://open-api.tiktokglobalshop.com" + path + "?";
+
+    const startTime = Math.floor(new Date(`2026-06-27T00:00:00+07:00`).getTime() / 1000);
+    const endTime = Math.floor(new Date(`2026-06-30T23:59:59+07:00`).getTime() / 1000);
+
+    let keepFetching = true;
+    let currPageToken = "";
+    let rawAffiliateOrders = [];
+
+    while(keepFetching) {
+        const requestBody = {
+            create_time_ge: startTime,
+            create_time_lt: endTime
+        };
+
+        const timestamp = Math.floor(Date.now() / 1000);
+        const queryParams = {
+            app_key: tiktokAppKey,
+            page_size: 100,
+            timestamp: timestamp,
+            shop_cipher: shopCipher
+        };
+        if(currPageToken) {
+            queryParams.page_token = currPageToken;
+        }
+        const sortedKeys = Object.keys(queryParams).sort();
+
+        let result = tiktokAppSecret + path;
+        for(const key of sortedKeys) {
+            result += key + queryParams[key];
+        }
+        result += JSON.stringify(requestBody);
+        result += tiktokAppSecret;
+
+        const sign = crypto.createHmac('sha256', tiktokAppSecret).update(result).digest('hex');
+        queryParams.sign = sign;
+        const querySearchParams = new URLSearchParams(queryParams);
+
+        const completeUrl = baseUrl + querySearchParams.toString();
+
+        const response = await axios.post(completeUrl,
+            requestBody,
+            {
+                headers: {
+                    'content-type': 'application/json',
+                    'x-tts-access-token': accessToken,
+                },
+            }
+        );
+
+        if(response.data.data && response.data.data.orders) {
+            rawAffiliateOrders.push(...response.data.data.orders);
+
+            const nextPageToken = response.data.data.next_page_token;
+
+            if(nextPageToken && nextPageToken.length > 0) {
+                currPageToken = nextPageToken;
+            } else {
+                keepFetching = false;
+            }
+        } else {
+            keepFetching = false;
+        }
+    }
+
+    const TARGET_CREATOR = "tomtomtomttttt";
+    const TARGET_CONTENT_ID = "7656011289190468370";
+
+    const matchingOrders = rawAffiliateOrders
+        .map(order => ({
+            ...order,
+            skus: (order.skus || []).filter(sku =>
+                sku.creator_username === TARGET_CREATOR && sku.content_id === TARGET_CONTENT_ID
+            ),
+        }))
+        .filter(order => order.skus.length > 0);
+
+    console.log(`[TEST-MOSSERU] Orders for creator_username="${TARGET_CREATOR}" content_id="${TARGET_CONTENT_ID}" (qty: ${matchingOrders.length}):`);
+    console.log(JSON.stringify(matchingOrders, null, 2));
+
+    return matchingOrders;
+}
+
+await testAffiliateMosseruJune30();
+// Comment out in deployment.
 // await mainTiktokAffiliate();
