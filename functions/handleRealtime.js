@@ -85,7 +85,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                 }
 
                 const responseData = data.response;
-                console.log("Raw response order list: ", responseData.order_list);
+                // console.log("Raw response order list: ", responseData.order_list);
 
                 if (responseData && responseData.order_list) {
                     responseData.order_list.forEach(order => {

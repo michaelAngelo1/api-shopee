@@ -241,7 +241,7 @@ export async function getShopifyOrders() {
             if(data.orders.pageInfo.hasNextPage == false) hasNextPage = false;
             cursor = data.orders.pageInfo.endCursor;
         }
-        // console.log("Orders data: ", ordersData);
+        console.log("Orders data: ", ordersData);
         return ordersData;
     } catch (e) {
         console.log("Error querying products: ", e);
@@ -258,10 +258,10 @@ export async function mainPazzo() {
     await refreshToken();
 
     await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
-    await mainPazzoRealtime();
+    await mainPazzoWebRealtime();
 }
 
-async function mainPazzoRealtime() {
+async function mainPazzoWebRealtime() {
     const orders = await getShopifyOrders();
     const flatShopifyOrders = orders.flatMap(s => {
         const transactions = s.node.transactions;
@@ -302,6 +302,7 @@ async function mainPazzoRealtime() {
             customer_province: s.node.shippingAddress?.province ?? null,
         }
     });
+    // console.log("Flat orders: ", flatShopifyOrders);
     console.log("Flat orders GMV: ", flatShopifyOrders.reduce((i, o) => { return i + parseInt(o.subtotal_price) }, 0));
     
     const salesValue = flatShopifyOrders.reduce((i, o) => { return i + parseInt(o.subtotal_price)}, 0);
@@ -309,4 +310,4 @@ async function mainPazzoRealtime() {
     await handleMergeRealtime("PAZZO", "Website", salesValue, ordersCount);
 }
 
-// await mainPazzoRealtime();
+// await mainPazzoWebRealtime();
