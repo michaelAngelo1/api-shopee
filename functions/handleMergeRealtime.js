@@ -15,7 +15,39 @@ export async function loadCredentials() {
 
         return creds;
     } catch (e) {
-        console.error("[MERGE-REALTIME] Error getting service account credentials: ", e);
+        console.error("[MERGE-REALTIME] Error getting service account credentials 1: ", e);
+    }
+}
+
+async function loadSalesCountCredentials() {
+    const secretName = "projects/231801348950/secrets/realtime-service-account-2/versions/latest";
+
+    try {
+        const [version] = await secretClient.accessSecretVersion({
+            name: secretName
+        });
+        const data = version.payload.data.toString('UTF-8');
+        const creds = JSON.parse(data);
+
+        return creds;
+    } catch (e) {
+        console.error("[MERGE-REALTIME] Error getting service account credentials 2: ", e);
+    }
+}
+
+async function loadLastUpdatedCredentials() {
+    const secretName = "projects/231801348950/secrets/realtime-service-account-3/versions/latest";
+
+    try {
+        const [version] = await secretClient.accessSecretVersion({
+            name: secretName
+        });
+        const data = version.payload.data.toString('UTF-8');
+        const creds = JSON.parse(data);
+
+        return creds;
+    } catch (e) {
+        console.error("[MERGE-REALTIME] Error getting service account credentials 3: ", e);
     }
 }
 
@@ -32,32 +64,45 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
     console.log(`Start merging to sheets for brand: ${brand} from ${marketplace} with ${sales_value} sales today.`);
 
     try {
-    const saCreds = await loadCredentials();
-    // console.log("SA Creds: ", saCreds);
+    const saCredsRawData     = await loadCredentials();
+    const saCredsSalesCount  = await loadSalesCountCredentials();
+    const saCredsLastUpdated = await loadLastUpdatedCredentials();
 
-    if (!saCreds) {
-        console.log(`[MERGE-REALTIME] Skipping ${brand}/${marketplace}: no service account credentials`);
+    // All-or-nothing: skip the whole merge if any SA failed to load, and log which one(s)
+    if (!saCredsRawData || !saCredsSalesCount || !saCredsLastUpdated) {
+        const missing = [
+            !saCredsRawData && 'RawData (SA#1)',
+            !saCredsSalesCount && 'SalesCount (SA#2)',
+            !saCredsLastUpdated && 'LastUpdated (SA#3)',
+        ].filter(Boolean).join(', ');
+        console.log(`[MERGE-REALTIME] Skipping ${brand}/${marketplace}: failed to load service account credentials for: ${missing}`);
         return;
     }
-
-    const saAuth = new JWT({
-        email: saCreds.client_email,
-        key: saCreds.private_key,
-        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
 
     // let devSheetId = "1zArzQCqewtCxkka9l03bRpZLAjqOjapV6ngHUp0jluM"
     let prodSheetId = "1RMcbhi0wZgXqvYf_lFma2U8vznJh4ACy_OmsTjplgKI"
 
-    const doc = new GoogleSpreadsheet(prodSheetId, saAuth);
-    await doc.loadInfo();
+    const makeAuth = (creds) => new JWT({
+        email: creds.client_email,
+        key: creds.private_key,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
 
-    const sheetRawData = doc.sheetsByIndex[0];
-    const sheetSalesCount = doc.sheetsByIndex[1];
-    const sheetLastUpdated = doc.sheetsByIndex[2];
+    // One doc (= one service account) per sheet, so each row.save() lands on its own quota bucket
+    const docRawData     = new GoogleSpreadsheet(prodSheetId, makeAuth(saCredsRawData));
+    const docSalesCount  = new GoogleSpreadsheet(prodSheetId, makeAuth(saCredsSalesCount));
+    const docLastUpdated = new GoogleSpreadsheet(prodSheetId, makeAuth(saCredsLastUpdated));
 
-    const rowsRawData = await sheetRawData.getRows();
-    const rowsSalesCount = await sheetSalesCount.getRows();
+    await docRawData.loadInfo();
+    await docSalesCount.loadInfo();
+    await docLastUpdated.loadInfo();
+
+    const sheetRawData     = docRawData.sheetsByIndex[0];      // SA#1
+    const sheetSalesCount  = docSalesCount.sheetsByIndex[1];   // SA#2
+    const sheetLastUpdated = docLastUpdated.sheetsByIndex[2];  // SA#3
+
+    const rowsRawData     = await sheetRawData.getRows();
+    const rowsSalesCount  = await sheetSalesCount.getRows();
     const rowsLastUpdated = await sheetLastUpdated.getRows();
 
     for(const row of rowsRawData) {
@@ -141,6 +186,9 @@ export async function handleMergeRealtime(brand, marketplace, sales_value, order
         }
 
     }
+
+
+
     } catch (e) {
         console.log(`[MERGE-REALTIME] Error merging to sheets for ${brand}/${marketplace}: `, e.message || e);
     }
