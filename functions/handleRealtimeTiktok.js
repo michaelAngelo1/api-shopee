@@ -5,7 +5,7 @@ import { handleMergeRealtime, loadCredentials } from "./handleMergeRealtime.js";
 
 const internalAppBrands = {
     "Eileen Grace": 1,
-    "Mamaway": 1,
+    "Mamaway": 1, 
     "SHRD": 1,
     "CHESS": 1,
     "Miss Daisy": 1,

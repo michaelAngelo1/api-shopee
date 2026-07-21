@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import 'dotenv/config';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { mainRealtime } from '../functions/handleRealtime.js';
+import { graphql } from '../auth/shopifyAuth.js';
+import { handleMergeRealtime } from '../functions/handleMergeRealtime.js';
 
 const secretClient = new SecretManagerServiceClient();
 export const PARTNER_ID = parseInt(process.env.POLY_PARTNER_ID);
@@ -13,6 +15,8 @@ export let ACCESS_TOKEN;
 let REFRESH_TOKEN;
 export const HOST = "https://partner.shopeemobile.com";
 const REFRESH_ACCESS_TOKEN_URL = "https://partner.shopeemobile.com/api/v2/auth/access_token/get";
+
+export const formatJakartaTime = (isoString) => isoString ? new Date(new Date(isoString).getTime() + 7 * 3600000).toISOString().replace('T', ' ').slice(0, 19) : null;
 
 async function refreshToken() {
     const path = "/api/v2/auth/access_token/get";
@@ -105,6 +109,145 @@ async function loadTokensFromSecret() {
     }
 }
 
+export async function getShopifyOrders() {
+    try {
+        const now = new Date();
+        const wib = new Date(now.getTime() + 7 * 3600000);
+        const startDate =
+            `${wib.getUTCFullYear()}-${String(wib.getUTCMonth() + 1).padStart(2, '0')}-${String(wib.getUTCDate()).padStart(2, '0')}T00:00:00+07:00`;
+        const endDate = now.toISOString(); 
+
+        let hasNextPage = true;
+        let cursor = null;
+
+        let ordersData = [];
+        while(hasNextPage) {
+            const query =
+                `{ 
+                    orders(first: 20, query: "created_at:>=${startDate} created_at:<=${endDate}", after: ${cursor ? `"${cursor}"` : null}) {
+                        edges {
+                            cursor
+                            node {
+                                id
+                                name
+                                email
+                                createdAt
+                                currencyCode
+                                displayFinancialStatus
+                                displayFulfillmentStatus
+                                paymentGatewayNames
+                                shippingAddress {
+                                    name
+                                    phone
+                                    address1
+                                    city
+                                    zip
+                                    country
+                                    province
+                                }
+                                transactions {
+                                    id
+                                    paymentId
+                                    status
+                                    createdAt
+                                    processedAt
+                                }
+                                subtotalPriceSet {
+                                    shopMoney {
+                                        amount
+                                    }
+                                }
+                                totalPriceSet {
+                                    shopMoney {
+                                        amount
+                                    }
+                                }
+                                totalDiscountsSet {
+                                    shopMoney {
+                                        amount
+                                    }
+                                }
+                                cancelledAt
+                                cancelReason
+                                closedAt
+                                discountCode
+                                shippingLine {
+                                    title
+                                    originalPriceSet {
+                                        shopMoney {
+                                            amount
+                                        }
+                                    }
+                                }
+                                lineItems(first: 20) {
+                                    edges {
+                                        cursor
+                                        node {
+                                            vendor
+                                            id
+                                            sku
+                                            name
+                                            quantity
+                                            originalUnitPriceSet {
+                                                shopMoney {
+                                                    amount
+                                                }
+                                            }
+                                            discountedUnitPriceSet {
+                                                shopMoney {
+                                                    amount
+                                                }
+                                            }
+                                            originalTotalSet {
+                                                shopMoney {
+                                                    amount
+                                                }
+                                            }
+                                            discountedTotalSet {
+                                                shopMoney {
+                                                    amount
+                                                }
+                                            }
+                                            variant {
+                                                inventoryItem {
+                                                    measurement {
+                                                        weight {
+                                                            value
+                                                            unit
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }   
+                                    }
+                                }
+                            }
+                        }
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }`;
+            const data = await graphql(query);
+
+            if(data.orders.edges.length == 0) return ordersData;
+            data.orders.edges.forEach(d => {
+                ordersData.push(d);
+            })
+
+            if(data.orders.pageInfo.hasNextPage == false) hasNextPage = false;
+            cursor = data.orders.pageInfo.endCursor;
+        }
+        // console.log("Orders data: ", ordersData);
+        return ordersData;
+    } catch (e) {
+        console.log("Error querying products: ", e);
+    }
+}
+
 export async function mainPazzo() {
     let brand = "PAZZO";
 
@@ -115,4 +258,55 @@ export async function mainPazzo() {
     await refreshToken();
 
     await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, ACCESS_TOKEN, SHOP_ID);
+    await mainPazzoRealtime();
 }
+
+async function mainPazzoRealtime() {
+    const orders = await getShopifyOrders();
+    const flatShopifyOrders = orders.flatMap(s => {
+        const transactions = s.node.transactions;
+        if (transactions.length === 0) return [];
+    
+        const successfulTrx = transactions.find(t => t.status === "SUCCESS");
+        const latestTrx = successfulTrx ?? [...transactions].sort((a, b) =>
+            new Date(b.processedAt ?? b.createdAt) - new Date(a.processedAt ?? a.createdAt)
+        )[0];
+    
+        return {
+            order_id: s.node.id,
+            order_name: s.node.name,
+            order_created_at: formatJakartaTime(s.node.createdAt),
+            cancelled_at: formatJakartaTime(s.node.cancelledAt),
+            cancel_reason: s.node.cancelReason,
+            closed_at: formatJakartaTime(s.node.closedAt),
+            financial_status: s.node.displayFinancialStatus,
+            fulfillment_status: s.node.displayFulfillmentStatus,
+            payment_gateway_names: s.node.paymentGatewayNames.join(", "),
+            order_payment_id: latestTrx.paymentId,
+            order_paid_at: latestTrx.status !== "SUCCESS" ? null : formatJakartaTime(latestTrx.processedAt),
+            order_transaction_status: latestTrx.status,
+            discount_code: s.node.discountCode,
+            total_discount: s.node.totalDiscountsSet.shopMoney.amount,
+            shipping_method: s.node.shippingLine?.title ?? null,
+            total_shipping: s.node.shippingLine?.originalPriceSet?.shopMoney?.amount ?? null,
+            subtotal_price: s.node.subtotalPriceSet?.shopMoney?.amount ?? null,
+            total_price: s.node.totalPriceSet.shopMoney.amount,
+            currency_code: s.node.currencyCode,
+            customer_name: s.node.shippingAddress?.name ?? null,
+            customer_email: s.node.email,
+            customer_phone: s.node.shippingAddress?.phone ?? null,
+            customer_address: s.node.shippingAddress?.address1 ?? null,
+            customer_zip: s.node.shippingAddress?.zip ?? null,
+            customer_city: s.node.shippingAddress?.city ?? null,
+            customer_country: s.node.shippingAddress?.country ?? null,
+            customer_province: s.node.shippingAddress?.province ?? null,
+        }
+    });
+    console.log("Flat orders GMV: ", flatShopifyOrders.reduce((i, o) => { return i + parseInt(o.subtotal_price) }, 0));
+    
+    const salesValue = flatShopifyOrders.reduce((i, o) => { return i + parseInt(o.subtotal_price)}, 0);
+    const ordersCount = flatShopifyOrders.length;
+    await handleMergeRealtime("PAZZO", "Website", salesValue, ordersCount);
+}
+
+// await mainPazzoRealtime();
