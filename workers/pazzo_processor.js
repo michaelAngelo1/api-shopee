@@ -262,7 +262,7 @@ export async function mainPazzo() {
 }
 
 async function mainPazzoWebRealtime() {
-    const orders = await getShopifyOrders();
+    const orders = await getShopifyOrders() ?? [];
     const flatShopifyOrders = orders.flatMap(s => {
         const transactions = s.node.transactions;
         if (transactions.length === 0) return [];
