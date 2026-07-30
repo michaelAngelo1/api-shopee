@@ -1,7 +1,11 @@
 import express from 'express';
 import { Queue, Worker } from 'bullmq';
 import 'dotenv/config';
-import Redis from 'ioredis'; 
+import Redis from 'ioredis';
+
+// Installs the shared keep-alive pool on axios.defaults. Must stay above the processor
+// imports so the pool is in place before any of them can issue a request.
+import { poolStatus } from './functions/httpAgent.js';
 
 // Import Processors
 import { fetchAndProcessOrdersMD } from './workers/md_processor.js';
@@ -380,6 +384,13 @@ app.get('/admin/flush-redis', async (req, res) => {
         console.error("ADMIN: Error flushing Redis:", e);
         res.status(500).send("Error flushing Redis: " + e.message);
     }
+});
+
+// Admin: Connection pool usage per origin. During a sync tick, partner.shopeemobile.com:443
+// should hold a small steady set of sockets being reused, not a count that climbs with
+// the number of requests.
+app.get('/admin/pool-status', (req, res) => {
+    res.status(200).json(poolStatus());
 });
 
 
