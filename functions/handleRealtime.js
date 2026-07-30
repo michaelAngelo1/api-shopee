@@ -1,6 +1,6 @@
-import axios from 'axios';
 import crypto from 'crypto';
 import { handleMergeRealtime } from './handleMergeRealtime.js';
+import { requestWithRetry } from './httpRetry.js';
 import 'dotenv/config';
 
 const cancelledOrders = [
@@ -62,7 +62,9 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                     .update(baseString)
                     .digest('hex');
 
-                const { data } = await axios.get(HOST + PATH, {
+                const { data } = await requestWithRetry({
+                    method: 'get',
+                    url: HOST + PATH,
                     params: {
                         partner_id,
                         shop_id,
@@ -77,7 +79,7 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         order_status: status,
                         response_optional_fields: 'order_status'
                     }
-                });
+                }, { label: `order-list ${brand}/${status}` });
 
                 if (data.error) {
                     console.log(`[REALTIME-SALES] API Skip [${status}]: ${data.message || data.error}`);
@@ -138,7 +140,9 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
             .update(baseString)
             .digest('hex');
 
-        const { data } = await axios.get(HOST + PATH, {
+        const { data } = await requestWithRetry({
+            method: 'get',
+            url: HOST + PATH,
             params: {
                 partner_id,
                 shop_id,
@@ -146,11 +150,11 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 timestamp,
                 sign,
                 order_sn_list,
-                // FIX: Only request item_list. 
+                // FIX: Only request item_list.
                 // create_time and order_status are returned BY DEFAULT, so don't request them.
                 response_optional_fields: 'item_list,pay_time,payment_method'
             }
-        });
+        }, { label: `order-detail ${brand}` });
 
         if (data.error) throw new Error(data.message || data.error);
 
@@ -259,21 +263,21 @@ async function getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_ke
             .digest('hex');
         const fullUrl = HOST + PATH;
 
-        const { data } = await axios.post(fullUrl, 
-            {
+        const { data } = await requestWithRetry({
+            method: 'post',
+            url: fullUrl,
+            data: {
                 order_sn_list: batchOrderSns,
-            },    
-            {
-                params: {
-                    partner_id,
-                    timestamp,
-                    access_token,
-                    shop_id,
-                    sign,
-                    batchOrderSns
-                }
+            },
+            params: {
+                partner_id,
+                timestamp,
+                access_token,
+                shop_id,
+                sign,
+                batchOrderSns
             }
-        );
+        }, { label: `escrow-detail ${brand}` });
 
         if (data.error) throw new Error(data.message || data.error);
 

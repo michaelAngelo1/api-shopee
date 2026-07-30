@@ -1,7 +1,7 @@
 import { getShopCipher, loadTokens, refreshTokens } from "../auth/tiktokAuth.js";
 import crypto from 'crypto';
-import axios from 'axios';
 import { handleMergeRealtime, loadCredentials } from "./handleMergeRealtime.js";
+import { requestWithRetry } from "./httpRetry.js";
 
 const internalAppBrands = {
     "Eileen Grace": 1,
@@ -96,15 +96,15 @@ async function getOrderList(brand, shopCipher, accessToken) {
             const completeUrl = baseUrl + querySearchParams.toString();
 
 
-            const response = await axios.post(completeUrl, 
-                requestBody,
-                {
-                    headers: {
-                        'content-type': 'application/json',
-                        'x-tts-access-token': accessToken
-                    }
+            const response = await requestWithRetry({
+                method: 'post',
+                url: completeUrl,
+                data: requestBody,
+                headers: {
+                    'content-type': 'application/json',
+                    'x-tts-access-token': accessToken
                 }
-            );
+            }, { label: `tiktok-orders ${brand}` });
 
             // console.log("[TIKTOK-REALTIME] Raw response order list: ", response);
 

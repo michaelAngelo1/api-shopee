@@ -32,6 +32,13 @@ export const httpsAgent = new https.Agent(options);
 axios.defaults.httpAgent = httpAgent;
 axios.defaults.httpsAgent = httpsAgent;
 
+// Hard ceiling on every outbound axios call. Without this, a connect that never gets
+// answered stalls for ~127s (the Linux kernel's SYN retry budget) before giving up, and
+// that stall is what turns one dropped packet into a several-minute hole in the dashboard.
+// 20s is roughly 5x the slowest healthy Shopee response; drop to 15s if that holds.
+// This covers every call site including the 16 refreshToken() functions in the processors.
+axios.defaults.timeout = 20_000;
+
 // Snapshot of pool usage per origin. Handy for confirming sockets are actually being
 // reused rather than recreated.
 export function poolStatus() {
