@@ -31,25 +31,26 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
         'SHIPPED', 
         'COMPLETED', 
         'IN_CANCEL', 
-        'CANCELLED'
+        'CANCELLED',
     ];
 
     try {
-        // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
-        // Jakarta is UTC+7 (25200 seconds)
-        // const nowSeconds = Math.floor(Date.now() / 1000);
-        // const jakartaOffset = 25200; 
-        // const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-        // const JAKARTA_MIDNIGHT_TS = nowSeconds - secondsPassedToday;
-        // Use the Jakarta Midnight timestamp we calculated
-        
         // Production
         const time_from = JAKARTA_MIDNIGHT_TODAY;
         const time_to = nowSeconds; 
 
         // // FOR DEBUGGING / TESTING. COMMENT LATER
-        // const time_from = JAKARTA_MIDNIGHT_TODAY - (2 * 86400); 
-        // const time_to = nowSeconds;
+        // const time_from = JAKARTA_MIDNIGHT_TODAY - (5 * 86400); // prints 09-08 00:00:00. was 2 * 86400. do 5 * 86400 to take into account orders that are created before 09-08 but not paid until 09-08. 
+        // const time_to = JAKARTA_MIDNIGHT_TODAY - (1 * 86400) - 1; // prints 09-08 23:59:59
+
+        // DEBUGGING 09-09. 
+        // const time_from = JAKARTA_MIDNIGHT_TODAY - (3 * 86400);
+        // const time_to = JAKARTA_MIDNIGHT_TODAY - 1;
+        
+        const fmt = (s) => new Date(s * 1000).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' });
+
+        console.log("Readable time_from: ", fmt(time_from)); // e.g. 2026-09-08 00:00:00
+        console.log("Readable time_to: ",   fmt(time_to));
 
         for (const status of statusesToFetch) {
             let cursor = "";
@@ -71,7 +72,8 @@ async function getOrderList(brand, partner_id, partner_key, access_token, shop_i
                         access_token,
                         timestamp,
                         sign,
-                        time_range_field: 'update_time',
+                        time_range_field: 'update_time', // the production one
+                        // time_range_field: 'create_time',
                         time_from: time_from,
                         time_to: time_to,
                         page_size: 100,
@@ -125,14 +127,24 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
     let orderCount = 0;
 
     try {
-        // 1. Calculate Jakarta Midnight ONCE globally to ensure consistency
-        // Jakarta is UTC+7 (25200 seconds)
-        // const nowSeconds = Math.floor(Date.now() / 1000);
-        // const jakartaOffset = 25200; 
-        // const secondsPassedToday = (nowSeconds + jakartaOffset) % 86400;
-        // const JAKARTA_MIDNIGHT_TODAY = nowSeconds - secondsPassedToday;
-        // const JAKARTA_MIDNIGHT_YESTERDAY = JAKARTA_MIDNIGHT_TODAY - (2 * 86400);
-        // const JAKARTA_MIDNIGHT_TODAY_ADJUSTED = JAKARTA_MIDNIGHT_TODAY - 86400;
+        
+        // // FOR DEBUGGING / TESTING. COMMENT LATER
+        // const time_from = JAKARTA_MIDNIGHT_TODAY - (2 * 86400); // prints 09-08 00:00:00. was 2 * 86400. for order_detail logic, this is true. 
+        // const time_to = JAKARTA_MIDNIGHT_TODAY - (1 * 86400) - 1; // prints 09-08 23:59:59
+
+        // DEBUGGING 09-09. 
+        // const time_from = JAKARTA_MIDNIGHT_TODAY - (1 * 86400);
+        // const time_to = JAKARTA_MIDNIGHT_TODAY - 1;
+
+        // Reassignment for readability
+        const time_from = JAKARTA_MIDNIGHT_TODAY;
+        const time_to = JAKARTA_MIDNIGHT_TODAY
+        
+        const fmt = (s) => new Date(s * 1000).toLocaleString('sv-SE', { timeZone: 'Asia/Jakarta' });
+
+        // console.log("Readable time_from: ", fmt(time_from)); // e.g. 2026-09-08 00:00:00
+        // console.log("Readable time_to: ",   fmt(time_to));
+
         const order_sn_list = batch.join(',');
         const timestamp = Math.floor(Date.now() / 1000);
         const baseString = `${partner_id}${PATH}${timestamp}${access_token}${shop_id}`;
@@ -165,12 +177,12 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 // // For debugging: yesterday's orders
                 // if (order.payment_method !== 'Cash on Delivery') {
                 //     // Non-COD must be PAID today
-                //     if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.pay_time < JAKARTA_MIDNIGHT_TODAY) {
+                //     if (order.pay_time && order.pay_time >= time_from && order.pay_time < time_to) {
                 //         isTargetDate = true;
                 //     }
                 // } else {
                 //     // COD must be CREATED today
-                //     if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_YESTERDAY && order.create_time < JAKARTA_MIDNIGHT_TODAY) {
+                //     if (order.create_time && order.create_time >= time_from && order.create_time < time_to) {
                 //         isTargetDate = true;
                 //     }
                 // }
@@ -178,12 +190,12 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                 // // Production
                 if (order.payment_method !== 'Cash on Delivery') {
                     // Non-COD must be PAID today
-                    if (order.pay_time && order.pay_time >= JAKARTA_MIDNIGHT_TODAY) {
+                    if (order.pay_time && order.pay_time >= time_from) {
                         isTargetDate = true;
                     }
                 } else {
                     // COD must be CREATED today
-                    if (order.create_time && order.create_time >= JAKARTA_MIDNIGHT_TODAY) {
+                    if (order.create_time && order.create_time >= time_from) {
                         isTargetDate = true;
                     }
                 }
@@ -196,28 +208,11 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
                     let orderTotal = 0;
                     order.item_list.forEach(item => {
                         let price = parseFloat(item.model_discounted_price || 0);
-                        // console.log("Item model discounted price: ", price, " for brand: ", brand);
-                        
-                        // if (cancelledOrders.includes(order.order_sn)) {
-                        //     console.log("Order Sn cancelled: ", order.order_sn);
-                        //     console.log(item);                       
-                        // }
-                        
                         const qty = item.model_quantity_purchased || 0;
                         let itemTotal = (price * qty);
-                        // console.log("Item Subtotal: ", itemTotal)
-                        
-                        // if (order.order_status === 'CANCELLED') {
-                        //     console.log(`[GHOST CAUGHT] Cancelled Order added to GMV: ${order.order_sn} | Value: Rp ${itemTotal} | COD: ${order.payment_method === 'Cash on Delivery'}`);
-                        // }
-
-
-                        
                         orderTotal += itemTotal;
-                        // console.log("Total GMV running total: ", totalGMV, " for brand: ", brand);
                     });
                     orderSnForEscrow.push(order.order_sn);
-                    // console.log("Order sn: ", order.order_sn, " order status: ", order.order_status, " order value: ", orderTotal, " payment method: ", order.payment_method);
                     totalGMV += orderTotal;
 
                     orderCount += 1;
@@ -229,22 +224,23 @@ async function getOrderDetail(brand, batch, partner_id, partner_key, access_toke
         console.log(`[REALTIME-SALES] Detail Error (${brand}): ${e.message}`);
     }
 
-    // let voucherFromSellerTotal = 0;
-    // let batchSize = 20;
+    // Voucher from seller section
+    let voucherFromSellerTotal = 0;
+    let batchSize = 20;
 
-    // for(let i=0; i<orderSnForEscrow.length; i+=batchSize) {
-    //     const batchOrderSns = orderSnForEscrow.slice(i, i+batchSize);
-    //     const voucherFromSellerBatch = await getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id);
-    //     voucherFromSellerTotal += voucherFromSellerBatch;
-    // }
+    for(let i=0; i<orderSnForEscrow.length; i+=batchSize) {
+        const batchOrderSns = orderSnForEscrow.slice(i, i+batchSize);
+        const voucherFromSellerBatch = await getEscrowDetailBatch(brand, batchOrderSns, partner_id, partner_key, access_token, shop_id);
+        voucherFromSellerTotal += voucherFromSellerBatch;
+    }
 
-    // console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
+    console.log("Voucher from seller on brand: ", brand, " per batch: ", voucherFromSellerTotal);
 
     // return totalGMV - voucherFromSellerTotal;
     // console.log("Order count: ", orderCount);
 
     return { 
-        gmv: totalGMV, 
+        gmv: totalGMV - voucherFromSellerTotal, 
         count: orderCount 
     }
 }
@@ -331,25 +327,9 @@ export async function mainRealtime(brand, partner_id, partner_key, access_token,
 
 // await mainM2();
 
-// async function testbed() {
-
-//     // let egPartnerId = "2010478"
-//     // let egPartnerKey = "6a5873534a6c6b574a795a734579634a4c5253746c4e66496d6a517a626f5643"
-//     // let egShopId = 33221984
-//     // let egAccessToken = "eyJhbGciOiJIUzI1NiJ9.CO7aehABGODa6w8gASjMvcPOBjCEoZrAAjgBQAFIBw.gWgusgv9Tv5R5bGZJibuS20pWWa05xrRfVEyChhTf4s"
-//     // await mainRealtime("Eileen Grace", egPartnerId, egPartnerKey,  egAccessToken, egShopId)
-
-//     // let mdPartnerId = "2010423"
-//     // let mdPartnerKey = "64595a4c7368546c7a6276564673645a4c784d74745a6745647a7176455a4278"
-//     // let mdShopId = 332381969	
-//     // let mdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CLfaehABGJH-vp4BIAEogazMzgYw5qOSwg44AUABSAc.aWtivHpTHxHygeBHvBRgTNPZqY2hj0ClbxuS-BmMX_E"
-//     // await mainRealtime("Miss Daisy", mdPartnerId, mdPartnerKey, mdAccessToken, mdShopId);
-
-//     let shrdPartnerId = "2013428"
-//     let shrdPartnerKey = "shpk4663436e7a76624c59524742635a55544c7670686a4e6d417465626a4651"
-//     let shrdShopId = 167106407
-//     let shrdAccessToken = "eyJhbGciOiJIUzI1NiJ9.CPTxehABGOeu108gASim5MzOBjCklpz0DDgBQAFIBw.852t6wfLVZRcQZd1gy3SFnbkDR5RMweNfznXIxK0b9k"
-//     await mainRealtime("SHRD", shrdPartnerId, shrdPartnerKey, shrdAccessToken, shrdShopId)
+// async function testBed() {
+//     let accessToken = "eyJhbGciOiJIUzI1NiJ9.CMvyehABGIzKkkAgASjU3Y3VBjCz9bC_ATgBQAFIBw.LCmq80fyf_ScSj7iL7tryOkHQDyfa3MQE-p5rW0UyiA"
+//     await mainRealtime("Mamaway", process.env.MOSS_PARTNER_ID, process.env.MOSS_PARTNER_KEY, accessToken, process.env.MMW_SHOP_ID)
 // }
 
-// await testbed();
+// await testBed()
