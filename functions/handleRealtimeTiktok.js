@@ -174,10 +174,27 @@ async function mainRealtimeTiktok(brand) {
 
 export async function parentRealtimeTiktok() {
     const brands = [
-        "Eileen Grace", "Mamaway", "SHRD", "Miss Daisy", "Polynia", "CHESS",
-        "Cléviant", "Mossèru", "Evoke", "Dr Jou", "Mirae", "Swissvita",
-        "G-Belle", "Past Nine", "Nutri & Beyond", "Ivy & Lily", "Naruko",
-        "Relove", "Joey & Roo", "Rocketindo Shop", "M2", 
+        "Eileen Grace", 
+        "Mamaway", 
+        "SHRD", 
+        "Miss Daisy", 
+        "Polynia", 
+        // "CHESS",
+        "Cléviant", 
+        "Mossèru", 
+        "Evoke", 
+        "Dr Jou", 
+        "Mirae", 
+        "Swissvita",
+        "G-Belle", 
+        "Past Nine", 
+        // "Nutri & Beyond", 
+        "Ivy & Lily", 
+        "Naruko",
+        "Relove", 
+        "Joey & Roo", 
+        "Rocketindo Shop", 
+        "M2", 
         "PAZZO"
     ];
 

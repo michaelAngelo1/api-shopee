@@ -122,13 +122,13 @@ export async function fetchAndProcessOrdersCHESS() {
     console.log("Starting fetch orders CHESS");
     let brand = "CHESS";
 
-    const loadedTokens = await loadTokensFromSecret();
-    CHESS_ACCESS_TOKEN = loadedTokens.accessToken;
-    CHESS_REFRESH_TOKEN = loadedTokens.refreshToken;
+    // const loadedTokens = await loadTokensFromSecret();
+    // CHESS_ACCESS_TOKEN = loadedTokens.accessToken;
+    // CHESS_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
     
-    await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
+    // await mainRealtime(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
     
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, CHESS_ACCESS_TOKEN, SHOP_ID);

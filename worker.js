@@ -18,10 +18,8 @@ import { fetchAndProcessOrdersGB } from './workers/gb_processor.js';
 import { fetchAndProcessOrdersIL } from './workers/il_processor.js';
 import { fetchAndProcessOrdersEVOKE } from './workers/evoke_processor.js';
 import { fetchAndProcessOrdersMMW } from './workers/mmw_processor.js';
-import { fetchAndProcessOrdersCHESS } from './workers/chess_processor.js';
 import { fetchAndProcessOrdersSV } from './workers/sv_processor.js';
 import { fetchAndProcessOrdersPN } from './workers/pn_processor.js';
-import { fetchAndProcessOrdersNB } from './workers/nb_processor.js';
 import { fetchAndProcessOrdersMIRAE } from './workers/mirae_processor.js';
 import { fetchAndProcessOrdersPOLY } from './workers/poly_processor.js';
 
@@ -58,10 +56,8 @@ const orderQueueGB = new Queue("realtime-fetch-orders-gb", redisConnection);
 const orderQueueIL = new Queue("realtime-fetch-orders-il", redisConnection);
 const orderQueueEV = new Queue("realtime-fetch-orders-evoke", redisConnection);
 const orderQueueMMW = new Queue("realtime-fetch-orders-mmw", redisConnection);
-const orderQueueCHESS = new Queue("realtime-fetch-orders-chess", redisConnection);
 const orderQueueSV = new Queue("realtime-fetch-orders-sv", redisConnection);
 const orderQueuePN = new Queue("realtime-fetch-orders-pn", redisConnection);
-const orderQueueNB = new Queue("realtime-fetch-orders-nb", redisConnection);
 const orderQueueMIRAE = new Queue("realtime-fetch-orders-mirae", redisConnection);
 const orderQueuePOLY = new Queue("realtime-fetch-orders-poly", redisConnection);
 
@@ -198,26 +194,10 @@ app.get('/realtime-sync', async (req, res) => {
         });
         stagger += interval;
 
-        // Chess
-        await orderQueueCHESS.add('realtime-fetch-orders-chess', {}, { 
-            ...baseOptions, 
-            jobId: `chess-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
-
         // Past Nine
         await orderQueuePN.add('realtime-fetch-orders-pn', {}, { 
             ...baseOptions, 
             jobId: `pn-daily-sync-${timestamp}`, 
-            delay: stagger 
-        });
-        stagger += interval;
-
-        // // Nutri Beyond
-        await orderQueueNB.add('realtime-fetch-orders-nb', {}, { 
-            ...baseOptions, 
-            jobId: `nb-daily-sync-${timestamp}`, 
             delay: stagger 
         });
         stagger += interval;
@@ -267,8 +247,8 @@ app.get('/admin/pause-queue', async (req, res) => {
             orderQueue.pause(), orderQueueMD.pause(), orderQueueSHRD.pause(),
             orderQueueCLEV.pause(), orderQueueDRJOU.pause(), orderQueueMOSS.pause(),
             orderQueueGB.pause(), orderQueueIL.pause(), orderQueueEV.pause(),
-            orderQueueMMW.pause(), orderQueueCHESS.pause(), orderQueueSV.pause(),
-            orderQueuePN.pause(), orderQueueNB.pause(), orderQueueMIRAE.pause(),
+            orderQueueMMW.pause(), orderQueueSV.pause(),
+            orderQueuePN.pause(), orderQueueMIRAE.pause(),
             orderQueuePOLY.pause()
         ]);
         console.log("ADMIN: all queues have been paused.");
@@ -286,8 +266,8 @@ app.get('/admin/resume-queue', async (req, res) => {
             orderQueue.resume(), orderQueueMD.resume(), orderQueueSHRD.resume(),
             orderQueueCLEV.resume(), orderQueueDRJOU.resume(), orderQueueMOSS.resume(),
             orderQueueGB.resume(), orderQueueIL.resume(), orderQueueEV.resume(),
-            orderQueueMMW.resume(), orderQueueCHESS.resume(), orderQueueSV.resume(),
-            orderQueuePN.resume(), orderQueueNB.resume(), orderQueueMIRAE.resume(),
+            orderQueueMMW.resume(), orderQueueSV.resume(),
+            orderQueuePN.resume(), orderQueueMIRAE.resume(),
             orderQueuePOLY.resume()
         ]);
         console.log("ADMIN: all queues have been resumed");
@@ -331,8 +311,8 @@ app.get('/admin/stop-all-jobs', async (req, res) => {
         const queues = [
             orderQueue, orderQueueMD, orderQueueSHRD, orderQueueCLEV, 
             orderQueueDRJOU, orderQueueMOSS, orderQueueGB, orderQueueIL, 
-            orderQueueEV, orderQueueMMW, orderQueueCHESS, orderQueueSV, 
-            orderQueuePN, orderQueueNB, orderQueueMIRAE, orderQueuePOLY
+            orderQueueEV, orderQueueMMW, orderQueueSV, 
+            orderQueuePN, orderQueueMIRAE, orderQueuePOLY
         ];
 
         console.log("ADMIN: Pausing all queues...");
@@ -471,11 +451,6 @@ const mmwWorker = createWorker("realtime-fetch-orders-mmw", async (job) => {
     throw new Error(`Unknown job name: ${job.name}`);
 }, "MMW");
 
-const chessWorker = createWorker("realtime-fetch-orders-chess", async (job) => {
-    if (job.name === 'realtime-fetch-orders-chess') return fetchAndProcessOrdersCHESS();
-    throw new Error(`Unknown job name: ${job.name}`);
-}, "CHESS");
-
 const svWorker = createWorker("realtime-fetch-orders-sv", async (job) => {
     if (job.name === 'realtime-fetch-orders-sv') return fetchAndProcessOrdersSV();
     throw new Error(`Unknown job name: ${job.name}`);
@@ -485,11 +460,6 @@ const pnWorker = createWorker("realtime-fetch-orders-pn", async (job) => {
     if (job.name === 'realtime-fetch-orders-pn') return fetchAndProcessOrdersPN();
     throw new Error(`Unknown job name: ${job.name}`);
 }, "PN");
-
-const nbWorker = createWorker("realtime-fetch-orders-nb", async (job) => {
-    if (job.name === 'realtime-fetch-orders-nb') return fetchAndProcessOrdersNB();
-    throw new Error(`Unknown job name: ${job.name}`);
-}, "NB");
 
 const miraeWorker = createWorker("realtime-fetch-orders-mirae", async (job) => {
     if (job.name === 'realtime-fetch-orders-mirae') return fetchAndProcessOrdersMIRAE();
@@ -516,8 +486,8 @@ const gracefulShutdown = async () => {
     await Promise.all([
         orderWorker.close(), mdWorker.close(), shrdWorker.close(), clevWorker.close(),
         drjouWorker.close(), mossWorker.close(), gbWorker.close(), ilWorker.close(),
-        evWorker.close(), mmwWorker.close(), chessWorker.close(), svWorker.close(),
-        pnWorker.close(), nbWorker.close(), miraeWorker.close(), polyWorker.close()
+        evWorker.close(), mmwWorker.close(), svWorker.close(),
+        pnWorker.close(), miraeWorker.close(), polyWorker.close()
     ]);
 
     console.log("Shutdown complete.");

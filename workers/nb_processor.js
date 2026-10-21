@@ -123,13 +123,13 @@ export async function fetchAndProcessOrdersNB() {
     let brand = "Nutri & Beyond";
     let brandTT = "Nutri Beyond";
 
-    const loadedTokens = await loadTokensFromSecret();
-    NB_ACCESS_TOKEN = loadedTokens.accessToken;
-    NB_REFRESH_TOKEN = loadedTokens.refreshToken;
+    // const loadedTokens = await loadTokensFromSecret();
+    // NB_ACCESS_TOKEN = loadedTokens.accessToken;
+    // NB_REFRESH_TOKEN = loadedTokens.refreshToken;
 
-    await refreshToken();
+    // await refreshToken();
 
-    await mainRealtime(brandTT, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
+    // await mainRealtime(brandTT, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
     // await mainDanaDilepas(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
     // await handleWalletTransactions(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID)
     // await fetchAdsTotalBalance(brand, PARTNER_ID, PARTNER_KEY, NB_ACCESS_TOKEN, SHOP_ID);
